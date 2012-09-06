@@ -19,7 +19,8 @@ set (SOURCES	auxil.cc
 		hitstun.cc
 		interface.cc 
 		action.cc 
-		player.cc 
+		player.cc
+		indigo.cc 
 		red.cc
 		yellow.cc 
 		special.cc 
