@@ -3,17 +3,17 @@ Buffer: 2 : 0
 Hits: 0
 Frames: 2 : 2
 Check: 3
-State: 509
+State: 3
 Gain: 1
 Cost: 0
 Blocks: 0
-Properties: S
+Properties:  
 #0 
-$C	10 0 110 300
-$R	10 0 110 300
-$D	10 -50 0 1
+$C	10 0 110 270
+$R	10 0 110 270
+$D	15 -25 0 1
 #1
-$C	10 0 110 300
-$R	10 0 110 300
+$C	10 0 110 270
+$R	10 0 110 270
 $D	0 0 0 0
 
