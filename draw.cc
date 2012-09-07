@@ -6,9 +6,14 @@
 
 #include "interface.h"
 #include <math.h>
+#include <iomanip>
+#include <sstream>
+#include <string>
 #include <SDL/SDL_opengl.h>
 void interface::draw()
 {
+
+	char buffer[200];
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
@@ -27,6 +32,25 @@ void interface::draw()
 		glTexCoord2i(0, 1);
 		glVertex3f((GLfloat)(-bg.x)*scalingFactor, (GLfloat)(bg.h - bg.y)*scalingFactor, 0.f);
 	glEnd();
+
+	if(timer / 60 > 99) sprintf(buffer, "99");
+	else if(timer / 60 < 10) sprintf(buffer, "0%i", timer / 60);
+	else sprintf(buffer, "%i", timer / 60);
+
+	drawGlyph(buffer, 700, 200, 0, 90, 1);
+	for(int i = 0; i < 2; i++){
+		drawGlyph(p[i]->pick()->name, 100+800*i, 600, 30, 40, 0+2*i);
+		if(combo[i] > 1){
+			sprintf(buffer, "%i hits", combo[i]);
+			drawGlyph(buffer, 100+800*i, 600, 400, 50, 0+2*i);
+		}
+	}
+
+	if(timer > 100 * 60 && timer < 100 * 60 + 31){ 
+		sprintf(buffer, "Round %i", 1 + p[0]->rounds + p[1]->rounds);
+		drawGlyph(buffer, 0, 1600, 300, 200, 1);
+	}
+	else if(timer > 99 * 60 && timer <= 99 * 60 + 31) drawGlyph("FIGHT", 0, 1600, 300, 200, 1);
 
 	glDisable( GL_TEXTURE_2D );
 	for(int i = 0; i < 2; i++){
@@ -169,6 +193,55 @@ void player::drawHitParticle(int x, int y, float scalingFactor)
 void avatar::draw(action *& cMove, int facing, int x, int y, int f, float scalingFactor)
 {
 	cMove->draw(facing, x, y, f, scalingFactor);
+}
+
+int interface::drawGlyph(const char * string, int x, int space, int y, int height, int just)
+{
+	int w, h, width = 0, padding = 0, totalWidth = 0;
+	if(just != 0){	
+		for(unsigned int i = 0; i < strlen(string); i++){
+			if(string[i] == ' ') totalWidth += w * sf / 2;
+			else if(string[i] == '\0');
+			else{
+				glBindTexture(GL_TEXTURE_2D, glyph[toupper(string[i])]);
+
+				glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
+				glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
+				sf = (float)height / (float)h;
+				totalWidth += w * sf;
+			}
+		}
+		if(just == 2) padding = space - totalWidth;
+		else padding = (space - totalWidth) / 2;
+	}
+
+	float sf;
+	for(unsigned int i = 0; i < strlen(string); i++){
+		if(string[i] == ' ') x += (float)width / 2.0;
+		else{
+			glBindTexture(GL_TEXTURE_2D, glyph[toupper(string[i])]);
+
+			glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
+			glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
+			sf = (float)height / (float)h;
+			width = w * sf;
+			glBegin(GL_QUADS);
+			glTexCoord2i(0, 0);
+			glVertex3f((x + padding) *scalingFactor, y * scalingFactor, 0.f);
+
+			glTexCoord2i(1, 0);
+			glVertex3f((x + padding) * scalingFactor + width * scalingFactor, y * scalingFactor, 0.f);
+
+			glTexCoord2i(1, 1);
+			glVertex3f((x + padding) * scalingFactor + width * scalingFactor, y * scalingFactor + height * scalingFactor, 0.f);
+
+			glTexCoord2i(0, 1);
+			glVertex3f((x + padding) * scalingFactor, y * scalingFactor + height * scalingFactor, 0.f);
+			glEnd();
+			x += (float)width;
+		}
+	}
+	return x;
 }
 
 void action::draw(int facing, int x, int y, int f, float scalingFactor)

@@ -43,6 +43,7 @@ void action::zero()
 	attemptStart = 0;
 	attemptEnd = 0;
 	stop = 0;
+	hits = 0;
 	throwinvuln = 0;
 	crouch = 0;
 	armorStart = 0; armorLength = 0;
@@ -54,6 +55,7 @@ void action::zero()
 	cost = 0;
 	dies = 0;
 	fch = 0;
+	armorCounter = 0;
 	tempNext = NULL;
 	tempAttempt = NULL;
 	tempRiposte = NULL;
@@ -175,14 +177,12 @@ bool action::setParameter(char * buffer)
 		token = strtok(NULL, "\t:\n");
 		name = new char[strlen(token)+1];
 		sprintf(name, "%s", token);
-//		printf(": %s\n", name);
 		return 1;
 	} else if (!strcmp("Buffer", token)) {
 		token = strtok(NULL, "\t: \n");
 		tolerance = atoi(token);
 		token = strtok(NULL, "\t: \n");
 		activation = atoi(token);
-//		printf("Buffer: %i : %i\n", tolerance, activation);
 		return 1;
 	} else if (!strcmp("Counterhit", token)) {
 		parseProperties(savedBuffer, 1);
@@ -208,7 +208,6 @@ bool action::setParameter(char * buffer)
 		gain = new int[hits+1];
 		for(int i = 0; i < hits+1; i++)
 			gain[i] = 0;
-//		printf("Hits: %i\n", hits);
 		return 1;
 	} else if (!strcmp("Riposte", token)) {
 		token = strtok(NULL, "\t: \n");
@@ -241,22 +240,18 @@ bool action::setParameter(char * buffer)
 	} else if (!strcmp("Blocks", token)) {
 		token = strtok(NULL, "\t: \n");
 		blockState.i = atoi(token);
-//		printf("Blocks: %i\n", blockState.i);
 		return 1;
 	} else if (!strcmp("Check", token)) {
 		token = strtok(NULL, "\t: \n");
 		allowed.i = atoi(token);
-//		printf("Check: %i\n", allowed.i);
 		return 1;
 	} else if (!strcmp("Cost", token)) {
 		token = strtok(NULL, "\t: \n");
 		cost = atoi(token);
-//		printf("Cost: %i\n", cost);
 		return 1;
 	} else if (!strcmp("Frames", token)) {
 		token = strtok(NULL, "\t: \n");
 		frames = atoi(token);
-//		printf("Frames: %i\n", frames);
 		int startup, countFrames = -1;
 		if(hits > 0) {
 			totalStartup = new int[hits];
@@ -277,80 +272,64 @@ bool action::setParameter(char * buffer)
 		}
 		return 1;
 	} else if (!strcmp("State", token)) {
-//		printf("State");
 		for(int i = 0; i < hits+1; i++){
 			token = strtok(NULL, "\t: \n");
 			state[i].i = atoi(token);
-//			printf(": %i ", state[i].i);
 		}
-//		printf("\n");
 		return 1;
 	} else if (!strcmp("HitAllows", token)) {
-//		printf("HitAllows");
 		for(int i = 0; i < hits; i++){
 			token = strtok(NULL, "\t: \n");
 			stats[i].hitState.i = atoi(token);
-//			printf(": %i ", hitState[i].i);
 		}
-//		printf("\n");
 		return 1;
 	} else if (!strcmp("Damage", token)) {
-//		printf("Damage");
 		for(int i = 0; i < hits; i++){
 			token = strtok(NULL, "\t: \n");
 			if(savedBuffer[0] == '+') 
 				CHStats[i].damage = atoi(token);
 			else stats[i].damage = atoi(token);
-//			printf(": %i ", stats[i].damage);
 		}
-//		printf("\n");
+		return 1;
+	} else if (!strcmp("Chip", token)) {
+		for(int i = 0; i < hits; i++){
+			token = strtok(NULL, "\t: \n");
+			stats[i].chip = atoi(token);
+		}
 		return 1;
 	} else if (!strcmp("Push", token)) {
-//		printf("Push");
 		for(int i = 0; i < hits; i++){
 			token = strtok(NULL, "\t: \n");
 			if(savedBuffer[0] == '+') 
 				CHStats[i].push = atoi(token);
 			else stats[i].push = atoi(token);
-//			printf(": %i ", stats[i].push);
 		}
-//		printf("\n");
 		return 1;
 	} else if (!strcmp("Lift", token)) {
-//		printf("Lift");
 		for(int i = 0; i < hits; i++){
 			token = strtok(NULL, "\t: \n");
 			if(savedBuffer[0] == '+')
 				CHStats[i].lift = atoi(token);
 			else stats[i].lift = atoi(token);
-//			printf(": %i ", stats[i].lift);
 		}
-//		printf("\n");
 		return 1;
 	} else if (!strcmp("Float", token)) {
-//		printf("Float");
 		for(int i = 0; i < hits; i++){
 			token = strtok(NULL, "\t: \n");
 			if(savedBuffer[0] == '+')
 				CHStats[i].hover = atoi(token);
 			else stats[i].hover = atoi(token);
-//			printf(": %i ", stats[i].hover);
 		}
-//		printf("\n");
 		return 1;
 	} else if (!strcmp("Blowback", token)) {
-//		printf("Blowback");
 		for(int i = 0; i < hits; i++){
 			token = strtok(NULL, "\t: \n");
 			if(savedBuffer[0] == '+')
 				CHStats[i].blowback = atoi(token);
 			else stats[i].blowback = atoi(token);
-//			printf(": %i ", stats[i].blowback);
 		}
-//		printf("\n");
 		return 1;
 	} else if (!strcmp("Stun", token)) {
-//		printf("Stun");
 		for(int i = 0; i < hits; i++){
 			token = strtok(NULL, "\t: \n");
 			if(savedBuffer[0] == '+')
@@ -359,12 +338,9 @@ bool action::setParameter(char * buffer)
 				stats[i].stun = atoi(token);
 				CHStats[i].stun = (stats[i].stun - 5) / 2;
 			}
-//			printf(": %i ", stats[i].stun);
 		}
-//		printf("\n");
 		return 1;
 	} else if (!strcmp("Untech", token)) {
-//		printf("Untech");
 		for(int i = 0; i < hits; i++){
 			token = strtok(NULL, "\t: \n");
 			if(savedBuffer[0] == '+')
@@ -373,27 +349,19 @@ bool action::setParameter(char * buffer)
 				stats[i].untech = atoi(token);
 				CHStats[i].untech = 10;
 			}
-//			printf(": %i ", stats[i].untech);
 		}
-//		printf("\n");
 		return 1;
 	} else if (!strcmp("Blockable", token)) {
-//		printf("Blockable");
 		for(int i = 0; i < hits; i++){
 			token = strtok(NULL, "\t: \n");
 			stats[i].blockMask.i = atoi(token);
-//			printf(": %i ", stats[i].blockMask.i);
 		}
-//		printf("\n");
 		return 1;
 	} else if (!strcmp("Gain", token)) {
-//		printf("Gain");
 		for(int i = 0; i < hits+1; i++){
 			token = strtok(NULL, "\t: \n");
 			gain[i] = atoi(token);
-//			printf(": %i ", gain[i]);
 		}
-//		printf("\n");
 		return 1;
 	} else if (!strcmp("Autoguard", token)) {
 		token = strtok(NULL, "\t: \n-");
@@ -546,6 +514,7 @@ void action::pollStats(hStat & s, int f, bool CH)
 {
 	int c = calcCurrentHit(f);
 	s.damage = stats[c].damage + CHStats[c].damage * CH;
+	s.chip = stats[c].chip;
 	s.stun = stats[c].stun + CHStats[c].stun * CH;
 	s.push = stats[c].push + CHStats[c].push * CH;
 	s.lift = stats[c].lift + CHStats[c].lift * CH;
@@ -630,6 +599,7 @@ action * action::blockSuccess()
 
 void action::execute(action * last, int *& resource)
 {
+	armorCounter = 0;
 	resource[0] -= cost;
 }
 
@@ -674,10 +644,13 @@ char * action::request(int code, int i)
 
 int action::takeHit(hStat & s, int b, int &f, int &c, int &h)
 {
-	if(s.blockMask.i & blockState.i && f > guardStart && f < guardStart + guardLength)
-		return 0;
-	else if (f > armorStart && f < armorStart + armorLength){
+	if(s.blockMask.i & blockState.i && f > guardStart && f < guardStart + guardLength){
+		if(riposte != NULL) return -2;
+		else return 0;
+	}
+	else if (f > armorStart && f < armorStart + armorLength && (armorHits < 1 || armorHits < armorCounter)){
 		s.stun = 0;
+		armorCounter++;
 		return 1;
 	} else {
 		f = 0;

@@ -4,7 +4,13 @@
  *Under MIT OSI license, see "COPYING" for details
  */
 #include <SDL/SDL.h>
+
+#ifdef _APPLE
+#include <SDL_image/SDL_image.h>
+#else
 #include <SDL/SDL_image.h>
+#endif
+
 #include "trie.h"
 #ifndef CHARACTER
 #define CHARACTER
@@ -36,6 +42,7 @@ public:
 	actionTrie * head;	//Trie for ground actions
 	int * meter;
 
+	action * die;
 	action * neutral;
 };
 
@@ -84,6 +91,5 @@ public:
 	virtual void processMove(action * m);
 	virtual bool death(action *&, int);
 	virtual void init(action *&);
-	action * die;
 };
 #endif

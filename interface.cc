@@ -43,6 +43,7 @@ interface::interface()
 	/*Initialize players.*/
 	for(int i = 0; i < 2; i++){
 		p[i] = new player(i+1);
+		if(!p[i]->readConfig()) writeConfig(i);
 		sAxis[i] = new bool[4];
 		posEdge[i] = new bool[5]; 
 		negEdge[i] = new bool[5];
@@ -73,8 +74,17 @@ interface::interface()
 
 	/*Start a match*/
 	things = NULL;
-	selectScreen = aux::load_texture("Misc/Select.png");
 	matchInit();
+}
+
+void interface::loadMisc()
+{
+	char buffer[200];
+	for(int i = 0; i < 91; i++){
+		sprintf(buffer, "Misc/Glyphs/%i.png", i);
+		glyph[i] = aux::load_texture(buffer);
+	}
+	selectScreen = aux::load_texture("Misc/Select.png");
 }
 
 bool interface::screenInit()
@@ -126,7 +136,62 @@ bool interface::screenInit()
 	glLoadIdentity();
 
 	initd = true;
+	loadMisc();
 	return true;
+}
+
+void interface::writeConfig(int ID)
+{
+	char buffer[200];
+	char pident[30];
+	char fname[30];
+	SDL_Event temp;
+	sprintf(pident, "Player %i", ID + 1);
+	sprintf(fname, "Misc/.p%i.conf", ID + 1);
+	std::ofstream write;
+	write.open(fname);
+	for(int i = 0; i < 10; i++){
+		//glClear(GL_COLOR_BUFFER_BIT);
+		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		glRectf(0.0f*scalingFactor, 0.0f*scalingFactor, (GLfloat)screenWidth*scalingFactor, (GLfloat)screenHeight*scalingFactor);
+		glEnable( GL_TEXTURE_2D );
+		glColor4f(0.1f, 0.1f, 0.1f, 1.0f);
+		drawGlyph(pident, 0, 1600, 300, 80, 1);
+		sprintf(buffer, "Please enter a");
+		drawGlyph(buffer, 0, 1600, 400, 80, 1);
+		sprintf(buffer, "command for %s", p[ID]->inputName[i]);
+		drawGlyph(buffer, 0, 1600, 500, 80, 1);
+		SDL_GL_SwapBuffers();
+		glDisable( GL_TEXTURE_2D );
+		//glClear(GL_COLOR_BUFFER_BIT);
+		temp = p[ID]->writeConfig(i);
+		glRectf(0.0f*scalingFactor, 0.0f*scalingFactor, (GLfloat)screenWidth*scalingFactor, (GLfloat)screenHeight*scalingFactor);
+		glEnable( GL_TEXTURE_2D );
+		drawGlyph(pident, 0, 1600, 300, 80, 1);
+		drawGlyph(buffer, 0, 1600, 500, 80, 1);
+		sprintf(buffer, "Please enter a");
+		drawGlyph(buffer, 0, 1600, 400, 80, 1);
+		switch(temp.type){
+		case SDL_JOYAXISMOTION:
+			if(temp.jaxis.value != 0 && temp.jaxis.axis < 6){
+				write << (int)temp.type << " : " << (int)temp.jaxis.which << " " << (int)temp.jaxis.axis << " " << (int)temp.jaxis.value << "\n";
+//				sprintf(buffer, "Set to Joystick %i axis %i value %i\n", temp.jaxis.which, temp.jaxis.axis, temp.jaxis.value);
+			}
+			break;
+		case SDL_JOYBUTTONDOWN:
+			write << (int)temp.type << " : " << (int)temp.jbutton.which << " " << (int)temp.jbutton.button << "\n";
+//			sprintf(buffer, "Set to Joystick %i button %i\n", temp.jbutton.which, temp.jbutton.button);
+			break;
+		case SDL_KEYDOWN:
+			write << (int)temp.type << " : " << (int)temp.key.keysym.sym << "\n";
+//			sprintf(buffer, "Set to keyboard %s\n", SDL_GetKeyName(temp.key.keysym.sym));
+			break;
+		}
+//		drawGlyph(buffer, 0, 1600, 450, 80, 1);
+		SDL_GL_SwapBuffers();
+		glDisable( GL_TEXTURE_2D );
+	}
+	write.close();
 }
 
 /*This functions sets things up for a new match. Initializes some things and draws the background*/
@@ -141,8 +206,6 @@ void interface::matchInit()
 	p[1]->secondInstance = 0;
 	background = aux::load_texture("Misc/BG1.png");
 	q = 0;
-	matchIntro = 1;
-	matchIntro = 0; //To be removed later, when match intro stuff actually exists
 	printf("Please select a character:\n");
 	while (SDL_PollEvent(&event));
 }
@@ -150,6 +213,7 @@ void interface::matchInit()
 /*Sets stuff up for a new round. This initializes the characters, the timer, and the background.*/
 void interface::roundInit()
 {
+	roundEnd = false;
 	if(things){ 
 		delete [] things;
 	}
@@ -181,9 +245,8 @@ void interface::roundInit()
 	combo[0] = 0;
 	combo[1] = 0;
 	grav = 6;
-	timer = 60 * 99;
-	roundIntro = 1;
-	roundIntro = 0;
+	timer = 60 * 101;
+//	if(p[0]->rounds + p[1]->rounds < 1) timer += 60 * 6;
 	prox.w = 200;
 	prox.h = 0;
 	freeze = 0;
@@ -193,12 +256,16 @@ void interface::roundInit()
 /*Pretty simple timer modifier*/
 void interface::runTimer()
 {
+	int plus;
 	for(int i = 0; i < 2; i++){
 		if(select[i] == true){
 			if(p[i]->cMove != NULL)
 			{
-				timer += (p[i]->cMove->arbitraryPoll(31, p[i]->currentFrame));
-				if(timer > 60*99) timer = 60*99;
+				plus = (p[i]->cMove->arbitraryPoll(31, p[i]->currentFrame));
+				if(plus != 0){ 
+					timer += plus;
+					if(timer > 60*99) timer = 60*99;
+				}
 			}
 		}
 	}
@@ -214,7 +281,20 @@ void interface::resolve()
 {
 	if(!select[0] || !select[1]) cSelectMenu(); 
 	else {
-		for(int i = 0; i < thingComplexity; i++) things[i]->pushInput(sAxis[things[i]->ID - 1]);
+		if(timer > 99 * 60 && !roundEnd){
+			for(int i = 0; i < 2; i++){
+				if(timer == 106 * 60) p[i]->inputBuffer[0] = 0;
+				if(timer == 106 * 60 - 1) p[i]->inputBuffer[0] = i;
+				if(timer == 106 * 60 - 2) p[i]->inputBuffer[0] = selection[(i+1)%2] / 10;
+				if(timer == 106 * 60 - 3) p[i]->inputBuffer[0] = selection[(i+1)%2] % 10;
+				if(timer == 106 * 60 - 4) p[i]->inputBuffer[0] = 0;
+				else(p[i]->inputBuffer[0] = 5);
+				for(int j = 0; j < 5; j++){
+					posEdge[i][j] = 0;
+					negEdge[i][j] = 0;
+				}
+			}
+		} else for(int i = 0; i < thingComplexity; i++) things[i]->pushInput(sAxis[things[i]->ID - 1]);
 		p[1]->getMove(posEdge[1], negEdge[1], prox, 1);
 		for(int i = 0; i < thingComplexity; i++){
 			if(i < 2){
@@ -291,10 +371,8 @@ void interface::resolve()
 			if(i > 1 && things[i]->dead) cullThing(i);
 		}
 		resolveSummons();
-		if(!matchIntro && !roundIntro){
-			checkWin();
-			runTimer();
-		}
+		checkWin();
+		runTimer();
 	}
 	/*Reinitialize inputs*/
 	for(int i = 0; i < 5; i++){
@@ -343,6 +421,9 @@ void interface::resolveSummons()
 void interface::checkWin()
 {
 	if(p[0]->pick()->health == 0 || p[1]->pick()->health == 0 || timer == 0){
+		roundEnd = true;
+		if(p[0]->pick()->health > 0 && p[1]->pick()->health > 0) printf("Time Out\n");
+		else printf("Down!\n");
 		if(p[0]->pick()->health > p[1]->pick()->health) {
 			printf("Player 1 wins!\n");
 			p[0]->rounds++;
@@ -627,8 +708,6 @@ void interface::resolveHits()
 			if(hit[hitBy[i]] == 1) things[hitBy[i]]->hitFlag = things[hitBy[i]]->connectFlag;
 			p[(i+1)%2]->checkCorners(floor, bg.x + wall, bg.x + screenWidth - wall);
 			if(p[i]->facing * p[(i+1)%2]->facing == 1) p[i]->invertVectors(1);
-		for(int i = 0; i < 2; i++)
-			if(combo[i] > 1) printf("Player %i: %i hit combo\n", i+1, combo[i]);
 		}
 	}
 
