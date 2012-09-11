@@ -1,3 +1,7 @@
+NOTE: This is the binary distribution branch; it only contains binary packages of the source code.
+
+For the latest version of the source code, switch to the alpha branch.
+
 Project: Ground Up Fighting Game (Name Subject to change) is an open-source, gameplay-focused fighting game developed from the bottom up, one feature at a time. As such:
 
 -The code may be edited by anyone, but there is an “official” version of the game.
