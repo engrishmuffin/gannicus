@@ -4,13 +4,7 @@
  *Under MIT OSI license, see "COPYING" for details
  */
 #include <SDL/SDL.h>
-
-#ifdef _APPLE
-#include <SDL_image/SDL_image.h>
-#else
-#include <SDL/SDL_image.h>
-#endif
-
+#include "compat.h"
 #include "trie.h"
 #ifndef CHARACTER
 #define CHARACTER
@@ -66,6 +60,7 @@ public:
 	virtual int takeHit(action *&, hStat&, int, int&, int&, int&, int&);
 	virtual action * hook(int[40], int, int, int*, bool[5], bool[5], action *, SDL_Rect&, int&, int&);
 
+	looping * dead;
 	action * airNeutral;
 	action * crouch;
 	hitstun * reel;

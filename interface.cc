@@ -29,9 +29,9 @@ interface::interface()
 
 	read.open("Misc/.res.conf");
 	if(read.fail()){ 
-		scalingFactor = 1.0;
-		fullscreen = true;
-	} else { 
+		scalingFactor = 0.5;
+		fullscreen = false;
+	} else {
 		read >> scalingFactor;
 		read.ignore(100, '\n');
 		read >> fullscreen;
@@ -45,16 +45,17 @@ interface::interface()
 		p[i] = new player(i+1);
 		if(!p[i]->readConfig()) writeConfig(i);
 		sAxis[i] = new bool[4];
-		posEdge[i] = new bool[5]; 
-		negEdge[i] = new bool[5];
+		posEdge[i] = new bool[6]; 
+		negEdge[i] = new bool[6];
 		counter[i] = 0;
 		select[i] = 0;
-		selection[i] = 1;
+		selection[i] = 1+i;
+		menu[i] = 0;
 		sprintf(buffer, "Misc/P%iSelect%i.png", i+1, selection[i]);
 		cursor[i] = aux::load_texture(buffer);
 	}
 
-	for(int i = 0; i < 5; i++){
+	for(int i = 0; i < 6; i++){
 		posEdge[0][i] = 0;
 		posEdge[1][i] = 0;
 		negEdge[0][i] = 0;
@@ -235,7 +236,7 @@ void interface::roundInit()
 		sAxis[0][i] = 0;
 		sAxis[1][i] = 0;
 	}
-	for(int i = 0; i < 5; i++){
+	for(int i = 0; i < 6; i++){
 		posEdge[0][i] = 0;
 		negEdge[0][i] = 0;
 		posEdge[1][i] = 0;
@@ -244,8 +245,11 @@ void interface::roundInit()
 
 	combo[0] = 0;
 	combo[1] = 0;
+	damage[0] = 0;
+	damage[1] = 0;
 	grav = 6;
 	timer = 60 * 101;
+	endTimer = 60 * 5;
 //	if(p[0]->rounds + p[1]->rounds < 1) timer += 60 * 6;
 	prox.w = 200;
 	prox.h = 0;
@@ -264,16 +268,30 @@ void interface::runTimer()
 				plus = (p[i]->cMove->arbitraryPoll(31, p[i]->currentFrame));
 				if(plus != 0){ 
 					timer += plus;
-					if(timer > 60*99) timer = 60*99;
+					if(timer > 60*99) timer = 60*99 + 1;
 				}
 			}
 		}
 	}
-	if(timer > 0) timer--;
-/*
-	if(timer % 60 == 0) printf("%i seconds remaining\n", timer / 60);
-	printf("%i frames remaining\n", timer);
-//*/
+
+	if(roundEnd){ 
+		if(endTimer <= 60 * 3) endTimer = 0; 
+		/*This is a temporary measure since we don't have winposes yet.
+		 *This will eventually be replaced by the *ability* to skip them,
+		 *But currently does what would happen if you skipped them every time.
+		 */
+		if(endTimer > 0) endTimer--;
+		else{
+			p[0]->momentumComplexity = 0;
+			p[1]->momentumComplexity = 0;
+			if(p[0]->rounds == numRounds || p[1]->rounds == numRounds){
+				delete p[0]->pick();
+				delete p[1]->pick();
+				matchInit();
+			}
+			else roundInit();
+		}
+	} else timer--;
 }
 
 /*Main function for a frame. This resolves character spritions, background scrolling, and hitboxes*/
@@ -281,7 +299,7 @@ void interface::resolve()
 {
 	if(!select[0] || !select[1]) cSelectMenu(); 
 	else {
-		if(timer > 99 * 60 && !roundEnd){
+		if(timer > 99 * 60){
 			for(int i = 0; i < 2; i++){
 				if(timer == 106 * 60) p[i]->inputBuffer[0] = 0;
 				if(timer == 106 * 60 - 1) p[i]->inputBuffer[0] = i;
@@ -289,7 +307,7 @@ void interface::resolve()
 				if(timer == 106 * 60 - 3) p[i]->inputBuffer[0] = selection[(i+1)%2] % 10;
 				if(timer == 106 * 60 - 4) p[i]->inputBuffer[0] = 0;
 				else(p[i]->inputBuffer[0] = 5);
-				for(int j = 0; j < 5; j++){
+				for(int j = 0; j < 6; j++){
 					posEdge[i][j] = 0;
 					negEdge[i][j] = 0;
 				}
@@ -337,9 +355,9 @@ void interface::resolve()
 			p[0]->dragBG(bg.x + wall, bg.x + screenWidth - wall) );
 		p[0]->checkCorners(floor, bg.x + wall, bg.x + screenWidth - wall);
 		p[1]->checkCorners(floor, bg.x + wall, bg.x + screenWidth - wall);
-		
+
 		unitCollision();
-		
+
 		if(p[0]->cMove->state[p[0]->connectFlag].i & 1 && p[0]->cMove != p[0]->pick()->airNeutral) 
 			p[0]->checkFacing(p[1]);
 		if(p[1]->cMove->state[p[1]->connectFlag].i & 1 && p[1]->cMove != p[1]->pick()->airNeutral) 
@@ -348,8 +366,9 @@ void interface::resolve()
 		for(int i = 0; i < 2; i++){
 			if(!p[i]->pick()->aerial) { p[i]->deltaX = 0; p[i]->deltaY = 0; }
 
-			if(!p[i]->cMove->arbitraryPoll(1, 0)){
+			if(!p[i]->cMove->arbitraryPoll(1, 0) && !roundEnd){
 				combo[(i+1)%2] = 0;
+				damage[(i+1)%2] = 0;
 				p[i]->elasticX = 0;
 				p[i]->elasticY = 0;
 			}
@@ -371,11 +390,11 @@ void interface::resolve()
 			if(i > 1 && things[i]->dead) cullThing(i);
 		}
 		resolveSummons();
-		checkWin();
+		if(!roundEnd) checkWin();
 		runTimer();
 	}
 	/*Reinitialize inputs*/
-	for(int i = 0; i < 5; i++){
+	for(int i = 0; i < 6; i++){
 		posEdge[0][i] = 0;
 		posEdge[1][i] = 0;
 		negEdge[0][i] = 0;
@@ -422,29 +441,16 @@ void interface::checkWin()
 {
 	if(p[0]->pick()->health == 0 || p[1]->pick()->health == 0 || timer == 0){
 		roundEnd = true;
-		if(p[0]->pick()->health > 0 && p[1]->pick()->health > 0) printf("Time Out\n");
-		else printf("Down!\n");
 		if(p[0]->pick()->health > p[1]->pick()->health) {
-			printf("Player 1 wins!\n");
 			p[0]->rounds++;
 		}
 		else if(p[1]->pick()->health > p[0]->pick()->health) {
-			printf("Player 2 wins!\n");
 			p[1]->rounds++;
 		}
 		else {
-			printf("Draw!\n");
 			if(p[0]->rounds < numRounds - 1) p[0]->rounds++;
 			if(p[1]->rounds < numRounds - 1) p[1]->rounds++;
 		}
-		p[0]->momentumComplexity = 0;
-		p[1]->momentumComplexity = 0;
-		if(p[0]->rounds == numRounds || p[1]->rounds == numRounds){
-			delete p[0]->pick();
-			delete p[1]->pick();
-			matchInit();
-		}
-		else roundInit();
 	}
 }
 
@@ -502,35 +508,43 @@ void interface::cSelectMenu()
 	char base[2][40];
 
 	for(int i = 0; i < 2; i++){
-		if(sAxis[i][2] && !select[i] && counter[i] == 0){
-			selection[i]--;
-			if(selection[i] < 1) selection[i] = numChars;
-			sprintf(base[i], "Misc/P%iSelect%i.png", i+1, selection[i]);
-			cursor[i] = aux::load_texture(base[i]);
-			counter[i] = 10;
-		}
-		if(sAxis[i][3] && !select[i] && counter[i] == 0){
-			selection[i]++;
-			if(selection[i] > numChars) selection[i] = 1;
-			sprintf(base[i], "Misc/P%iSelect%i.png", i+1, selection[i]);
-			cursor[i] = aux::load_texture(base[i]);
-			counter[i] = 10;
-		}
-		for(int j = 0; j < 5; j++){
-			if(posEdge[i][j] && !select[i]){
-				select[i] = 1;
-				p[i]->characterSelect(selection[i]);
+		if(!menu[i]){
+			if(sAxis[i][2] && !select[i] && counter[i] == 0){
+				selection[i]--;
+				if(selection[i] < 1) selection[i] = numChars;
+				sprintf(base[i], "Misc/P%iSelect%i.png", i+1, selection[i]);
+				cursor[i] = aux::load_texture(base[i]);
+				counter[i] = 10;
+			}
+			if(sAxis[i][3] && !select[i] && counter[i] == 0){
+				selection[i]++;
+				if(selection[i] > numChars) selection[i] = 1;
+				sprintf(base[i], "Misc/P%iSelect%i.png", i+1, selection[i]);
+				cursor[i] = aux::load_texture(base[i]);
+				counter[i] = 10;
+			}
+			for(int j = 0; j < 5; j++){
+				if(posEdge[i][j] && !select[i]){
+					select[i] = 1;
+				}
+			}
+			if(posEdge[i][5]){
+				if(!select[i]) menu[i] = 2;
+				else select[i] = 0;
+				counter[i] = 10;
 			}
 		}
 	}
-	
+
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glColor4f(0.1f, 0.1f, 0.1f, 1.0f);
 	glRectf(0.0f*scalingFactor, 0.0f*scalingFactor, (GLfloat)screenWidth*scalingFactor, (GLfloat)screenHeight*scalingFactor);
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
+	for(int i = 0; i < 2; i++) if(menu[i] > 0) mainMenu(i);
 	glEnable( GL_TEXTURE_2D );
+
 	glBindTexture(GL_TEXTURE_2D, selectScreen);
 	glBegin(GL_QUADS);
 		glTexCoord2i(0, 0);
@@ -545,32 +559,79 @@ void interface::cSelectMenu()
 		glTexCoord2i(0, 1);
 		glVertex3f(350.0f*scalingFactor, 900.0f*scalingFactor, 0.f*scalingFactor);
 	glEnd();
-	
+
 	for(int i = 0; i < 2; i++){
-		glBindTexture(GL_TEXTURE_2D, cursor[i]);
-		glBegin(GL_QUADS);
-			glTexCoord2i(0, 0);
-			glVertex3f(350.0f*scalingFactor, 0.0f*scalingFactor, 0.f*scalingFactor);
+		if(!menu[i]){
+			glBindTexture(GL_TEXTURE_2D, cursor[i]);
+			glBegin(GL_QUADS);
+				glTexCoord2i(0, 0);
+				glVertex3f(350.0f*scalingFactor, 0.0f*scalingFactor, 0.f*scalingFactor);
 
-			glTexCoord2i(1, 0);
-			glVertex3f(1250.0f*scalingFactor, 0.0f*scalingFactor, 0.f*scalingFactor);
+				glTexCoord2i(1, 0);
+				glVertex3f(1250.0f*scalingFactor, 0.0f*scalingFactor, 0.f*scalingFactor);
 
-			glTexCoord2i(1, 1);
-			glVertex3f(1250.0f*scalingFactor, 900.0f*scalingFactor, 0.f*scalingFactor);
+				glTexCoord2i(1, 1);
+				glVertex3f(1250.0f*scalingFactor, 900.0f*scalingFactor, 0.f*scalingFactor);
 
-			glTexCoord2i(0, 1);
-			glVertex3f(350.0f*scalingFactor, 900.0f*scalingFactor, 0.f*scalingFactor);
-		glEnd();
+				glTexCoord2i(0, 1);
+				glVertex3f(350.0f*scalingFactor, 900.0f*scalingFactor, 0.f*scalingFactor);
+			glEnd();
+		}
 	}
+
 	glDisable( GL_TEXTURE_2D );
 
 	for(int i = 0; i < 2; i++) if(counter[i] > 0) counter[i]--;
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	SDL_GL_SwapBuffers();
 	if(select[0] && select[1]){
+		p[0]->characterSelect(selection[0]);
+		p[1]->characterSelect(selection[1]);
 		if(selection[0] == selection[1]) p[1]->secondInstance = true;
 		roundInit();
 	}
+}
+
+void interface::mainMenu(int ID)
+{
+	glColor4f(0.0f, 0.0f, 0.0f, 0.8f);
+	glRectf(0.0f * scalingFactor + 800.0 * scalingFactor * ID, 0.0 * scalingFactor, (screenWidth/2*ID*scalingFactor) + (GLfloat)screenWidth/2.0*scalingFactor, (GLfloat)screenHeight*scalingFactor);
+	glEnable( GL_TEXTURE_2D );
+	glColor4f(0.0, 0.0, 1.0, 0.4 + (float)(menu[ID] == 1)*0.4);
+	drawGlyph("Key Config", 20 + 1260*ID, 300, 390, 40, 2*ID);
+	glColor4f(0.0, 0.0, 1.0, 0.4 + (float)(menu[ID] == 2)*0.4);
+	drawGlyph("Exit Menu", 20 + 1260*ID, 300, 430, 40, 2*ID);
+	glColor4f(0.0, 0.0, 1.0, 0.4 + (float)(menu[ID] == 3)*0.4);
+	drawGlyph("Quit Game", 20 + 1260*ID, 300, 470, 40, 2*ID);
+	if(sAxis[ID][0] && !counter[ID]){
+		menu[ID]--;
+		counter[ID] = 10;
+	} else if(sAxis[ID][1] && !counter[ID]){ 
+		menu[ID]++;
+		counter[ID] = 10;
+	}
+	if(menu[ID] > 3) menu[ID] = 1;
+	else if(menu[ID] < 1) menu[ID] = 3;
+	for(int i = 0; i < 5; i++){
+		if(posEdge[ID][i]){
+			switch(menu[ID]){
+			case 1:
+				glDisable( GL_TEXTURE_2D );
+				writeConfig(ID);
+				glEnable( GL_TEXTURE_2D );
+				break;
+			case 2:
+				menu[ID] = 0;
+				break;
+			case 3:
+				gameover = 1;
+				break;
+			}
+		}
+	}
+	if(posEdge[ID][5] && !counter[ID]) menu[ID] = 0;
+	glDisable( GL_TEXTURE_2D );
+	glColor4f(1.0, 1.0, 1.0, 1.0f);
 }
 
 void interface::dragBG(int deltaX)
@@ -666,6 +727,7 @@ void interface::resolveHits()
 	bool connect[thingComplexity];
 	bool taken[thingComplexity];
 	int hitBy[thingComplexity];
+	int h;
 	for(int i = 0; i < thingComplexity; i++){
 		taken[i] = 0;
 		hit[i] = 0;
@@ -703,11 +765,13 @@ void interface::resolveHits()
 
 	for(int i = 0; i < 2; i++){ 
 		if(taken[i]){
+			h = p[i]->pick()->health;
 			hit[hitBy[i]] = p[i]->takeHit(combo[hitBy[i]], s[hitBy[i]]);
 			combo[(i+1)%2] += hit[hitBy[i]];
 			if(hit[hitBy[i]] == 1) things[hitBy[i]]->hitFlag = things[hitBy[i]]->connectFlag;
 			p[(i+1)%2]->checkCorners(floor, bg.x + wall, bg.x + screenWidth - wall);
 			if(p[i]->facing * p[(i+1)%2]->facing == 1) p[i]->invertVectors(1);
+			damage[(i+1)%2] += h - p[i]->pick()->health;
 		}
 	}
 
@@ -737,6 +801,13 @@ void interface::resolveHits()
 	for(int i = 0; i < 2; i++) {
 		p[i]->throwInvuln--;
 		p[i]->hover--;
+	}
+	for(int i = 0; i < 2; i++) {
+		if(p[i]->pick()->health <= 0 && endTimer >= 5 * 60){ 
+			i = 2;
+			p[0]->freeze = 30;
+			p[1]->freeze = 30;
+		}
 	}
 }
 

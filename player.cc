@@ -143,7 +143,6 @@ bool player::readConfig()
 			default:
 				break;
 			}
-//			printf("Type?: %i\n", input[i].type);
 		}
 		read.close();
 		return 1;
@@ -244,7 +243,20 @@ void instance::combineDelta()
 	}
 	posX += deltaX;
 	posY += deltaY;
+
 	updateRects();
+}
+
+void instance::enforceGravity(int grav, int floor)
+{
+	SDL_Rect g; g.x = 0; g.y = grav; g.w = 0; g.h = 0;
+
+	if(collision.y + collision.h < floor && pick()->aerial == 0){
+		pick()->aerial = 1;
+	}
+	else if(pick()->aerial && !freeze){ 
+		addVector(g);
+	}
 }
 
 void player::enforceGravity(int grav, int floor)
@@ -254,7 +266,6 @@ void player::enforceGravity(int grav, int floor)
 	if(collision.y + collision.h < floor && pick()->aerial == 0){
 		pick()->aerial = 1;
 	}
-
 	else if(pick()->aerial && !freeze){ 
 		if(hover > 0 && deltaY + 3 > 0) g.y = -deltaY;
 		addVector(g);
@@ -512,7 +523,7 @@ void player::readEvent(SDL_Event & event, bool *& sAxis, bool *& posEdge, bool *
 			if(event.jbutton.which == input[i].jbutton.which && event.jbutton.button == input[i].jbutton.button && input[i].type == SDL_JOYBUTTONDOWN)
 				sAxis[i] = 1;
 		}
-		for(int i = 4; i < 9; i++){
+		for(int i = 4; i < 10; i++){
 			if(event.jbutton.which == input[i].jbutton.which && event.jbutton.button == input[i].jbutton.button && input[i].type == SDL_JOYBUTTONDOWN)
 				posEdge[i-4] = 1;
 		}
@@ -522,7 +533,7 @@ void player::readEvent(SDL_Event & event, bool *& sAxis, bool *& posEdge, bool *
 			if(event.jbutton.which == input[i].jbutton.which && event.jbutton.button == input[i].jbutton.button && input[i].type == SDL_JOYBUTTONDOWN)
 				sAxis[i] = 0;
 		}
-		for(int i = 4; i < 9; i++){
+		for(int i = 4; i < 10; i++){
 			if(event.jbutton.which == input[i].jbutton.which && event.jbutton.button == input[i].jbutton.button && input[i].type == SDL_JOYBUTTONDOWN)
 				negEdge[i-4] = 1;
 		}
@@ -532,7 +543,7 @@ void player::readEvent(SDL_Event & event, bool *& sAxis, bool *& posEdge, bool *
 			if(event.key.keysym.sym == input[i].key.keysym.sym && input[i].type == SDL_KEYDOWN) 
 				sAxis[i] = 1;
 		}
-		for(int i = 4; i < 9; i++) {
+		for(int i = 4; i < 10; i++) {
 			if(event.key.keysym.sym == input[i].key.keysym.sym && input[i].type == SDL_KEYDOWN)
 				posEdge[i-4] = 1;
 		}
@@ -542,7 +553,7 @@ void player::readEvent(SDL_Event & event, bool *& sAxis, bool *& posEdge, bool *
 			if(event.key.keysym.sym == input[i].key.keysym.sym && input[i].type == SDL_KEYDOWN)
 				sAxis[i] = 0;
 		}
-		for(int i = 4; i < 9; i++){
+		for(int i = 4; i < 10; i++){
 			if(event.key.keysym.sym == input[i].key.keysym.sym && input[i].type == SDL_KEYDOWN)
 				negEdge[i-4] = 1;
 		}

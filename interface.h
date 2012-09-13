@@ -8,14 +8,8 @@
  */
 
 #include <SDL/SDL.h>
-
-#ifdef _APPLE
-#include <SDL_image/SDL_image.h>
-#else
-#include <SDL/SDL_image.h>
-#endif
-
 #include <stdio.h>
+#include "compat.h"
 #include "player.h"
 #ifndef INTERFACE
 #define INTERFACE
@@ -37,6 +31,7 @@ public:
 	void roundInit();
 	void matchInit();
 	void cSelectMenu();
+	void mainMenu(int);
 	void checkWin();
 	void dragBG(int);
 	void doSuperFreeze();
@@ -56,6 +51,7 @@ public:
 	bool * negEdge[2];
 	bool select[2];
 	int selection[2];
+	int menu[2];
 	SDL_Surface *screen;
 	GLuint glyph[91];
 	GLuint background;
@@ -65,6 +61,7 @@ public:
 	bool fullscreen;	//For use with later
 	bool initd:1;
 	int combo[2];
+	int damage[2];
 	int numRounds;
 	bool gameover;
 	float scalingFactor, sf;
@@ -81,6 +78,7 @@ public:
 	bool q;
 	int timer;
 	bool roundEnd:1;
+	int endTimer;
 private:
 	int screenHeight, screenWidth, floor, wall;
 	int freeze;
