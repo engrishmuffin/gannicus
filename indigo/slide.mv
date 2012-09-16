@@ -3,15 +3,15 @@ Buffer: 0 : 0
 Hits: 0
 Frames: 8 : 8
 Check: 65536
-State: 510
+State: 2558
 Gain: 0 
 Cost: 0
 Blocks: 0
-Properties: 
+Properties: s
 #0 
 $C	10 0 110 270
 $R	10 0 110 270
-$D	4 0 7 00	4 0 3 0
+$D	0 -4 7 00	4 0 3 0
 #1
 $C	10 0 110 270
 $R	10 0 110 270

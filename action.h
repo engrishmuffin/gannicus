@@ -18,7 +18,7 @@ struct hStat{
 	int damage;         //How much damage the action does
 	int chip;
 	int stun;           //How much stun the action does
-	int push;           //How much pushback the action does
+	int push		//How much pushback the action does
 	int lift;           //How much the action lifts an aerial opponent.
 	int untech;
 	int blowback;
