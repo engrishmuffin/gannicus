@@ -2,20 +2,20 @@ Name: Slide
 Buffer: 0 : 0
 Hits: 0
 Frames: 8 : 8
-Check: 65536
-State: 2558
-Gain: 0 
+Check: 66536
+State: 1534
+Gain: 0
 Cost: 0
 Blocks: 0
-Properties: s
+Properties: 
 #0 
 $C	10 0 110 270
 $R	10 0 110 270
-$D	0 -4 7 00	4 0 3 0
+$D	-4 0 8 00	6 0 6 0
 #1
 $C	10 0 110 270
 $R	10 0 110 270
-$D	0 0 0 0
+$D	-12 0 4 0
 #2
 $C	10 0 110 270
 $R	10 0 110 270

@@ -1,23 +1,26 @@
-Name: J
+Name: jumpnext
 Buffer: 0 : 0
 Hits: 0
-Frames: 3
-Check: 3
-State: 256
-Next: J0
+Frames: 4 : 4
+Check: 254
+State: 2302
 Gain: 0
 Cost: 0
 Blocks: 0
-Properties: t
+Properties: 
 #0 
 $C	10 0 110 270
 $R	10 0 110 270
 $D	0 0 0 0
-#1 
+#0 
 $C	10 0 110 270
 $R	10 0 110 270
 $D	0 0 0 0
-#2 
+#0 
 $C	10 0 110 270
 $R	10 0 110 270
-$D	0 -62 0 0
+$D	0 0 0 0
+#0 
+$C	10 0 110 270
+$R	10 0 110 270
+$D	0 0 0 0
