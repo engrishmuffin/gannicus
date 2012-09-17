@@ -234,7 +234,7 @@ void interface::roundInit()
 		addThing(p[i]);
 	thingComplexity = 2;
 	bg.x = 800;
-	bg.y = 0;
+	bg.y = -900;
 
 	for(int i = 0; i < 2; i++){
 		p[i]->roundInit();
@@ -650,7 +650,8 @@ void interface::cSelectMenu()
 		sprintf(buffer, "Misc/BG%i.png", selection[0]);
 		background = aux::load_texture(buffer);
 
-		sprintf(buffer, "Misc/%i.ogg", selection[1]);
+		if(selection[0] == selection[1]) sprintf(buffer, "Misc/Mirror.ogg");
+		else sprintf(buffer, "Misc/%i.ogg", selection[1]);
 		matchMusic = Mix_LoadMUS(buffer);
 		Mix_HaltMusic();
 

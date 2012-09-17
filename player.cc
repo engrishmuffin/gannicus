@@ -169,9 +169,15 @@ SDL_Event player::writeConfig(int i)
 		if (SDL_PollEvent(&temp)) {
 			switch (temp.type) {
 			case SDL_JOYAXISMOTION:
-				if(temp.jaxis.value != 0 && temp.jaxis.axis < 6){
-					input[i] = temp;
-					configFlag = 1;
+				if(temp.jaxis.axis < 6){
+					for(int j = 0; j < 4; j++){
+						if(temp.jaxis.value == 0 || abs(temp.jaxis.value) < abs(input[j].jaxis.value - 100))
+							break;
+						else {
+							input[i] = temp;
+							configFlag = 1;
+						}
+					}
 				}
 				break;
 			case SDL_JOYBUTTONDOWN:
@@ -281,7 +287,7 @@ void player::enforceGravity(int grav, int floor)
 		pick()->aerial = 1;
 	}
 	else if(pick()->aerial && !freeze){ 
-		if(hover > 0 && deltaY + 3 > 0) g.y = -deltaY;
+		if(hover > 0 && deltaY - 6 < 0) g.y = -deltaY;
 		addVector(g);
 	}
 }
@@ -306,7 +312,6 @@ void player::checkCorners(int floor, int left, int right)
 	even though we're *checking* collision, we're still *moving* spr*/
 	int lOffset = posX - collision.x;
 	int rOffset = posX - (collision.x + collision.w);
-	int hOffset = posY - (collision.y);
 
 	/*Floor, or "Bottom corner"*/
 
@@ -327,14 +332,12 @@ void player::checkCorners(int floor, int left, int right)
 		} else {
 			if(pick()->aerial == 1){
 				land();
-//				printf("P%i landed!\n", ID);
 				updateRects();
-				hOffset = posY - (collision.y);
 				deltaX = 0;
 			}
 			deltaY = 0;
 		}
-		posY = floor - hOffset;
+		posY = floor - cMove->collision[currentFrame].y;
 	}
 	updateRects();
 
@@ -386,7 +389,7 @@ void player::checkCorners(int floor, int left, int right)
 void player::land()
 {
 	for(int i = 0; i < momentumComplexity; i++){
-		if(momentum[i].y < 0) removeVector(i);
+		if(momentum[i].y > 0) removeVector(i);
 	}
 	pick()->land(cMove, currentFrame, connectFlag, hitFlag);
 }
@@ -527,7 +530,7 @@ void player::readEvent(SDL_Event & event, bool *& sAxis, bool *& posEdge, bool *
 			if(input[i].type == SDL_JOYAXISMOTION){
 				if(event.jaxis.which == input[i].jaxis.which && event.jaxis.axis == input[i].jaxis.axis && event.jaxis.value == input[i].jaxis.value)
 					sAxis[i] = 1;
-				if(event.jaxis.which == input[i].jaxis.which && event.jaxis.axis == input[i].jaxis.axis && event.jaxis.value == 0)
+				if(event.jaxis.which == input[i].jaxis.which && event.jaxis.axis == input[i].jaxis.axis && abs(event.jaxis.value) < abs(input[i].jaxis.value - 100))
 					sAxis[i] = 0;
 			}
 		}
@@ -622,7 +625,7 @@ int player::takeHit(int combo, hStat & s)
 	} else {
 		particleLife = 8;
 		deltaX = 0; deltaY = 0; momentumComplexity = 0;
-		if(pick()->aerial) v.y = -s.lift;
+		if(pick()->aerial) v.y = s.lift;
 		else v.y = 0;
 		if(pick()->aerial) v.x = -(s.push/5 + s.blowback);
 		else v.x = -s.push;
