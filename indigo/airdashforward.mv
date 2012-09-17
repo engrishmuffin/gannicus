@@ -2,8 +2,8 @@ Name: Airdash
 Buffer: 10 : 0
 Hits: 0
 Frames: 10 : 10
-Check: 1
-State: 510
+Check: 2048
+State: 2558
 Gain: 0
 Cost: 0
 Blocks: 0

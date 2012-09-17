@@ -10,11 +10,14 @@ indigo
 -jumpback = h7
 -airdashforward = a656 a956 a356
 -airdashback = a454 a754 a154
--airjumpneutral = a58 a68 a48 a38 a28 a18
--airjumpforward = a59 a69 a49 a39 a29 a19
--airjumpback = a57 a67 a47 a37 a27 a17
+-flapneutral = a58 a68 a48 a38 a28 a18
+-flapforward = a59 a69 a49 a39 a29 a19
+-flapback = a57 a67 a47 a37 a27 a17
+@flight = a5 a4 a1 a2
 ?techneutral = a
 ?techback = a4 a7 a1
 ?techforward = a6 a9 a3
 ?techstop = a8
-#Moves
+#Terminals
+@5D = a5
+-land = h5
