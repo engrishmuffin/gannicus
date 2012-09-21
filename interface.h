@@ -52,6 +52,7 @@ public:
 	bool * sAxis[2];	//Initial input buffering.
 	bool * posEdge[2];
 	bool * negEdge[2];
+	int * held[2];
 	bool select[2];
 	int selection[2];
 	int menu[2];
@@ -74,6 +75,12 @@ public:
 	int thingComplexity;
 	Mix_Music *menuMusic;
 	Mix_Music *matchMusic;
+	Mix_Chunk **announceWinner;
+	Mix_Chunk *announceRound[3];
+	Mix_Chunk *announceDraw[2];
+	Mix_Chunk *announceFight;
+	Mix_Chunk *announceEnd[2];
+
 	attractor ** globals;
 	int attractorComplexity;
 

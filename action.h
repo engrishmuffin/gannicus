@@ -20,9 +20,9 @@ struct attractor{
 	int ID; //Who the attractor affects
 	unsigned int type:2; //Type check variable. Type 0 is global, type 1 is linear decay, type 2 is half-life, and type 3 is a flat cut-off.
 	int posX, posY; //Used to keep track of where local attractors actually are. Not set by the move itself, but used by the game later.
-	int radius; /*The radius at which the vector decay. Irrelevant (unchecked) for type 0, is the distance at which the vector loses one
-			  *from its absolute value in type 1, the half-life point for type 2, and the cut-off point for type 3.
-			  */
+	int radius;	/*The radius at which the vector decay. Irrelevant (unchecked) for type 0, is the distance at which the vector loses one
+			 *from its absolute value in type 1, the half-life point for type 2, and the cut-off point for type 3.
+			 */
 };
 
 struct hStat{
@@ -57,6 +57,7 @@ public:
 	//the action we're cancelling out of in the usual case, and, well
 	//Do other stuff sometimes.
 	virtual void execute(action *, int *&);
+	virtual void playSound(int);
 	virtual bool activate(bool[], bool[], int, int, int[], SDL_Rect&); //Check to see if the action is possible right now.
 	virtual void generate(const char*, const char*) {}
 	virtual bool check(SDL_Rect&, int[]); //Check to see if the action is possible right now.
@@ -65,6 +66,7 @@ public:
 
 	//Return the relevant information needed for interface::resolve(), then step to the next frame.
 	void pollRects(SDL_Rect&, SDL_Rect*&, int&, SDL_Rect*&, int&, int, int);
+	Mix_Chunk *soundClip;
 	virtual void pollStats(hStat&, int, bool);
 	virtual bool cancel(action*, int&, int&); //Cancel allowed activate. Essentially: is action Lvalue allowed given the current state of action Rvalue?
 	virtual void step(int *&, int&);
@@ -85,6 +87,7 @@ public:
 	int stop;
 	int throwinvuln;
 	bool crouch:1;
+	bool hidesMeter:1;
 	int armorStart; int armorLength;
 	int armorHits;
 	int armorCounter;

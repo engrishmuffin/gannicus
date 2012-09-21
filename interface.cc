@@ -51,6 +51,7 @@ interface::interface()
 		sAxis[i] = new bool[4];
 		posEdge[i] = new bool[6]; 
 		negEdge[i] = new bool[6];
+		held[i] = new int[6];
 		counter[i] = 0;
 		select[i] = 0;
 		selection[i] = 1+i;
@@ -91,13 +92,25 @@ void interface::loadMisc()
 	}
 	selectScreen = aux::load_texture("Misc/Select.png");
 	menuMusic = Mix_LoadMUS("Misc/Menu.ogg");
+	announceWinner = new Mix_Chunk*[numChars + 1];
+	for(int i = 0; i < numChars + 1; i++){
+		sprintf(buffer, "Misc/Announcer/Win%i.ogg", i);
+		announceWinner[i] = Mix_LoadWAV(buffer);
+	}
+	announceRound[0] = Mix_LoadWAV("Misc/Announcer/Round1.ogg");
+	announceRound[1] = Mix_LoadWAV("Misc/Announcer/Round2.ogg");
+	announceRound[2] = Mix_LoadWAV("Misc/Announcer/RoundF.ogg");
+	announceDraw[1] = Mix_LoadWAV("Misc/Announcer/Draw.ogg");
+	announceFight = Mix_LoadWAV("Misc/Announcer/Fight.ogg");
+	announceEnd[0] = Mix_LoadWAV("Misc/Announcer/Timeout.ogg");
+	announceEnd[1] = Mix_LoadWAV("Misc/Announcer/Down.ogg");
 }
 
 bool interface::screenInit()
 {
 	/*Initialize SDL*/
 	if(SDL_Init(SDL_INIT_EVERYTHING) < 0) return false;
-	Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 2048);
+	Mix_OpenAudio(44100, AUDIO_S16, 2, 2048);
 	/*WM stuff*/
 	int h, w;
 	if(scalingFactor == 1.0){ 
@@ -241,22 +254,17 @@ void interface::roundInit()
 		p[i]->posY = floor;
 	}
 	/*Initialize input containers*/
-	for(int i = 0; i < 4; i++) 
-	{
-		sAxis[0][i] = 0;
-		sAxis[1][i] = 0;
-	}
-	for(int i = 0; i < 6; i++){
-		posEdge[0][i] = 0;
-		negEdge[0][i] = 0;
-		posEdge[1][i] = 0;
-		negEdge[1][i] = 0;
+	for(int i = 0; i < 2; i++){
+		for(int j = 0; j < 6; j++){
+			if(j < 4) sAxis[i][j] = 0;
+			posEdge[i][j] = 0;
+			negEdge[i][j] = 0;
+			held[i][j] = 0;
+		}
+		combo[i] = 0;
+		damage[i] = 0;
 	}
 
-	combo[0] = 0;
-	combo[1] = 0;
-	damage[0] = 0;
-	damage[1] = 0;
 	grav = -6;
 	timer = 60 * 101;
 	endTimer = 60 * 5;
@@ -319,7 +327,7 @@ void interface::runTimer()
 void interface::resolve()
 {
 	if(!select[0] || !select[1]) cSelectMenu(); 
-	else if(rMenu) draw();
+	else if(rMenu != 0) draw();
 	else {
 		if(timer > 99 * 60){
 			for(int i = 0; i < 2; i++){
@@ -391,7 +399,7 @@ void interface::resolve()
 		for(int i = 0; i < 2; i++){
 			if(!p[i]->pick()->aerial) { p[i]->deltaX = 0; p[i]->deltaY = 0; }
 
-			if(!p[i]->cMove->arbitraryPoll(1, 0) && !roundEnd){
+			if(p[i]->cMove != p[i]->pick()->fall && !p[i]->cMove->arbitraryPoll(1, 0) && !roundEnd){
 				combo[(i+1)%2] = 0;
 				damage[(i+1)%2] = 0;
 				p[i]->elasticX = 0;
@@ -532,6 +540,10 @@ void interface::readInput()
 				case SDLK_q:
 				case SDLK_ESCAPE:
 					gameover = 1;
+					break;
+				case SDLK_F9:
+					writeConfig(0);
+					writeConfig(1);
 					break;
 				case SDLK_F10:
 					if(scalingFactor == 1.0) sf = 0.5;
@@ -745,6 +757,7 @@ void interface::reMenu()
 				switch(rMenu){
 				case 1:
 					Mix_HaltMusic();
+					rMenu = 0;
 					matchInit();
 					break;
 				case 2:
@@ -762,6 +775,7 @@ void interface::reMenu()
 					gameover = 1;
 					break;
 				}
+				j = 2;
 			}
 		}
 	}
@@ -857,6 +871,7 @@ void interface::resolveHits()
 	bool taken[thingComplexity];
 	int hitBy[thingComplexity];
 	int h;
+	int push[2];
 	for(int i = 0; i < thingComplexity; i++){
 		taken[i] = 0;
 		hit[i] = 0;
@@ -873,6 +888,7 @@ void interface::resolveHits()
 							if(things[i]->acceptTarget(things[h])){
 								connect[i] = 1;
 								things[i]->cMove->pollStats(s[i], things[i]->currentFrame, things[h]->CHState());
+								if(i < 2) push[i] = s[i].push;
 								k = things[h]->regComplexity;
 								j = things[i]->hitComplexity;
 								taken[h] = 1;
@@ -896,6 +912,15 @@ void interface::resolveHits()
 		if(taken[i]){
 			h = p[i]->pick()->health;
 			hit[hitBy[i]] = p[i]->takeHit(combo[hitBy[i]], s[hitBy[i]]);
+			if(i < 2 && hitBy[i] < 2){
+				if(p[i]->particleType == -2){ 
+					hStat ths;
+					ths.damage = s[hitBy[i]].chip;
+					ths.ghostHit = true;
+					ths.stun = 0;
+					p[hitBy[i]]->takeHit(combo[i], ths);
+				}
+			}
 			combo[(i+1)%2] += hit[hitBy[i]];
 			if(hit[hitBy[i]] == 1) things[hitBy[i]]->hitFlag = things[hitBy[i]]->connectFlag;
 			p[(i+1)%2]->checkCorners(floor, bg.x + wall, bg.x + screenWidth - wall);
@@ -911,7 +936,8 @@ void interface::resolveHits()
 				if(p[(i+1)%2]->pick()->aerial) residual.x = -2;
 				else {
 					if(combo[i] > 1) residual.x = -2*(abs(combo[i]-1));
-					if(p[(i+1)%2]->rCorner || p[(i+1)%2]->lCorner){
+					if(p[(i+1)%2]->particleType == -2) residual.x -= push[i];
+					else if(p[(i+1)%2]->rCorner || p[(i+1)%2]->lCorner){
 						residual.x -= 2;
 						residual.x -= s[i].push/2;
 						residual.x -= abs(combo[i]);

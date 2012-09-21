@@ -49,30 +49,52 @@ void interface::draw()
 	}
 
 	if(timer > 100 * 60 && timer < 100 * 60 + 31){ 
-		sprintf(buffer, "Round %i", 1 + p[0]->rounds + p[1]->rounds);
+		int l = p[0]->rounds + p[1]->rounds + 1;
+		sprintf(buffer, "Round %i", l);
+		if(timer == 100 * 60 + 30)
+			Mix_PlayChannel(3, announceRound[l - 1], 0);
 		drawGlyph(buffer, 0, 1600, 375, 150, 1);
 	}
-	if(timer > 99 * 60 && timer <= 99 * 60 + 31) drawGlyph("FIGHT", 0, 1600, 375, 150, 1);
+	if(timer > 99 * 60 && timer < 99 * 60 + 31){ 
+		drawGlyph("FIGHT", 0, 1600, 375, 150, 1);
+		if(timer == 99 * 60 + 30)
+			Mix_PlayChannel(3, announceFight, 0);
+	}
 
 	if(roundEnd && endTimer > 5 * 60 - 31){ 
-		if(p[0]->pick()->health > 0 && p[1]->pick()->health > 0) drawGlyph("TIME OUT", 0, 1600, 300, 200, 1);
-		else drawGlyph("DOWN", 0, 1600, 375, 150, 1);
+		if(p[0]->pick()->health > 0 && p[1]->pick()->health > 0){
+			drawGlyph("TIME OUT", 0, 1600, 300, 200, 1);
+			if(endTimer == 5 * 60 - 1)
+				Mix_PlayChannel(3, announceEnd[0], 0);
+		} else {
+			drawGlyph("DOWN", 0, 1600, 375, 150, 1);
+			if(endTimer == 5 * 60 - 1)
+				Mix_PlayChannel(3, announceEnd[1], 0);
+		}
 	}
 	if(endTimer > 3 * 60 + 29 && endTimer < 4 * 60){ 
 		if(p[0]->pick()->health > p[1]->pick()->health){ 
 			sprintf(buffer, "%s", p[0]->pick()->name);
 			drawGlyph(buffer, 0, 1600, 300, 150, 1);
 			drawGlyph("Wins", 0, 1600, 450, 150, 1);
+			if(endTimer == 4 * 60 - 1)
+				Mix_PlayChannel(3, announceWinner[selection[0]], 0);
 		} else if(p[1]->pick()->health > p[0]->pick()->health){
 			sprintf(buffer, "%s", p[1]->pick()->name);
 			drawGlyph(buffer, 0, 1600, 300, 150, 1);
 			drawGlyph("Wins", 0, 1600, 450, 150, 1);
+			if(endTimer == 4 * 60 - 1)
+				Mix_PlayChannel(3, announceWinner[selection[1]], 0);
 		} else if(p[0]->pick()->health <= 0){ 
 			sprintf(buffer, "Double KO");
 			drawGlyph(buffer, 0, 1600, 375, 150, 1);
+			if(endTimer == 4 * 60 - 1)
+				Mix_PlayChannel(3, announceDraw[0], 0);
 		} else {
 			sprintf(buffer, "Draw");
 			drawGlyph(buffer, 0, 1600, 375, 150, 1);
+			if(endTimer == 4 * 60 - 1)
+				Mix_PlayChannel(3, announceDraw[1], 0);
 		}
 	}
 	glDisable( GL_TEXTURE_2D );
@@ -119,11 +141,14 @@ void player::drawMeters(int n, float scalingFactor)
 		glRectf((GLfloat)(r[i].x)*scalingFactor, (GLfloat)(r[i].y)*scalingFactor, (GLfloat)(r[i].x + r[i].w)*scalingFactor, (GLfloat)(r[i].y + r[i].h)*scalingFactor);
 	}
 	glFlush();
-	pick()->drawMeters(ID, scalingFactor);
+	int h = 0;
+	if(cMove->hidesMeter) 
+		h = cMove->cost;
+	pick()->drawMeters(ID, scalingFactor, h);
 	glFlush();
 }
 
-void character::drawMeters(int ID, float scalingFactor)
+void character::drawMeters(int ID, float scalingFactor, int hidden)
 {
 	SDL_Rect m;
 	SDL_Rect h;
@@ -135,7 +160,7 @@ void character::drawMeters(int ID, float scalingFactor)
 	h.y = 10;
 
 	int R = 0, G = 255, B = 0;
-	if(meter[0] >= 0) m.w = meter[0]*2; else m.w = 1; 
+	if(meter[0] >= 0) m.w = (meter[0]+hidden)*2; else m.w = 0; 
 	if(ID == 1) m.x = 100;
 	else m.x = 900 + (600 - m.w);
 	m.h = 10; m.y = 860;
@@ -208,11 +233,14 @@ void player::drawHitParticle(int x, int y, float scalingFactor)
 		case -1:
 			glColor4f(1.0f, 1.0f, 1.0f, 0.7f);
 			break;
+		case -2:
+			glColor4f(1.0f, 1.0f, 0.0f, 0.7f);
+			break;
 		}
 		glRectf((GLfloat)(posX - 10*facing - x)*scalingFactor, (GLfloat)(-collision.y - collision.h - y)*scalingFactor, (GLfloat)(posX - 50 * facing - x)*scalingFactor, (GLfloat)(-collision.y - collision.h - 40 - y)*scalingFactor);
 		particleLife--;
 		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-	}
+	} else blockType = 0;
 }
 
 void avatar::draw(action *& cMove, int facing, int x, int y, int f, float scalingFactor)
@@ -394,16 +422,16 @@ void interface::writeImage(const char * movename, int frame, action * move)
 
 void action::drawBoxen(int frame, int x, int y){
 	glColor4f(1.0f, 1.0f, 1.0f, 0.5f);
-	glRectf((GLfloat)(collision[frame].x - x), (GLfloat)(collision[frame].y - y), (GLfloat)(collision[frame].x + collision[frame].w - x), (GLfloat)(collision[frame].y + collision[frame].h - y));
+	glRectf((GLfloat)(collision[frame].x - x), (GLfloat)(-collision[frame].y - y), (GLfloat)(collision[frame].x + collision[frame].w - x), (GLfloat)(-collision[frame].y - collision[frame].h - y));
 	for(int i = 0; i < regComplexity[frame]; i++){
 		glFlush();
 		glColor4f(0.0f, 1.0f, 0.0f, 0.5f);
-		glRectf((GLfloat)(hitreg[frame][i].x - x), (GLfloat)(hitreg[frame][i].y - y), (GLfloat)(hitreg[frame][i].x + hitreg[frame][i].w - x), (GLfloat)(hitreg[frame][i].y + hitreg[frame][i].h - y));
+		glRectf((GLfloat)(hitreg[frame][i].x - x), (GLfloat)(-hitreg[frame][i].y - y), (GLfloat)(hitreg[frame][i].x + hitreg[frame][i].w - x), (GLfloat)(-hitreg[frame][i].y - hitreg[frame][i].h - y));
 	}
 	for(int i = 0; i < hitComplexity[frame]; i++){
 		glFlush();
 		glColor4f(1.0f, 0.0f, 0.0f, 0.5f);
-		glRectf((GLfloat)(hitbox[frame][i].x - x), (GLfloat)(hitbox[frame][i].y - y), (GLfloat)(hitbox[frame][i].x + hitbox[frame][i].w - x), (GLfloat)(hitbox[frame][i].y + hitbox[frame][i].h - y));
+		glRectf((GLfloat)(hitbox[frame][i].x - x), (GLfloat)(-hitbox[frame][i].y - y), (GLfloat)(hitbox[frame][i].x + hitbox[frame][i].w - x), (GLfloat)(-hitbox[frame][i].y - hitbox[frame][i].h - y));
 	}
 	glFlush();
 }

@@ -294,15 +294,8 @@ void player::enforceGravity(int grav, int floor)
 
 void player::checkBlocking()
 {
-	bool block = pick()->checkBlocking(cMove, inputBuffer[0], connectFlag, hitFlag);
+	blockType = -pick()->checkBlocking(cMove, inputBuffer, connectFlag, hitFlag);
 	updateRects();
-	blockType = 0;
-	if(block){
-		for(int i = 1; i < 7; i++){
-			if(inputBuffer[i] % 3 != 1)
-			blockType = 1;
-		}
-	}
 }
 
 void player::checkCorners(int floor, int left, int right)
@@ -452,12 +445,16 @@ void instance::getMove(bool down[5], bool up[5], SDL_Rect &p, bool dryrun)
 	action * dummyMove, *save;
 	dummyMove = cMove;
 	save = cMove;
+	int n = currentFrame;
 	pick()->prepHooks(freeze, dummyMove, bMove, sMove, inputBuffer, down, up, p, currentFrame, connectFlag, hitFlag, dryrun);
 	if(dummyMove){
 		if(dummyMove->throwinvuln == 1 && throwInvuln <= 0) throwInvuln = 1;
 		if(dummyMove->throwinvuln == 2) throwInvuln = 6;
 	}
-	if(!dryrun) cMove = dummyMove;
+	if(!dryrun){ 
+		cMove = dummyMove;
+		if(currentFrame != n || cMove != save) cMove->playSound(ID);
+	}
 	else cMove = save;
 }
 
@@ -640,6 +637,12 @@ int player::takeHit(int combo, hStat & s)
 		else slide = false;
 		if(pick()->aerial && s.stick) stick = true;
 		else stick = false;
+	}
+	if(cMove == pick()->die){ 
+		bMove = NULL;
+		currentFrame = 0;
+		connectFlag = 0;
+		hitFlag = 0;
 	}
 	updateRects();
 	if(s.ghostHit && combo < 1) return 0;
