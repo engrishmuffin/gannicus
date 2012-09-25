@@ -178,7 +178,7 @@ int teal::takeHit(action *& cMove, hStat & s, int b, int &f, int &c, int &h, int
 	return freeze;
 }
 
-action * teal::hook(int inputBuffer[30], int i, int f, int * r, bool down[5], bool up[5], action * c, SDL_Rect &p, int &cFlag, int &hFlag)
+action * teal::hook(int inputBuffer[30], int i, int f, int * r, int down[5], bool up[5], action * c, SDL_Rect &p, int &cFlag, int &hFlag)
 {
 	if(aerial) return airHead[meter[3]]->actionHook(inputBuffer, 0, -1, meter, down, up, c, p, cFlag, hFlag);
 	else return head[meter[3]]->actionHook(inputBuffer, 0, -1, meter, down, up, c, p, cFlag, hFlag);
@@ -189,6 +189,7 @@ void teal::sortMove(action * m, char* buffer)
 	char component[2];
 	char * token;
 	int q;
+	int pattern;
 	actionTrie * t = NULL;
 	token = strtok(buffer, " \t=>-&?@%$_!\n");
 	while (token){
@@ -215,13 +216,25 @@ void teal::sortMove(action * m, char* buffer)
 			default:
 				break;
 			}
-			for(int i = strlen(token)-1; i > 1; i--){
-				sprintf(component, "%c\0", token[i]);
-				q = atoi(component);
-				if(q > 10) q = q % 10;
-				t = t->insert(q);
+			pattern = 0;
+			for(int i = strlen(token)-1; i > 0; i--){
+				switch(token[i]){
+				case 'A':
+				case 'B':
+				case 'C':
+				case 'D':
+				case 'E':
+					pattern += 1 << (token[i] - 'A');
+					break;
+				default:
+					sprintf(component, "%c\0", token[i]);
+					q = atoi(component);
+					if(q > 10) q = q % 10;
+					t = t->insert(q);
+					break;
+				}
 			}
-			t->insert(m);
+			t->insert(m, pattern);
 		}
 	}
 }

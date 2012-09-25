@@ -24,7 +24,7 @@ public:
 	void resetAirOptions();
 	void init(action *&);
 	int takeHit(action *&, hStat&, int, int&, int&, int&, int&);
-	action * hook(int[40], int, int, int*, bool[5], bool[5], action *, SDL_Rect&, int&, int&);
+	action * hook(int[40], int, int, int*, int[5], bool[5], action *, SDL_Rect&, int&, int&);
 
 	actionTrie * head[4];
 	actionTrie * airHead[4];
