@@ -15,19 +15,20 @@ set (gufg_VERSION_MINOR 0)
 set (gufg_VERSION_PATCH 1)
 
 set (SOURCES	auxil.cc 
+		action.cc 
+		aerial.cc
 		character.cc 
 		draw.cc 
 		hitstun.cc
 		interface.cc 
-		action.cc 
 		player.cc 
-		red.cc
-		yellow.cc 
-		special.cc 
-		aerial.cc
-		utility.cc
 		projectile.cc
-		trie.cc) 
+		special.cc 
+		trie.cc
+		utility.cc
+		genericCharacter.cc
+		red.cc
+		yellow.cc) 
 
 set (CMAKE_CXX_FLAGS "-D_GLIBCXX_USE_NANOSLEEP -O2 -g -Wall -Wctor-dtor-privacy -Wno-format-contains-nul -std=c++11 -pedantic")
 set (QT_USE_QTOPENGL TRUE)
