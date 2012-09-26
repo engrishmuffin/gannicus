@@ -16,7 +16,7 @@
 interface::interface()
 {
 	char buffer[50];
-	numChars = 2;
+	numChars = 3;
 	shortcut = false;
 	std::ifstream read;
 	/*Initialize some pseudo-constants*/
