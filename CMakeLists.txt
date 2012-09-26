@@ -26,7 +26,7 @@ set (SOURCES	auxil.cc
 		special.cc 
 		trie.cc
 		utility.cc
-		generic.cc
+		genericCharacter.cc
 		red.cc
 		yellow.cc) 
 

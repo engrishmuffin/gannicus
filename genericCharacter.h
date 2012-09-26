@@ -1,8 +1,8 @@
 #ifndef GENERIC_INCLUDED
 #define GENERIC_INCLUDED
 #include "character.h"
-class generic : public character {
+class genericCharacter : public character {
 public:
-	generic();
+	genericCharacter();
 };
 #endif

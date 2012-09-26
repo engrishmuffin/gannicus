@@ -1,4 +1,4 @@
-generic
+genericCharacter
 #Utilities
 -JN = h8
 -SJN = h28 h38 h18
