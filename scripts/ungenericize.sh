@@ -8,9 +8,9 @@ if [[ $1 == "" ]]
     read
     if [[ $(git symbolic-ref --short HEAD) == "alpha-generic" ]] 
       then	
-	if git checkout -b alpha-$1;
+        if git checkout -b alpha-$1;
           then
-	    for source in   charlist.h \
+            for source in   charlist.h \
 	          	    genericCharacter.cc \
 			    genericCharacter.h \
 			    genericCharacter/genericCharacter.ch \
@@ -26,8 +26,11 @@ if [[ $1 == "" ]]
 	    mv -v {genericCharacter,$1}
 	    git rm -r genericCharacter{.cc,.h,/} 
 	    git add $1{.cc,.h,/} charlist.h CMakeLists.txt player.cc
-	  else
- 	    echo "This probably won't break anything if you use it from the GUFG directory root on the alpha-generic branch."
-	fi
+          else
+	    echo "Please make sure the character name is unique."
+        fi
+      else
+        echo 	"This probably won't break anything if you use it from \
+	       	the GUFG directory root on the alpha-generic branch."
     fi
 fi
