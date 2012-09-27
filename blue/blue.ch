@@ -21,4 +21,4 @@ blue
 ?ForwardTech = a6 a9 a3
 ?StopTech = a8
 #Moves
->214A = h214
+>214A = h214A

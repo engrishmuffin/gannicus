@@ -6,7 +6,7 @@ Check: 129
 State: 256
 Payload: sam/snap
 SpawnsOn: 11
-SpawnPosition: 120 : 105
+SpawnPosition: 120 : 194
 Gain: 0
 Cost: 0
 Blockable: 3
