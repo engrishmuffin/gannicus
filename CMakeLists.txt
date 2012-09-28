@@ -1,6 +1,7 @@
 # Copyright (C) 2012 Joseph Woodruff/The GUFG Programming Team
 #
 # CMake build file, cobbled together from past experience and the SDL wiki
+#Tips taken from tutorial at http://www.bluequartz.net/projects/EIM_Segmentation/SoftwareDocumentation/html/usewithcmakeproject.html
 
 cmake_minimum_required(VERSION 2.6)
 
@@ -14,21 +15,21 @@ set (gufg_VERSION_MAJOR 0)
 set (gufg_VERSION_MINOR 0)
 set (gufg_VERSION_PATCH 1)
 
-set (SOURCES	auxil.cc 
-		action.cc 
-		aerial.cc
-		character.cc 
-		draw.cc 
-		hitstun.cc
-		interface.cc 
-		player.cc 
-		projectile.cc
-		special.cc 
-		trie.cc
-		utility.cc
-		genericCharacter.cc
-		red.cc
-		yellow.cc) 
+set (SOURCES	src/auxil.cc 
+		src/character.cc 
+		src/draw.cc 
+		src/hitstun.cc
+		src/interface.cc 
+		src/action.cc 
+		src/player.cc
+		src/genericCharacter.cc
+		src/red.cc
+		src/yellow.cc 
+		src/special.cc 
+		src/aerial.cc
+		src/utility.cc
+		src/projectile.cc
+		src/trie.cc) 
 
 set (CMAKE_CXX_FLAGS "-D_GLIBCXX_USE_NANOSLEEP -O2 -g -Wall -Wctor-dtor-privacy -Wno-format-contains-nul -std=c++11 -pedantic")
 set (QT_USE_QTOPENGL TRUE)
@@ -62,15 +63,23 @@ endif (APPLE)
 add_executable (gufg 
 		WIN32
 		MACOSX_BUNDLE
-		keytest.cc
+		src/keytest.cc
 		${SOURCES})
 
 add_executable (bmpout
 		WIN32
 		MACOSX_BUNDLE
 		EXCLUDE_FROM_ALL
-		bmp.cc
+		src/bmp.cc
 		${SOURCES})
+
+find_package(Doxygen)
+if (DOXYGEN_FOUND)
+	configure_file(Doxyfile.in
+	${PROJECT_BINARY_DIR}/Doxyfile @ONLY IMMEDIATE)
+	add_custom_target(doc
+	${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+endif(DOXYGEN_FOUND)
 
 INSTALL(TARGETS gufg
 	RUNTIME
