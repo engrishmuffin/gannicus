@@ -1,8 +1,9 @@
-/*Interface class for GUFG
- *This will run all the main game functions within GUFG
- *
- *Written by Alex Kelly in 2012
- *License to come
+/*Interface class for GUFG.
+ *This will run all the main game functions within GUFG.
+ *No kidding.
+ *Written by Alex Kelly in 2012.
+ *Mangled by H Forrest Alexander in the autumn of that same year.
+ *I think there's a license somewhere.
  */
 
 #include "interface.h"
@@ -33,7 +34,7 @@ interface::interface()
 	select[0] = 0;
 	select[1] = 0;
 
-	read.open("Misc/.res.conf");
+	read.open("Misc/res.conf");
 	if(read.fail()){ 
 		scalingFactor = 0.5;
 		fullscreen = false;
@@ -404,14 +405,18 @@ void interface::resolve()
 		for(int i = 0; i < 2; i++){
 			if(!p[i]->pick()->aerial) { p[i]->deltaX = 0; p[i]->deltaY = 0; }
 
-			if(p[i]->cMove != p[i]->pick()->fall && !p[i]->cMove->arbitraryPoll(1, 0) && !roundEnd){
-				if(p[i]->cMove == p[i]->pick()->untech) illegit[(i+1)%2] = 1;
-				else{
+			if(!roundEnd){
+				switch (p[i]->pick()->comboState(p[i]->cMove)){ 
+				case -2: 
+					illegit[(i+1)%2] = 1;
+					break;
+				case 0:
 					combo[(i+1)%2] = 0;
 					damage[(i+1)%2] = 0;
 					p[i]->elasticX = 0;
 					p[i]->elasticY = 0;
 					illegit[(i+1)%2] = 0;
+					break;
 				}
 			}
 		}
