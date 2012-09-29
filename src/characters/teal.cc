@@ -273,7 +273,7 @@ void teal::sortMove(action * m, char* buffer)
 				break;
 			}
 			pattern = 0;
-			for(int i = strlen(token)-1; i > 0; i--){
+			for(int i = strlen(token)-1; i > 1; i--){
 				switch(token[i]){
 				case 'A':
 				case 'B':
