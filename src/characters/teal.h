@@ -19,9 +19,10 @@ public:
 	void build(const char*, const char*);
 	void sortMove(action*, char*);
 	void neutralize(action *&);
-	bool checkBlocking(action *&, int, int&, int&);
+	int checkBlocking(action *&, int[], int&, int&);
 	virtual action * createMove(char*);
 	void resetAirOptions();
+	int comboState(action *);
 	void init(action *&);
 	int takeHit(action *&, hStat&, int, int&, int&, int&, int&);
 	action * hook(int[40], int, int, int*, int[5], bool[5], action *, SDL_Rect&, int&, int&);

@@ -9,6 +9,22 @@ teal::teal(){
 	dFlag = 1;
 }
 
+int teal::comboState(action * c)
+{
+	for(int i = 0; i < 4; i++){
+		if(c == reel[i]) return 1;
+		if(c == crouchReel[i]) return 1;
+		if(c == untech[i]) return 1;
+		if(c == fall[i]) return -2;
+		if(i < 3){
+			if(c == standBlock[i]) return -1;
+			if(c == crouchBlock[i]) return -1;
+			if(c == airBlock[i]) return -1;
+		}
+	}
+	return 0;
+}
+
 teal::~teal()
 	//Character destructor. Might not need this if we aren't working with any dynamic memory, but it might be worthwhile to have.
 {
@@ -112,39 +128,79 @@ void teal::resetAirOptions()
 	if(meter[3] == 3) meter[2] = 2;
 }
 
-bool teal::checkBlocking(action *& cMove, int input, int &connectFlag, int &hitFlag)
+int teal::checkBlocking(action *& cMove, int input[], int &connectFlag, int &hitFlag)
 {
-	if(meter[3] == 3) return false;
+	if(meter[3] == 3) return -1;
 	int st;
+	bool success = false;
+	int ret = -1;
 	st = cMove->arbitraryPoll(1, 0);
-	switch(input){
+	switch(input[0]){
+	case 3:
+	case 6:
+	case 9:
+		for(int i = 1; i < 7; i++){
+			if(input[i] % 3 == 1){
+				for(int j = i+1; j < 8; j++){
+					if(input[j] % 3 == 2){
+						if(aerial){
+							if(airBlock[meter[3]]->cancel(cMove, connectFlag, hitFlag)) {
+								airBlock[meter[3]]->init(st);
+								cMove = airBlock[meter[3]];
+							}
+						} else {
+							if(input[0] > 3){ 
+								if(standBlock[meter[3]]->cancel(cMove, connectFlag, hitFlag)) {
+									standBlock[meter[3]]->init(st);
+									cMove = standBlock[meter[3]];
+								}
+							} else {
+								if(crouchBlock[meter[3]]->cancel(cMove, connectFlag, hitFlag)) {
+									crouchBlock[meter[3]]->init(st);
+									cMove = crouchBlock[meter[3]];
+								}
+							}
+							ret = 2;
+							j = 10;
+						}
+					}
+				}
+				i = 9;
+			}
+		}
+		break;
 	case 7:
 	case 4:
-		if(aerial && airBlock[meter[3]]->cancel(cMove, connectFlag, hitFlag)) {
-			airBlock[meter[3]]->init(st);
-			cMove = airBlock[meter[3]];
-		}
-		else if(standBlock[meter[3]]->cancel(cMove, connectFlag, hitFlag)) {
-			standBlock[meter[3]]->init(st);
-			cMove = standBlock[meter[3]];
-		}
-		return true;
-		break;
 	case 1:
-		if(aerial && airBlock[meter[3]]->cancel(cMove, connectFlag, hitFlag)) {
-			airBlock[meter[3]]->init(st);
-			cMove = airBlock[meter[3]];
+		if(aerial){
+			if(airBlock[meter[3]]->cancel(cMove, connectFlag, hitFlag)) {
+				airBlock[meter[3]]->init(st);
+				cMove = airBlock[meter[3]];
+			}
+		} else { 
+			if(input[0] > 3){ 
+				if(standBlock[meter[3]]->cancel(cMove, connectFlag, hitFlag)) {
+					standBlock[meter[3]]->init(st);
+					cMove = standBlock[meter[3]];
+				}
+			} else {
+				if(crouchBlock[meter[3]]->cancel(cMove, connectFlag, hitFlag)) {
+					crouchBlock[meter[3]]->init(st);
+					cMove = crouchBlock[meter[3]];
+				}
+			}
 		}
-		else if(crouchBlock[meter[3]]->cancel(cMove, connectFlag, hitFlag)) {
-			crouchBlock[meter[3]]->init(st);
-			cMove = crouchBlock[meter[3]];
-		}
-		return true;
-		break;
-	default:
-		return false;
+		success = true;
 		break;
 	}
+	if(success){
+		ret = 0;
+		for(int i = 1; i < 7; i++){
+			if(input[i] % 3 != 1)
+			ret = 1;
+		}
+	}
+	return ret;
 }
 
 int teal::takeHit(action *& cMove, hStat & s, int b, int &f, int &c, int &h, int &p)
