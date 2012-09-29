@@ -10,22 +10,20 @@ if [[ $1 == "" ]]
       then	
         if git checkout -b alpha-$1;
           then
-            for source in   charlist.h \
-	          	    genericCharacter.cc \
-			    genericCharacter.h \
+            for source in   src/charlist.h \
+	          	    src/characters/genericCharacter.cc \
+			    src/characters/genericCharacter.h \
 			    genericCharacter/genericCharacter.ch \
-			    player.cc \
+			    src/engine/player.cc \
 			    CMakeLists.txt
 	      do sed -i {s#genericCharacter#$1#g} $source
 	    done
 	    capsName=$(tr 'a-z' 'A-Z' <<< $1) 
 	    sed -i "s#GENERIC#$capsName#g" genericCharacter.h
-	    mv -v {genericCharacter,$1}.cc
-	    mv -v {genericCharacter,$1}.h
-	    mv -v genericCharacter/{genericCharacter,$1}.ch
-	    mv -v {genericCharacter,$1}
-	    git rm -r genericCharacter{.cc,.h,/} 
-	    git add $1{.cc,.h,/} charlist.h CMakeLists.txt player.cc
+	    git mv -v src/characters/{genericCharacter,$1}.cc
+	    git mv -v src/characters/{genericCharacter,$1}.h
+	    git mv -v genericCharacter/{genericCharacter,$1}.ch
+	    git mv -v {genericCharacter,$1}
           else
 	    echo "Please make sure the character name is unique."
         fi
