@@ -899,7 +899,10 @@ void interface::resolveHits()
 			if(h != i && !taken[h]){
 				for(int j = 0; j < things[i]->hitComplexity; j++){
 					for(int k = 0; k < things[h]->regComplexity; k++){
-						if(aux::checkCollision(things[i]->hitbox[j], things[h]->hitreg[k])){
+						switch(aux::checkCollision(things[i]->hitbox[j], things[h]->hitreg[k])){
+						case 2:
+							printf("Clean Hit\n");
+						case 1:
 							if(things[i]->acceptTarget(things[h])){
 								connect[i] = 1;
 								things[i]->cMove->pollStats(s[i], things[i]->currentFrame, things[h]->CHState());
@@ -909,6 +912,7 @@ void interface::resolveHits()
 								taken[h] = 1;
 								hitBy[h] = i;
 							}
+							break;
 						}
 					}
 				}
