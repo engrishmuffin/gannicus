@@ -48,6 +48,8 @@ void action::zero()
 	stop = 0;
 	hits = 0;
 	throwinvuln = 0;
+	minHold = 1;
+	maxHold = 1;
 	crouch = 0;
 	armorStart = 0; armorLength = 0;
 	armorHits = 0;
@@ -128,32 +130,6 @@ void action::build(const char * n)
 	}
 	read.close();
 
-	for(int i = 0; i < 5; i++){
-		button[i] = 0;
-	}
-	int r = strlen(n);
-	for(int i = 0; i < r; i++){
-		switch(n[i]){
-		case 'A':
-			button[0] = 1;
-			break;
-		case 'B':
-			button[1] = 1;
-			break;
-		case 'C':
-			button[2] = 1;
-			break;
-		case 'D':
-			button[3] = 1;
-			break;
-		case 'E':
-			button[4] = 1;
-			break;
-		default:
-			break;
-		}
-	}
-
 	SDL_Surface *temp;
 	width = new int[frames];
 	height = new int[frames];
@@ -198,6 +174,13 @@ bool action::setParameter(char * buffer)
 
 		token = strtok(NULL, "\t: \n");
 		yRequisite = atoi(token); 
+		return 1;
+	} else if (!strcmp("Hold", token)) {
+		token = strtok(NULL, "\t: \n-");
+		minHold = atoi(token);
+
+		token = strtok(NULL, "\t: \n-");
+		maxHold = atoi(token);
 		return 1;
 	} else if (!strcmp("Counterhit", token)) {
 		parseProperties(savedBuffer, 1);
@@ -497,11 +480,12 @@ bool action::window(int f)
 	return 1;
 }
 
-bool action::activate(bool pos[5], bool neg[5], int t, int f, int resource[], SDL_Rect &p)
+bool action::activate(int pos[5], bool neg[5], int pattern, int t, int f, int resource[], SDL_Rect &p)
 {
 	for(int i = 0; i < 5; i++){
-		if(button[i] == 1){
-			if(!pos[i]) return 0;
+		if(pattern & (1 << i)){
+			if(pos[i] < minHold) return 0;
+			if(maxHold && pos[i] > maxHold) return 0;
 		}
 	}
 	if(t > tolerance) return 0;

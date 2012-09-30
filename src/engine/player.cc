@@ -440,7 +440,7 @@ void instance::pushInput(bool axis[4])
 	}
 }
 
-void instance::getMove(bool down[5], bool up[5], SDL_Rect &p, bool dryrun)
+void instance::getMove(int down[5], bool up[5], SDL_Rect &p, bool dryrun)
 {
 	action * dummyMove, *save;
 	dummyMove = cMove;
@@ -518,7 +518,7 @@ void instance::removeVector(int n)
 	momentumComplexity--;
 }
 
-void player::readEvent(SDL_Event & event, bool *& sAxis, bool *& posEdge, bool *& negEdge)
+void player::readEvent(SDL_Event & event, bool *& sAxis, int *& posEdge, bool *& negEdge)
 {
 //	printf("Player %i read event of type %i:\n", ID, event.type);
 	switch(event.type){
@@ -548,8 +548,10 @@ void player::readEvent(SDL_Event & event, bool *& sAxis, bool *& posEdge, bool *
 				sAxis[i] = 0;
 		}
 		for(int i = 4; i < 10; i++){
-			if(event.jbutton.which == input[i].jbutton.which && event.jbutton.button == input[i].jbutton.button && input[i].type == SDL_JOYBUTTONDOWN)
+			if(event.jbutton.which == input[i].jbutton.which && event.jbutton.button == input[i].jbutton.button && input[i].type == SDL_JOYBUTTONDOWN){
 				negEdge[i-4] = 1;
+				posEdge[i-4] = 0;
+			}
 		}
 		break;
 	case SDL_KEYDOWN:
@@ -568,8 +570,10 @@ void player::readEvent(SDL_Event & event, bool *& sAxis, bool *& posEdge, bool *
 				sAxis[i] = 0;
 		}
 		for(int i = 4; i < 10; i++){
-			if(event.key.keysym.sym == input[i].key.keysym.sym && input[i].type == SDL_KEYDOWN)
+			if(event.key.keysym.sym == input[i].key.keysym.sym && input[i].type == SDL_KEYDOWN){
 				negEdge[i-4] = 1;
+				posEdge[i-4] = 0;
+			}
 		}
 		break;
 	}

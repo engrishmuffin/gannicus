@@ -1,37 +1,40 @@
-/*Interface class for GUFG
- *This will run all the main game functions within GUFG
- *
- *Written by Alex Kelly in 2012
- *License to come
+/*Interface class for GUFG.
+ *This will run all the main game functions within GUFG.
+ *No kidding.
+ *Written by Alex Kelly in 2012.
+ *Mangled by H Forrest Alexander in the autumn of that same year.
+ *I think there's a license somewhere.
  */
 
 #include "interface.h"
-#include <cstring>
-#include <math.h>
-#include <assert.h>
 #include <SDL/SDL_opengl.h>
 #include <algorithm>
+#include <assert.h>
+#include <cstring>
 #include <fstream>
 #include <iostream>
+#include <math.h>
 interface::interface()
 {
 	char buffer[50];
 	numChars = 3;
 	shortcut = false;
+	boxen = false;
 	std::ifstream read;
+
 	/*Initialize some pseudo-constants*/
-	screenWidth = 1600; //By screen, I mean the window the game occurs in.
+	screenWidth = 1600; /*screen{Width,Height} describe the size of the window holding the game.*/
 	screenHeight = 900;
 	screen = NULL;
-	bg.w = 3200;       //By background, I mean the thing the characters actually move on. Bigger than the screen.
+	bg.w = 3200; /*The screen gives a partial view of the background, which is the area available for character movement.*/
 	bg.h = 1800;
-	floor = 50; //Value of the floor. This is the maximum distance downward that characters can travel.
-	wall = 50;         //The size of the offset at which characters start to scroll the background, and get stuck.
+	floor = 50; /*Value of the floor. This is the maximum distance downward that characters can travel.*/
+	wall = 50; /*The size of the offset at which characters start to scroll the background, and get stuck.*/
 
 	select[0] = 0;
 	select[1] = 0;
 
-	read.open("Misc/.res.conf");
+	read.open("Misc/res.conf");
 	if(read.fail()){ 
 		scalingFactor = 0.5;
 		fullscreen = false;
@@ -49,9 +52,8 @@ interface::interface()
 		p[i] = new player(i+1);
 		if(!p[i]->readConfig()) writeConfig(i);
 		sAxis[i] = new bool[4];
-		posEdge[i] = new bool[6]; 
+		posEdge[i] = new int[6]; 
 		negEdge[i] = new bool[6];
-		held[i] = new int[6];
 		counter[i] = 0;
 		select[i] = 0;
 		selection[i] = 1+i;
@@ -80,9 +82,11 @@ interface::interface()
 
 	/*Start a match*/
 	things = NULL;
+	Mix_PlayChannel(3, announceSelect, 0);
 	matchInit();
 }
 
+/*This function loads a few miscellaneous things the game will need in all cases*/
 void interface::loadMisc()
 {
 	char buffer[200];
@@ -104,8 +108,10 @@ void interface::loadMisc()
 	announceFight = Mix_LoadWAV("Misc/Announcer/Fight.ogg");
 	announceEnd[0] = Mix_LoadWAV("Misc/Announcer/Timeout.ogg");
 	announceEnd[1] = Mix_LoadWAV("Misc/Announcer/Down.ogg");
+	announceSelect = Mix_LoadWAV("Misc/Announcer/Select.ogg");
 }
 
+/*Initialize SDL and openGL, creating a window, among other things*/
 bool interface::screenInit()
 {
 	/*Initialize SDL*/
@@ -259,10 +265,10 @@ void interface::roundInit()
 			if(j < 4) sAxis[i][j] = 0;
 			posEdge[i][j] = 0;
 			negEdge[i][j] = 0;
-			held[i][j] = 0;
 		}
 		combo[i] = 0;
 		damage[i] = 0;
+		illegit[i] = 0;
 	}
 
 	grav = -6;
@@ -399,11 +405,19 @@ void interface::resolve()
 		for(int i = 0; i < 2; i++){
 			if(!p[i]->pick()->aerial) { p[i]->deltaX = 0; p[i]->deltaY = 0; }
 
-			if(p[i]->cMove != p[i]->pick()->fall && !p[i]->cMove->arbitraryPoll(1, 0) && !roundEnd){
-				combo[(i+1)%2] = 0;
-				damage[(i+1)%2] = 0;
-				p[i]->elasticX = 0;
-				p[i]->elasticY = 0;
+			if(!roundEnd){
+				switch (p[i]->pick()->comboState(p[i]->cMove)){ 
+				case -2: 
+					illegit[(i+1)%2] = 1;
+					break;
+				case 0:
+					combo[(i+1)%2] = 0;
+					damage[(i+1)%2] = 0;
+					p[i]->elasticX = 0;
+					p[i]->elasticY = 0;
+					illegit[(i+1)%2] = 0;
+					break;
+				}
 			}
 		}
 
@@ -431,11 +445,11 @@ void interface::resolve()
 		runTimer();
 	}
 	/*Reinitialize inputs*/
-	for(int i = 0; i < 6; i++){
-		posEdge[0][i] = 0;
-		posEdge[1][i] = 0;
-		negEdge[0][i] = 0;
-		negEdge[1][i] = 0;
+	for(int i = 0; i < 2; i++){
+		for(int j = 0; j < 6; j++){
+			if(posEdge[i][j] > 0) posEdge[i][j]++;
+			negEdge[i][j] = 0;
+		}
 	}
 	for(int i = 0; i < 2; i++) if(counter[i] > 0) counter[i]--;
 }
@@ -594,11 +608,11 @@ void interface::cSelectMenu()
 				counter[i] = 10;
 			}
 			for(int j = 0; j < 5; j++){
-				if(posEdge[i][j] && !select[i]){
+				if(posEdge[i][j] == 1 && !select[i]){
 					select[i] = 1;
 				}
 			}
-			if(posEdge[i][5]){
+			if(posEdge[i][5] == 1){
 				if(!select[i]) menu[i] = 2;
 				else select[i] = 0;
 				counter[i] = 10;
@@ -697,7 +711,7 @@ void interface::mainMenu(int ID)
 	if(menu[ID] > 4) menu[ID] = 1;
 	else if(menu[ID] < 1) menu[ID] = 4;
 	for(int i = 0; i < 5; i++){
-		if(posEdge[ID][i]){
+		if(posEdge[ID][i] == 1){
 			switch(menu[ID]){
 			case 1:
 				glDisable( GL_TEXTURE_2D );
@@ -719,7 +733,7 @@ void interface::mainMenu(int ID)
 			}
 		}
 	}
-	if(posEdge[ID][5] && !counter[ID]) menu[ID] = 0;
+	if(posEdge[ID][5] == 1 && !counter[ID]) menu[ID] = 0;
 	glDisable( GL_TEXTURE_2D );
 	glColor4f(1.0, 1.0, 1.0, 1.0f);
 }
@@ -753,7 +767,7 @@ void interface::reMenu()
 		if(rMenu > 3) rMenu = 1;
 		else if(rMenu < 1) rMenu = 3;
 		for(int i = 0; i < 6; i++){
-			if(posEdge[j][i]){
+			if(posEdge[j][i] == 1){
 				switch(rMenu){
 				case 1:
 					Mix_HaltMusic();
@@ -767,6 +781,7 @@ void interface::reMenu()
 					select[1] = 0;
 					Mix_HaltMusic();
 					Mix_FreeMusic(matchMusic);
+					Mix_PlayChannel(3, announceSelect, 0);
 					matchInit();
 					break;
 				case 3:

@@ -15,19 +15,17 @@ character::character()
 character::character(const char*)
 //Character constructor. This loads the whole character into memory so that that we don't have disk reads during gameplay
 {
-	action * temp;
+/*	action * temp;
 
 	name = NULL;
-
-	/*Currently I'm using this as a test case for my action hooks*/
 
 	head = new actionTrie(new action("White/A"));
 
 	temp = new action("White/D");
-	head->insert(temp);
-	airHead = new actionTrie(temp);
+	head->insert(temp, 0);
+	airHead = new actionTrie(temp, 0);
 	
-	head->insert(new action("White/B"));
+	head->insert(new action("White/B"), 0);
 	neutral = new looping("White/NS");
 	crouch = new looping("White/NL");
 	head->insert(5, neutral);
@@ -56,6 +54,7 @@ character::character(const char*)
 	throwBreak = new utility("White/break");
 
 	meter = new int[3];
+*/
 }
 
 character::~character()
@@ -78,7 +77,7 @@ character::~character()
 	}
 }
 
-void avatar::prepHooks(int freeze, action *& cMove, action *& bMove, action *& sMove, int inputBuffer[30], bool down[5], bool up[5], SDL_Rect &p, int &f, int &cFlag, int &hFlag, bool dryrun)
+void avatar::prepHooks(int freeze, action *& cMove, action *& bMove, action *& sMove, int inputBuffer[30], int down[5], bool up[5], SDL_Rect &p, int &f, int &cFlag, int &hFlag, bool dryrun)
 {
 	action * t = NULL;
 	if (cMove == NULL) neutralize(cMove);
@@ -128,12 +127,12 @@ void avatar::prepHooks(int freeze, action *& cMove, action *& bMove, action *& s
 	}
 }
 
-action * avatar::hook(int inputBuffer[30], int i, int f, int * r, bool down[5], bool up[5], action * c, SDL_Rect &p, int &cFlag, int &hFlag)
+action * avatar::hook(int inputBuffer[30], int i, int f, int * r, int down[5], bool up[5], action * c, SDL_Rect &p, int &cFlag, int &hFlag)
 {
 	return head->actionHook(inputBuffer, 0, -1, meter, down, up, c, p, cFlag, hFlag);
 }
 
-action * character::hook(int inputBuffer[30], int i, int f, int * r, bool down[5], bool up[5], action * c, SDL_Rect &p, int &cFlag, int &hFlag)
+action * character::hook(int inputBuffer[30], int i, int f, int * r, int down[5], bool up[5], action * c, SDL_Rect &p, int &cFlag, int &hFlag)
 {
 	if(aerial) return airHead->actionHook(inputBuffer, 0, -1, meter, down, up, c, p, cFlag, hFlag);
 	else return avatar::hook(inputBuffer, 0, -1, meter, down, up, c, p, cFlag, hFlag);
@@ -160,6 +159,18 @@ void avatar::getName(const char* directory, const char* file)
 	read.get(buffer, 50); read.ignore(100, '\n');
 	name = new char[strlen(buffer)+1];
 	strcpy(name, buffer);
+}
+
+int character::comboState(action * c)
+{
+	if(c == reel) return 1;
+	if(c == crouchReel) return 1;
+	if(c == untech) return 1;
+	if(c == standBlock) return -1;
+	if(c == crouchBlock) return -1;
+	if(c == airBlock) return -1;
+	if(c == fall) return -2;
+	return 0;
 }
 
 void avatar::build(const char* directory, const char* file)
@@ -197,6 +208,7 @@ void avatar::sortMove(action * m, char* buffer)
 {
 	char component[2];
 	char * token;
+	int pattern;
 	int q;
 	actionTrie * t = NULL;
 	token = strtok(buffer, " \t=>-&?@%$_!\n");
@@ -211,13 +223,25 @@ void avatar::sortMove(action * m, char* buffer)
 			default:
 				break;
 			}
+			pattern = 0;
 			for(int i = strlen(token)-1; i > 0; i--){
-				sprintf(component, "%c\0", token[i]);
-				q = atoi(component);
-				if(q > 10) q = q % 10;
-				t = t->insert(q);
+				switch(token[i]){
+				case 'A':
+				case 'B':
+				case 'C':
+				case 'D':
+				case 'E':
+					pattern += 1 << (token[i] - 'A');
+					break;
+				default:
+					sprintf(component, "%c\0", token[i]);
+					q = atoi(component);
+					if(q > 10) q = q % 10;
+					t = t->insert(q);
+					break;
+				}
 			}
-			t->insert(m);
+			t->insert(m, pattern);
 		}
 	}
 }
@@ -227,6 +251,7 @@ void character::sortMove(action * m, char* buffer)
 	char component[2];
 	char * token;
 	int q;
+	int pattern;
 	actionTrie * t = NULL;
 	token = strtok(buffer, " \t=>-&?@%$_!\n");
 	while (token){
@@ -243,13 +268,25 @@ void character::sortMove(action * m, char* buffer)
 			default:
 				break;
 			}
+			pattern = 0;
 			for(int i = strlen(token)-1; i > 0; i--){
-				sprintf(component, "%c\0", token[i]);
-				q = atoi(component);
-				if(q > 10) q = q % 10;
-				t = t->insert(q);
+				switch(token[i]){
+				case 'A':
+				case 'B':
+				case 'C':
+				case 'D':
+				case 'E':
+					pattern += 1 << (token[i] - 'A');
+					break;
+				default:
+					sprintf(component, "%c\0", token[i]);
+					q = atoi(component);
+					if(q > 10) q = q % 10;
+					t = t->insert(q);
+					break;
+				}
 			}
-			t->insert(m);
+			t->insert(m, pattern);
 		}
 	}
 }
@@ -513,6 +550,7 @@ int character::takeHit(action *& cMove, hStat & s, int b, int &f, int &c, int &h
 	}
 	if(dead == true){
 		cMove = die;
+		aerial = true;
 	} else if (p == 1){
 		if(s.launch) aerial = 1;
 		if(s.stun != 0){
