@@ -3,4 +3,4 @@
 //2 - Yellow
 #include "characters/yellow.h"
 //3 - Generic
-#include "characters/genericCharacter.h"
+#include "characters/lime.h"
