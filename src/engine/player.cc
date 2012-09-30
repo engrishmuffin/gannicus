@@ -207,7 +207,7 @@ void player::characterSelect(int i)
 		v = new yellow;
 		break;
 	case 3:
-		v = new genericCharacter;
+		v = new cyan;
 		break;
 	default:
 		v = new character("White");
