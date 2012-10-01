@@ -139,6 +139,7 @@ public:
 	attractor * distortion;
 	int distortSpawn;
 	int attemptStart, attemptEnd;
+	int displaceX, displaceY, displaceFrame;
 	bool window(int);
 	int calcCurrentHit(int);
 

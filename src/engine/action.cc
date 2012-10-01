@@ -66,6 +66,9 @@ void action::zero()
 	tempNext = NULL;
 	tempAttempt = NULL;
 	tempRiposte = NULL;
+	displaceFrame = 0;
+	displaceX = 0;
+	displaceY = 0;
 	soundClip = NULL;
 	next = NULL;
 	attempt = NULL;
@@ -161,6 +164,14 @@ bool action::setParameter(char * buffer)
 		token = strtok(NULL, "\t:\n");
 		name = new char[strlen(token)+1];
 		sprintf(name, "%s", token);
+		return 1;
+	} else if (!strcmp("Displace", token)) {
+		token = strtok(NULL, "\t:\n");
+		displaceFrame = atoi(token);
+		token = strtok(NULL, "\t:\n");
+		displaceX = atoi(token);
+		token = strtok(NULL, "\t:\n");
+		displaceY = atoi(token);
 		return 1;
 	} else if (!strcmp("Buffer", token)) {
 		token = strtok(NULL, "\t: \n");
