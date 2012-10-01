@@ -19,5 +19,4 @@ indigo
 ?techforward = a6 a9 a3
 ?techstop = a8
 #Terminals
-@5D = a5
--land = h5
+@5D = a5D

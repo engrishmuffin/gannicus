@@ -3,8 +3,8 @@ Buffer: 0 : 0
 Hits: 0
 Frames: 3 : 3
 Check: 3
-State: 2304
-Next: jumpnext
+State: 2048
+Next: flight
 Gain: 1
 Cost: 0
 Blocks: 0

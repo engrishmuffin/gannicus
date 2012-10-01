@@ -3,10 +3,11 @@ Buffer: 0 : 0
 Hits: 0
 Frames: 3
 Check: 3
-State: 2305
+State: 2048
 Gain: 0
 Cost: 0
 Blocks: 0
+Next: flight
 Properties: t
 #0 
 $C	10 30 110 270
