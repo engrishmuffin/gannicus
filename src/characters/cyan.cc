@@ -6,16 +6,14 @@ cyan::cyan(){
 	build("cyan", "cyan");
 }
 
+bool blink::check(SDL_Rect& p, int resource[])
+{
+	if(resource[3] < 5 * 60) return 0;
+	else return action::check(p, resource);
+}
+
 void blink::execute(action * last, int *& resource, int &f, int &c, int &h)
 {
-	armorCounter = 0;
 	resource[3] -= 5 * 60;
-	resource[0] -= cost;
-	cover = last;
-	currentFrame = f;
-	connectFlag = c;
-	hitFlag = h;
-	f = 0;
-	c = 0;
-	h = 0;
+	action::execute(last, resource, f, c, h);
 }
