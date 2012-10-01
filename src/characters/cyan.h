@@ -10,6 +10,7 @@ public:
 class blink : public action {
 public:
 //	virtual bool cancel(action*, int&, int&); //Cancel allowed activate. Essentially: is action Lvalue allowed given the current state of action Rvalue?
+	void execute(action *, int *&);
 	action * cover;
 };
 #endif
