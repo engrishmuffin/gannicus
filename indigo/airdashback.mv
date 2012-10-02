@@ -2,7 +2,7 @@ Name: Air Backdash
 Buffer: 10 : 0
 Hits: 0
 Frames: 8 : 8
-Check: 2048
+Check: 2049
 State: 2558
 Gain: 0
 Cost: 0
@@ -11,7 +11,7 @@ Properties:
 #0 
 $C	10 40 120 240
 $R	10 40 120 240
-$D	-8 0 3 0	0 -6 0 00	0 0 7 1
+$D	-8 0 4 0	0 6 8 0
 #0 
 $C	10 40 120 240
 $R	10 40 120 240
