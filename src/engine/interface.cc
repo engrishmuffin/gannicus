@@ -679,12 +679,12 @@ void interface::cSelectMenu()
 
 		sprintf(buffer, "Misc/BG%i.png", selection[0]);
 		background = aux::load_texture(buffer);
-
+/*
 		if(selection[0] == selection[1]) sprintf(buffer, "Misc/Mirror.ogg");
 		else sprintf(buffer, "Misc/%i.ogg", selection[1]);
 		matchMusic = Mix_LoadMUS(buffer);
 		Mix_HaltMusic();
-
+*/
 		roundInit();
 	}
 }
