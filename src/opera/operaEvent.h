@@ -5,11 +5,11 @@
 class operaEvent
 {
 public:
-	 operaEvent();
-	~operaEvent(); //make sure silent
-	void loadOgg(); //load the file
+	 operaEvent(char*, char*, float, int, int, int);
+	~operaEvent();
+	void loadOgg();
 	void beat(); //things that happen every frame: fire, play, decay
-	bool eventTrigger(); //function that varies among events, and checks _something_ to determine whether the event activates
+	bool eventConditions(); //function that varies among events, and checks _something_ to determine whether the event activates
 	void activate(); //start, or amplify/sustain
 	void play(); //start playing IF the frame is the correct number, AND recently fired
 	void decay(); //decay by half or just stop if under a threshold AND last_fired > threshold
@@ -21,8 +21,6 @@ private:
 	int rateModulus; //can only play on currentFrame % radeModulus
 	int lastFired; //checked by play and decay, incremented by decay, zeroed by fire
 	int decayFrames; //checked by decay, compared to lastFired. 0 == never, otherwise == halflife
-	char* resourceFolder; //folder to look for e.g. character sounds, etc
-	char* eventName; //filename of .ogg file associated with the event
 }
 
 #endif

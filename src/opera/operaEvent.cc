@@ -1,11 +1,13 @@
 #include "opera.h"
 #include <SDL/SDL_mixer.h>
 
-operaEvent::operaEvent()
+operaEvent::operaEvent(resourceFolder, resourceName, defaultVolume, frames, rateModulus, decayFrames)
 {
-	currentVolume = 0.0;
+	//eventResource == the folder to get ogg from;
 }
 operaEvent::~operaEvent(){}
+
+void operaEvent::loadOgg(){}
 
 void operaEvent::beat()
 {
@@ -14,13 +16,13 @@ void operaEvent::beat()
 	play();
 	decay();
 }
-bool operaEvent::eventTrigger()
+bool operaEvent::eventConditions()
 {
 return 0; //the unspecified event never plays
 }
 void operaEvent::activate()
 {
-	if !eventTrigger() return;
+	if !eventConditions() return;
 	else
 //if lastFired < frames, increase volume
 //otherwise set volume to defaultVolume

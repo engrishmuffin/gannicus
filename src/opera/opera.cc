@@ -3,10 +3,8 @@
 
 
 opera::opera()
-{	
-	
-	//load each event
-	currentVolume = defaultVolume;
+{ 
+	p1ambience = new operaEvent();
 }
 
 opera::~opera()
