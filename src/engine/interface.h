@@ -24,6 +24,7 @@ public:
 	void resolve();		/*The main loop of the game*/
 	void draw();		/*The primary function in charge of drawing things on the screen.*/
 	void runTimer();	/*Currently just a decrementer. May always just be a decrementer.*/
+	int elapsedTime(); /**Since timer is a decrementer, gets current elapsed time by subtraction **/
 	void spriteInit();	/*Part of the rendering toolchain. Sets up sprites for drawing.*/
 	bool screenInit();
 	int drawGlyph(const char *, int, int, int, int, int);

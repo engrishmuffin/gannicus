@@ -285,8 +285,8 @@ void interface::roundInit()
 void interface::runTimer()
 {
 	if(p[0]->rounds == 0 && p[1]->rounds == 0 && timer == 99 * 60 + 2){
-		Mix_VolumeMusic(100);
-		Mix_PlayMusic(matchMusic,-1);
+		//Mix_VolumeMusic(100);
+		//Mix_PlayMusic(matchMusic,-1);
 	}
 	int plus;
 	for(int i = 0; i < 2; i++){
@@ -328,6 +328,8 @@ void interface::runTimer()
 		}
 	} else timer--;
 }
+
+int interface::elapsedTime(){return 60 * 99 - timer;}
 
 /*Main function for a frame. This resolves character spritions, background scrolling, and hitboxes*/
 void interface::resolve()
