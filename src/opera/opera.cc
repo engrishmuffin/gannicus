@@ -4,7 +4,7 @@
 
 opera::opera()
 {	
-	//tare the current frame so that "number of frames elapsed" can be tracked
+	
 	//load each event
 	currentVolume = defaultVolume;
 }
@@ -19,6 +19,7 @@ void opera::beat()
 	listen(p1Score, p2Score);
 	//for i in events
 	//	event.beat();
+	mix();
 }
 
 void opera::listen(operaScore, operaScore)
@@ -26,6 +27,10 @@ void opera::listen(operaScore, operaScore)
 	//Take in an operaSignal.
 	//Check if even
 	//Play the appropriate operaEvent
+}
+
+void opera::mix()
+{
 }
 
 float opera::volume(){return currentVolume;}
