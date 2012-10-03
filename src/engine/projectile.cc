@@ -17,6 +17,7 @@ void projectile::build(const char* directory, const char* file)
 	die = new action(buffer);
 	head->insert(die, 0);
 	avatar::build(directory, file);
+	lifespan = -1;
 }
 
 bool projectile::acceptTarget(action * c, int f)
@@ -67,7 +68,7 @@ void summon::zero()
 	spawnTrackX = 0;
 	spawnPosY = 0;
 	spawnPosX = 0;
-	lifespan = 0;
+	lifespan = -1;
 	action::zero();
 }
 
@@ -78,7 +79,7 @@ bool projectile::death(action *& cMove, int f, int counter)
 			return true;
 		}
 	}
-	if(counter >= lifespan){
+	if(cMove != die && lifespan > 0 && counter > lifespan){
 		cMove = die;
 	}
 	return false;
