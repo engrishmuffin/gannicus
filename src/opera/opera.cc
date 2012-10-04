@@ -1,10 +1,13 @@
 #include "opera.h"
+#include "operaEvents.h"
 #include <SDL/SDL_mixer.h>
 
 
 opera::opera()
 { 
-	p1ambience = new operaEvent();
+	Mix_OpenAudio(44100, AUDIO_S16, 2, 2048);
+
+	//Generate operaEvents from configuration.
 }
 
 opera::~opera()
@@ -12,15 +15,15 @@ opera::~opera()
 }
 
 
-void opera::beat()
+void opera::beat(elapsedFrames)
 {	
-	listen(p1Score, p2Score);
+	listen(p1score, p2score);
 	//for i in events
 	//	event.beat();
 	mix();
 }
 
-void opera::listen(operaScore, operaScore)
+void opera::listen(p1score, p2score)
 {
 	//Take in an operaSignal.
 	//Check if even
@@ -30,13 +33,4 @@ void opera::listen(operaScore, operaScore)
 void opera::mix()
 {
 }
-
-float opera::volume(){return currentVolume;}
-//float->currentVolume with bounds
-float opera::volume(newVolume){
-	if newVolume < maxVolume {
-		if newVolume > minVolume {
-			currentVolume = newVolume;
-		} else currentVolume = minVolume;
-	} else newVolume = maxVolume;
 
