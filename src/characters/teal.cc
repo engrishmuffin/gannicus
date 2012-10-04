@@ -4,7 +4,7 @@ teal::teal(){
 		head[i] = new actionTrie;
 		airHead[i] = new actionTrie;
 	}
-	meter = new int[4];
+	meter = new int[5];
 	build("Teal", "Teal");
 	dFlag = 1;
 }
@@ -112,25 +112,25 @@ void teal::build(const char *directory, const char *file)
 
 void teal::init(action *& cMove)
 {
-	meter[3] = 0;
+	meter[4] = 0;
 	character::init(cMove);
 }
 
 void teal::neutralize(action *& cMove)
 {
-	if(aerial) cMove = airNeutral[meter[3]];
-	else cMove = neutral[meter[3]];
+	if(aerial) cMove = airNeutral[meter[4]];
+	else cMove = neutral[meter[4]];
 }
 
 void teal::resetAirOptions()
 {
 	character::resetAirOptions();
-	if(meter[3] == 3) meter[2] = 2;
+	if(meter[4] == 3) meter[3] = 2;
 }
 
 int teal::checkBlocking(action *& cMove, int input[], int &connectFlag, int &hitFlag)
 {
-	if(meter[3] == 3) return -1;
+	if(meter[4] == 3) return -1;
 	int st;
 	bool success = false;
 	int ret = -1;
@@ -144,20 +144,20 @@ int teal::checkBlocking(action *& cMove, int input[], int &connectFlag, int &hit
 				for(int j = i+1; j < 8; j++){
 					if(input[j] % 3 == 2){
 						if(aerial){
-							if(airBlock[meter[3]]->cancel(cMove, connectFlag, hitFlag)) {
-								airBlock[meter[3]]->init(st);
-								cMove = airBlock[meter[3]];
+							if(airBlock[meter[4]]->cancel(cMove, connectFlag, hitFlag)) {
+								airBlock[meter[4]]->init(st);
+								cMove = airBlock[meter[4]];
 							}
 						} else {
 							if(input[0] > 3){ 
-								if(standBlock[meter[3]]->cancel(cMove, connectFlag, hitFlag)) {
-									standBlock[meter[3]]->init(st);
-									cMove = standBlock[meter[3]];
+								if(standBlock[meter[4]]->cancel(cMove, connectFlag, hitFlag)) {
+									standBlock[meter[4]]->init(st);
+									cMove = standBlock[meter[4]];
 								}
 							} else {
-								if(crouchBlock[meter[3]]->cancel(cMove, connectFlag, hitFlag)) {
-									crouchBlock[meter[3]]->init(st);
-									cMove = crouchBlock[meter[3]];
+								if(crouchBlock[meter[4]]->cancel(cMove, connectFlag, hitFlag)) {
+									crouchBlock[meter[4]]->init(st);
+									cMove = crouchBlock[meter[4]];
 								}
 							}
 							ret = 2;
@@ -173,20 +173,20 @@ int teal::checkBlocking(action *& cMove, int input[], int &connectFlag, int &hit
 	case 4:
 	case 1:
 		if(aerial){
-			if(airBlock[meter[3]]->cancel(cMove, connectFlag, hitFlag)) {
-				airBlock[meter[3]]->init(st);
-				cMove = airBlock[meter[3]];
+			if(airBlock[meter[4]]->cancel(cMove, connectFlag, hitFlag)) {
+				airBlock[meter[4]]->init(st);
+				cMove = airBlock[meter[4]];
 			}
 		} else { 
 			if(input[0] > 3){ 
-				if(standBlock[meter[3]]->cancel(cMove, connectFlag, hitFlag)) {
-					standBlock[meter[3]]->init(st);
-					cMove = standBlock[meter[3]];
+				if(standBlock[meter[4]]->cancel(cMove, connectFlag, hitFlag)) {
+					standBlock[meter[4]]->init(st);
+					cMove = standBlock[meter[4]];
 				}
 			} else {
-				if(crouchBlock[meter[3]]->cancel(cMove, connectFlag, hitFlag)) {
-					crouchBlock[meter[3]]->init(st);
-					cMove = crouchBlock[meter[3]];
+				if(crouchBlock[meter[4]]->cancel(cMove, connectFlag, hitFlag)) {
+					crouchBlock[meter[4]]->init(st);
+					cMove = crouchBlock[meter[4]];
 				}
 			}
 		}
@@ -214,15 +214,15 @@ int teal::takeHit(action *& cMove, hStat & s, int b, int &f, int &c, int &h, int
 		if(s.stun > 0){
 			f = 0;
 			if(aerial){
-				untech[meter[3]]->init(s.stun+s.untech);
-				cMove = untech[meter[3]];
+				untech[meter[4]]->init(s.stun+s.untech);
+				cMove = untech[meter[4]];
 				resetAirOptions();
 			} else if(cMove->crouch){
-				crouchReel[meter[3]]->init(s.stun + s.stun/5);
-				cMove = crouchReel[meter[3]];
+				crouchReel[meter[4]]->init(s.stun + s.stun/5);
+				cMove = crouchReel[meter[4]];
 			} else {
-				reel[meter[3]]->init(s.stun);
-				cMove = reel[meter[3]];
+				reel[meter[4]]->init(s.stun);
+				cMove = reel[meter[4]];
 			}
 		}
 	} else if (p == -1) {
@@ -236,8 +236,8 @@ int teal::takeHit(action *& cMove, hStat & s, int b, int &f, int &c, int &h, int
 
 action * teal::hook(int inputBuffer[30], int i, int f, int * r, int down[5], bool up[5], action * c, SDL_Rect &p, int &cFlag, int &hFlag)
 {
-	if(aerial) return airHead[meter[3]]->actionHook(inputBuffer, 0, -1, meter, down, up, c, p, cFlag, hFlag);
-	else return head[meter[3]]->actionHook(inputBuffer, 0, -1, meter, down, up, c, p, cFlag, hFlag);
+	if(aerial) return airHead[meter[4]]->actionHook(inputBuffer, 0, -1, meter, down, up, c, p, cFlag, hFlag);
+	else return head[meter[4]]->actionHook(inputBuffer, 0, -1, meter, down, up, c, p, cFlag, hFlag);
 }
 
 void teal::sortMove(action * m, char* buffer)
