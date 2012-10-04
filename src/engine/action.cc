@@ -69,7 +69,6 @@ void action::zero()
 	displaceFrame = -1;
 	displaceX = 0;
 	displaceY = 0;
-	soundClip = NULL;
 	next = NULL;
 	attempt = NULL;
 	riposte = NULL;
@@ -150,8 +149,6 @@ void action::build(const char * n)
 			sprite[i] = aux::surface_to_texture(temp);
 		}
 	}
-	sprintf(fname, "%s.ogg", n);
-	soundClip = Mix_LoadWAV(fname);
 }
 
 bool action::setParameter(char * buffer)
@@ -647,7 +644,7 @@ action * action::blockSuccess()
 
 void action::playSound(int channel)
 {
-	Mix_PlayChannel(channel, soundClip, 0);
+	//operaScore gets a 1 in some field 
 }
 
 void action::execute(action * last, int *& resource, int &f, int &c, int &h)

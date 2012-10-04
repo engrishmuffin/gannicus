@@ -53,25 +53,17 @@ void interface::draw()
 	if(timer > 100 * 60 && timer < 100 * 60 + 31){ 
 		int l = p[0]->rounds + p[1]->rounds + 1;
 		sprintf(buffer, "Round %i", l);
-		if(timer == 100 * 60 + 30)
-			Mix_PlayChannel(3, announceRound[l - 1], 0);
 		drawGlyph(buffer, 0, 1600, 375, 150, 1);
 	}
 	if(timer > 99 * 60 && timer < 99 * 60 + 31){ 
 		drawGlyph("FIGHT", 0, 1600, 375, 150, 1);
-		if(timer == 99 * 60 + 30)
-			Mix_PlayChannel(3, announceFight, 0);
 	}
 
 	if(roundEnd && endTimer > 5 * 60 - 31){ 
 		if(p[0]->pick()->health > 0 && p[1]->pick()->health > 0){
 			drawGlyph("TIME OUT", 0, 1600, 300, 200, 1);
-			if(endTimer == 5 * 60 - 1)
-				Mix_PlayChannel(3, announceEnd[0], 0);
 		} else {
 			drawGlyph("DOWN", 0, 1600, 375, 150, 1);
-			if(endTimer == 5 * 60 - 1)
-				Mix_PlayChannel(3, announceEnd[1], 0);
 		}
 	}
 	if(endTimer > 3 * 60 + 29 && endTimer < 4 * 60){ 
@@ -79,24 +71,16 @@ void interface::draw()
 			sprintf(buffer, "%s", p[0]->pick()->name);
 			drawGlyph(buffer, 0, 1600, 300, 150, 1);
 			drawGlyph("Wins", 0, 1600, 450, 150, 1);
-			if(endTimer == 4 * 60 - 1)
-				Mix_PlayChannel(3, announceWinner[selection[0]], 0);
 		} else if(p[1]->pick()->health > p[0]->pick()->health){
 			sprintf(buffer, "%s", p[1]->pick()->name);
 			drawGlyph(buffer, 0, 1600, 300, 150, 1);
 			drawGlyph("Wins", 0, 1600, 450, 150, 1);
-			if(endTimer == 4 * 60 - 1)
-				Mix_PlayChannel(3, announceWinner[selection[1]], 0);
 		} else if(p[0]->pick()->health <= 0){ 
 			sprintf(buffer, "Double KO");
 			drawGlyph(buffer, 0, 1600, 375, 150, 1);
-			if(endTimer == 4 * 60 - 1)
-				Mix_PlayChannel(3, announceDraw[0], 0);
 		} else {
 			sprintf(buffer, "Draw");
 			drawGlyph(buffer, 0, 1600, 375, 150, 1);
-			if(endTimer == 4 * 60 - 1)
-				Mix_PlayChannel(3, announceDraw[1], 0);
 		}
 	}
 	glDisable( GL_TEXTURE_2D );

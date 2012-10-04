@@ -75,14 +75,6 @@ public:
 	int grav;	//Gravitational constant. 
 	instance ** things;
 	int thingComplexity;
-	Mix_Music *menuMusic;
-	Mix_Music *matchMusic;
-	Mix_Chunk **announceWinner;
-	Mix_Chunk *announceRound[3];
-	Mix_Chunk *announceDraw[2];
-	Mix_Chunk *announceFight;
-	Mix_Chunk *announceEnd[2];
-	Mix_Chunk *announceSelect;
 
 	attractor ** globals;
 	int attractorComplexity;

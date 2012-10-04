@@ -82,7 +82,6 @@ interface::interface()
 
 	/*Start a match*/
 	things = NULL;
-	Mix_PlayChannel(3, announceSelect, 0);
 	matchInit();
 }
 
@@ -95,20 +94,6 @@ void interface::loadMisc()
 		glyph[i] = aux::load_texture(buffer);
 	}
 	selectScreen = aux::load_texture("Misc/Select.png");
-	menuMusic = Mix_LoadMUS("Misc/Menu.ogg");
-	announceWinner = new Mix_Chunk*[numChars + 1];
-	for(int i = 0; i < numChars + 1; i++){
-		sprintf(buffer, "Misc/Announcer/Win%i.ogg", i);
-		announceWinner[i] = Mix_LoadWAV(buffer);
-	}
-	announceRound[0] = Mix_LoadWAV("Misc/Announcer/Round1.ogg");
-	announceRound[1] = Mix_LoadWAV("Misc/Announcer/Round2.ogg");
-	announceRound[2] = Mix_LoadWAV("Misc/Announcer/RoundF.ogg");
-	announceDraw[1] = Mix_LoadWAV("Misc/Announcer/Draw.ogg");
-	announceFight = Mix_LoadWAV("Misc/Announcer/Fight.ogg");
-	announceEnd[0] = Mix_LoadWAV("Misc/Announcer/Timeout.ogg");
-	announceEnd[1] = Mix_LoadWAV("Misc/Announcer/Down.ogg");
-	announceSelect = Mix_LoadWAV("Misc/Announcer/Select.ogg");
 }
 
 /*Initialize SDL and openGL, creating a window, among other things*/
@@ -116,7 +101,6 @@ bool interface::screenInit()
 {
 	/*Initialize SDL*/
 	if(SDL_Init(SDL_INIT_EVERYTHING) < 0) return false;
-	Mix_OpenAudio(44100, AUDIO_S16, 2, 2048);
 	/*WM stuff*/
 	int h, w;
 	if(scalingFactor == 1.0){ 
@@ -230,8 +214,6 @@ void interface::matchInit()
 	p[0]->secondInstance = 0;
 	p[1]->secondInstance = 0;
 	if(!select[0] || !select[1]){
-		Mix_VolumeMusic(100);
-		Mix_PlayMusic(menuMusic,-1);
 		printf("Please select a character:\n");
 	}
 	q = 0;
@@ -284,10 +266,6 @@ void interface::roundInit()
 /*Pretty simple timer modifier*/
 void interface::runTimer()
 {
-	if(p[0]->rounds == 0 && p[1]->rounds == 0 && timer == 99 * 60 + 2){
-		//Mix_VolumeMusic(100);
-		//Mix_PlayMusic(matchMusic,-1);
-	}
 	int plus;
 	for(int i = 0; i < 2; i++){
 		if(select[i] == true){
@@ -319,8 +297,6 @@ void interface::runTimer()
 					delete p[1]->pick();
 					select[0] = 0;
 					select[1] = 0;
-					Mix_HaltMusic();
-					Mix_FreeMusic(matchMusic);
 					matchInit();
 				}
 			}
@@ -679,12 +655,6 @@ void interface::cSelectMenu()
 
 		sprintf(buffer, "Misc/BG%i.png", selection[0]);
 		background = aux::load_texture(buffer);
-/*
-		if(selection[0] == selection[1]) sprintf(buffer, "Misc/Mirror.ogg");
-		else sprintf(buffer, "Misc/%i.ogg", selection[1]);
-		matchMusic = Mix_LoadMUS(buffer);
-		Mix_HaltMusic();
-*/
 		roundInit();
 	}
 }
@@ -774,7 +744,6 @@ void interface::reMenu()
 			if(posEdge[j][i] == 1){
 				switch(rMenu){
 				case 1:
-					Mix_HaltMusic();
 					rMenu = 0;
 					matchInit();
 					break;
@@ -783,14 +752,9 @@ void interface::reMenu()
 					delete p[1]->pick();
 					select[0] = 0;
 					select[1] = 0;
-					Mix_HaltMusic();
-					Mix_FreeMusic(matchMusic);
-					Mix_PlayChannel(3, announceSelect, 0);
 					matchInit();
 					break;
 				case 3:
-					Mix_HaltMusic();
-					Mix_FreeMusic(matchMusic);
 					gameover = 1;
 					break;
 				}
@@ -808,7 +772,6 @@ interface::~interface()
 	if(select[1]) delete p[1]->pick();
 	delete p[0];
 	delete p[1];
-	if(menuMusic) Mix_FreeMusic(menuMusic);
 	SDL_FreeSurface(screen);
 	SDL_Quit();
 }

@@ -6,7 +6,7 @@
  *This file runs a loop of everything that takes place in the GUFG engine. 
  
  **/
-
+//#include "opera/opera.h"
 #include "compat.h"
 #include "engine/interface.h"
 #include <SDL/SDL_opengl.h>
@@ -21,6 +21,7 @@ int main(int argc, char* argv[])
 	typedef chrono::duration<float,std::ratio<1,FPS>> frame_t ;
 	chrono::high_resolution_clock::time_point frameStart;
 	interface game;
+//	opera sound;
 	int rounds = 2;
 	if(argc > 1) rounds = atoi(argv[1]);
 	if(rounds > 0 && rounds < 10) game.numRounds = rounds;
@@ -30,6 +31,7 @@ int main(int argc, char* argv[])
 		frameStart = chrono::high_resolution_clock::now();
 		game.readInput();
 		game.resolve();
+//		sound.beat(game.elapsedTime());
 		frame_t frameElapsed;
 		/*Now eat up the rest of the frame: 
 		 *Check the time elapsed thus far in a loop
