@@ -488,7 +488,7 @@ bool action::window(int f)
 	return 1;
 }
 
-bool action::activate(int pos[5], bool neg[5], int pattern, int t, int f, int resource[], SDL_Rect &p)
+bool action::activate(int pos[5], bool neg[5], int pattern, int t, int f, int meter[], SDL_Rect &p)
 {
 	for(int i = 0; i < 5; i++){
 		if(pattern & (1 << i)){
@@ -498,12 +498,12 @@ bool action::activate(int pos[5], bool neg[5], int pattern, int t, int f, int re
 	}
 	if(t > tolerance) return 0;
 	if(f > activation) return 0;
-	return check(p, resource);
+	return check(p, meter);
 }
 
-bool action::check(SDL_Rect &p, int resource[])
+bool action::check(SDL_Rect &p, int meter[])
 {
-	if(cost > resource[0]) return 0;
+	if(cost > meter[1]) return 0;
 	if(xRequisite > 0 && p.w > xRequisite) return 0;
 	if(yRequisite > 0 && p.h > yRequisite) return 0;
 	return 1;
@@ -607,11 +607,11 @@ bool action::cancel(action * x, int& c, int &h)
 	return 0;
 }
 
-void action::step(int *& resource, int &f)
+void action::step(int *& meter, int &f)
 {
 	if(f == 0){
-		if(resource[0] + gain[0] < 300) resource[0] += gain[0];
-		else resource[0] = 300;
+		if(meter[1] + gain[0] < 300) meter[1] += gain[0];
+		else meter[1] = 300;
 	}
 	f++;
 }
@@ -625,11 +625,11 @@ int action::calcCurrentHit(int frame)
 	return b;
 }
 
-action * action::connect(int *& resource, int &c, int f)
+action * action::connect(int *& meter, int &c, int f)
 {
 	c = calcCurrentHit(f)+1;
-	if(resource[0] + gain[c] < 300) resource[0] += gain[c];
-	else resource[0] = 300;
+	if(meter[1] + gain[c] < 300) meter[1] += gain[c];
+	else meter[1] = 300;
 	if(onConnect[c-1] != NULL){
 		return onConnect[c-1];
 	}
@@ -647,10 +647,10 @@ void action::playSound(int channel)
 	//operaScore gets a 1 in some field 
 }
 
-void action::execute(action * last, int *& resource, int &f, int &c, int &h)
+void action::execute(action * last, int *& meter, int &f, int &c, int &h)
 {
 	armorCounter = 0;
-	resource[0] -= cost;
+	meter[1] -= cost;
 	f = 0;
 	c = 0;
 	h = 0;
