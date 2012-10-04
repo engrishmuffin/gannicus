@@ -12,6 +12,7 @@ opera::opera()
 
 opera::~opera()
 {
+	Mix_CloseAudio
 }
 
 

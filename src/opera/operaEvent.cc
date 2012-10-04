@@ -1,46 +1,54 @@
 #include "opera.h"
 #include <SDL/SDL_mixer.h>
 
-operaEvent::operaEvent(resourceFolder, resourceName, defaultVolume, frames, rateModulus, decayFrames, conditionBitmask)
+operaEvent::operaEvent(resourceFolder, resourceName, baseVolume, framesModulus, framesCooldown, framesCoefficient)
 {
 	
-	loadOgg();
-	eventSample.volume = defaultVolume;
+	eventSample = loadOgg();
+	eventSample.volume = baseVolume;
+	framesAgoPlayed = 0;
+	framesAgoActivated = 0;
+
 
 }
 operaEvent::~operaEvent(){}
 
-void operaEvent::loadOgg()
+Mix_Chunk operaEvent::loadOgg()
 {
 	char resourcePath[200];
-	sprintf(resourcePath, "%i/%i", resourceFolder, resourceName);
-	eventSample = Mix_LoadWAV(resourcePath);
+	sprintf(resourcePath, "%i/%i.ogg", oggFolder, oggName);
+	return Mix_LoadWAV(resourcePath);
 }
 
-void operaEvent::beat()
+
+void operaEvent::activate(condition)
 {
-	
-	activate();
-	play();
+	if !condition return;
+	else 
+	{
+		if (framesAgoPlayed >= framesCooldown) && !(elapsedFrames % framesModulus)
+		       	play();
+		if (framesAgoActivated <= framesCooldown)
+			grow();
+	}
 	decay();
-}
-
-
-
-void operaEvent::activate()
-{
-	if !(SOMETHING) return;
-	else
 //if lastFired < frames, increase volume
 //otherwise set volume to defaultVolume
 //zero lastFired
 }
 void operaEvent::play()
 {
-//play IF timer % rateModulus AND currentVolume > volumeThreshold AND lastFired > frames
+	
 }
+
+void operaEvent::grow()
+{
+//increase volume at a rate proportional to framesCoefficient.
+}
+
 void operaEvent::decay()
 {
-//decrease volume 
-//increment lastFired
+//decrease volume at a rate proportional to framesAgoActivated and framesCoefficient
+framesAgoPlayed++;
+framesAgoActivated++;
 }
