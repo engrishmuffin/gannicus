@@ -1,37 +1,30 @@
 #include "opera.h"
-#include "operaEvents.h"
+#include "operaEvent.h"
 #include <SDL/SDL_mixer.h>
+#include <fstream>
+#include <string>
+
+
 
 
 opera::opera()
 { 
+	charEvents = operaEvent[16];
+	charEvents = operaEventParse("resources/operaChars.yaml");
+	stageEvents = parseEvents("resources/operaStage.yaml");
+	numEvents = charEvents.number + stageEvents.number;
 	Mix_OpenAudio(44100, AUDIO_S16, 2, 2048);
-
-	//Generate operaEvents from configuration.
+	Mix_AllocateChannels(numEvents);
 }
 
 opera::~opera()
 {
-	Mix_CloseAudio
+	Mix_CloseAudio();
 }
 
 
-void opera::beat(elapsedFrames)
+
+
+void opera::beat()
 {	
-	listen(p1score, p2score);
-	//for i in events
-	//	event.beat();
-	mix();
 }
-
-void opera::listen(p1score, p2score)
-{
-	//Take in an operaSignal.
-	//Check if even
-	//Play the appropriate operaEvent
-}
-
-void opera::mix()
-{
-}
-

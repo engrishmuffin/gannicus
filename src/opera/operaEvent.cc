@@ -1,17 +1,48 @@
 #include "opera.h"
-#include <SDL/SDL_mixer.h>
+#include "operaEvent.h"
+#include <yaml-cpp/yaml.h>
 
-operaEvent::operaEvent(resourceFolder, resourceName, baseVolume, framesModulus, framesCooldown, framesCoefficient)
+void operator >> (const YAML::Node& node, operaEventConfig config)
+{
+	node["name"] >> config.name;
+	node["bitAnd"] >> config.bitAnd;
+	node["bitNot"] >> config.bitNot;
+	node["baseVolume"] >> config.baseVolume;
+	node["framesModulus"] >> config.framesModulus;
+	node["framesCooldown"] >> config.framesCooldown;
+	node["scaleConstant"] >> config.scaleConstant;
+}
+
+int operaEventParse(configFile)
+{
+	std::ifstream in(configFile);
+	YAML::Parser parser(in);
+	YAML::Node node;
+	parser.GetNextDocument(node);
+	operaEventConfig events[node.size()];
+	for(int i = 0; i < node.size(); i++)
+	{
+		node[i] >> events[i];
+	}
+	numberEvents = node.size();
+}
+
+
+operaEvent::operaEvent(oggFolder, channel, operaEventConfig)
 {
 	
 	eventSample = loadOgg();
-	eventSample.volume = baseVolume;
+	Mix_Volume(channel, baseVolume);
 	framesAgoPlayed = 0;
 	framesAgoActivated = 0;
 
 
 }
-operaEvent::~operaEvent(){}
+
+operaEvent::~operaEvent()
+{
+	Mix_HaltChannel(channel);
+}
 
 Mix_Chunk operaEvent::loadOgg()
 {
@@ -38,7 +69,7 @@ void operaEvent::activate(condition)
 }
 void operaEvent::play()
 {
-	
+	Mix_PlayChannel(channel, eventSample, 0);
 }
 
 void operaEvent::grow()
