@@ -32,6 +32,8 @@ int main(int argc, char* argv[])
 		game.readInput();
 		game.resolve();
 //		sound.beat(game.elapsedTime());
+		game.draw();
+		game.cleanup();
 		frame_t frameElapsed;
 		/*Now eat up the rest of the frame: 
 		 *Check the time elapsed thus far in a loop

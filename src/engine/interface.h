@@ -23,6 +23,11 @@ public:
 	void readInput();	/*Accepts input into input containers, for use by anything that wants it*/
 	void resolve();		/*The main loop of the game*/
 	void draw();		/*The primary function in charge of drawing things on the screen.*/
+	void drawGame();
+	void drawCSelect();
+	void drawMainMenu(int);
+	void drawRematchMenu();
+	void cleanup();
 	void runTimer();	/*Currently just a decrementer. May always just be a decrementer.*/
 	int elapsedTime(); /**Since timer is a decrementer, gets current elapsed time by subtraction **/
 	void spriteInit();	/*Part of the rendering toolchain. Sets up sprites for drawing.*/
@@ -33,7 +38,7 @@ public:
 	void matchInit();
 	void cSelectMenu();
 	void mainMenu(int);
-	void reMenu();
+	void rematchMenu();
 	void checkWin();
 	void dragBG(int);
 	void doSuperFreeze();
@@ -67,6 +72,7 @@ public:
 	bool fullscreen;
 	bool initd:1;
 	bool boxen:1;
+	bool firstFrame:1;
 	bool shortcut:1;
 	int combo[2];
 	int damage[2];
