@@ -1,40 +1,34 @@
-#include "opera.h"
 #include <SDL/SDL_mixer.h>
-#include <string>
 
-#ifndef OPERA_EVENTS
-#define OPERA_EVENTS
+#ifndef OPERA_EVENT
+#define OPERA_EVENT
 
-
-struct operaEventConfig
+struct eventConfig
 {
-	std::string name;
 	int bitAnd;
 	int bitNot;
 	int baseVolume;
         int framesModulus;
 	int framesCooldown;
-	int scaleConstant;	
-}
+	int scaleConstant;
+};
 
 class operaEvent
 {
 public:
-	 operaEvent(char*, operaEventConfig);
+	 operaEvent(const char*); //takes a path to a config as an argument
 	~operaEvent();
-	Mix_Chunk loadOgg(); 
-	void activate(bool);
-	void play();
-        void grow();	
-	void decay();
-	std::string name;
-	int bitAnd;
-	int bitNot;
+	eventConfig parseConfig(const char*); //from config named
+//	Mix_Chunk loadOgg(); 
+//	void check(int); //send it the signal bitmask, maybe activate
+//	void play();
+//      void grow();	
+//	void decay();
 private:
 	int framesAgoPlayed;
-	int framesAgoActivated
+	int framesAgoActivated;
+	eventConfig config;
 
-
-}
+};
 
 #endif

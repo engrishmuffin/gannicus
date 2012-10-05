@@ -1,49 +1,32 @@
-#include "opera.h"
 #include "operaEvent.h"
-#include <yaml-cpp/yaml.h>
-
-void operator >> (const YAML::Node& node, operaEventConfig config)
-{
-	node["name"] >> config.name;
-	node["bitAnd"] >> config.bitAnd;
-	node["bitNot"] >> config.bitNot;
-	node["baseVolume"] >> config.baseVolume;
-	node["framesModulus"] >> config.framesModulus;
-	node["framesCooldown"] >> config.framesCooldown;
-	node["scaleConstant"] >> config.scaleConstant;
-}
-
-int operaEventParse(configFile)
-{
-	std::ifstream in(configFile);
-	YAML::Parser parser(in);
-	YAML::Node node;
-	parser.GetNextDocument(node);
-	operaEventConfig events[node.size()];
-	for(int i = 0; i < node.size(); i++)
-	{
-		node[i] >> events[i];
-	}
-	numberEvents = node.size();
-}
+#include <fstream>
 
 
-operaEvent::operaEvent(oggFolder, channel, operaEventConfig)
+operaEvent::operaEvent(const char* eventPath)
 {
 	
-	eventSample = loadOgg();
-	Mix_Volume(channel, baseVolume);
+	config = parseConfig(eventPath);
+//	eventSample = loadOgg();
+//	Mix_Volume(channel, baseVolume);
 	framesAgoPlayed = 0;
 	framesAgoActivated = 0;
-
 
 }
 
 operaEvent::~operaEvent()
 {
-	Mix_HaltChannel(channel);
+//	Mix_HaltChannel(channel);
 }
 
+
+eventConfig operaEvent::parseConfig(const char* eventPath)
+{
+//	std::ifstream in(eventPath);
+	eventConfig event;
+	return event;
+}
+
+/*
 Mix_Chunk operaEvent::loadOgg()
 {
 	char resourcePath[200];
@@ -83,3 +66,5 @@ void operaEvent::decay()
 framesAgoPlayed++;
 framesAgoActivated++;
 }
+*/
+
