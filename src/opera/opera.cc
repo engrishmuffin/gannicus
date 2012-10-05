@@ -6,11 +6,8 @@
 
 opera::opera(char* character1, char* character2, char* stage, char* narrator)
 { 
-	baseVolume = 32;
 	Mix_OpenAudio(44100, AUDIO_S16, 2, 2048);
-
-	
-
+	int numEvents = getCharEvents(character1) + getCharEvents(character2) + getStageEvents(stage) + getAnnouncerEvents(narrator);
 	Mix_AllocateChannels(numEvents);
 }
 
@@ -19,20 +16,26 @@ opera::~opera()
 	Mix_CloseAudio();
 }
 
-void opera::getCharEvents()
+int opera::getCharEvents(char* characterName)
 {
+	//do the same thing as getStageEvents, but for characters
 }
 
-void opera::getStageEvents()
+int opera::getStageEvents(char* stageName)
 {
-	char* masterConfigPath[200];
-       	sprintf (masterConfigPath, "resources/stages/%i/events.ocfg");
+	char masterConfigPath[200];
+       	sprintf (masterConfigPath, "resources/stages/%s/events.ocfg", stageName);
 	config_t stageEvents;
 	config_init(&stageEvents);
-	if (config_read_file())
+	if (config_read_file(&stageEvents, masterConfigPath))
+	{
+		//look for the configs named in events.ocfg
+		//generate stage events
+		//return them or assign variables to them or something!?
+	}
 }
 
-void opera::getAnnouncerEvents()
+int opera::getAnnouncerEvents(char* announcerName)
 {
 }
 
