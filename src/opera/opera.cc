@@ -25,10 +25,11 @@ void opera::getCharEvents()
 
 void opera::getStageEvents()
 {
-	masterConfigPath = "resources/opera/stage/stage.ocfg";
+	char* masterConfigPath[200];
+       	sprintf (masterConfigPath, "resources/stages/%i/events.ocfg");
 	config_t stageEvents;
 	config_init(&stageEvents);
-	if (config_read_file(
+	if (config_read_file())
 }
 
 void opera::getAnnouncerEvents()
