@@ -69,7 +69,6 @@ public:
 	virtual void pollRects(SDL_Rect&, SDL_Rect*&, int&, SDL_Rect*&, int&, int, int);
 	virtual void pollDelta(SDL_Rect *&, int&, int);
 	virtual int displace(int, int&, int);
-	Mix_Chunk *soundClip;
 	virtual void pollStats(hStat&, int, bool);
 	virtual bool cancel(action*, int&, int&); //Cancel allowed activate. Essentially: is action Lvalue allowed given the current state of action Rvalue?
 	virtual void step(int *&, int&);

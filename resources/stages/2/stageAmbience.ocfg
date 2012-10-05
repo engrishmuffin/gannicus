@@ -1,0 +1,9 @@
+// Template configuration file for stage ambient sound effects
+
+// Stage ambient music always plays
+scoreMask = 0
+
+baseVolume = 8
+framesModulus = 0
+framesCooldown = 5940
+framesHalflife = 0

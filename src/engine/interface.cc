@@ -96,7 +96,7 @@ void interface::loadMisc()
 		sprintf(buffer, "resources/glyphs/%i.png", i);
 		glyph[i] = aux::load_texture(buffer);
 	}
-	selectScreen = aux::load_texture("Misc/Select.png");
+	selectScreen = aux::load_texture("resources/menu/Select.png");
 	readMatchupChart();
 }
 
