@@ -97,21 +97,7 @@ void interface::loadMisc()
 		glyph[i] = aux::load_texture(buffer);
 	}
 	selectScreen = aux::load_texture("Misc/Select.png");
-	menuMusic = Mix_LoadMUS("Misc/Menu.ogg");
-	announceWinner = new Mix_Chunk*[numChars + 1];
-	for(int i = 0; i < numChars + 1; i++){
-		sprintf(buffer, "Misc/Announcer/Win%i.ogg", i);
-		announceWinner[i] = Mix_LoadWAV(buffer);
-	}
 	readMatchupChart();
-	announceRound[0] = Mix_LoadWAV("Misc/Announcer/Round1.ogg");
-	announceRound[1] = Mix_LoadWAV("Misc/Announcer/Round2.ogg");
-	announceRound[2] = Mix_LoadWAV("Misc/Announcer/RoundF.ogg");
-	announceDraw[1] = Mix_LoadWAV("Misc/Announcer/Draw.ogg");
-	announceFight = Mix_LoadWAV("Misc/Announcer/Fight.ogg");
-	announceEnd[0] = Mix_LoadWAV("Misc/Announcer/Timeout.ogg");
-	announceEnd[1] = Mix_LoadWAV("Misc/Announcer/Down.ogg");
-	announceSelect = Mix_LoadWAV("Misc/Announcer/Select.ogg");
 }
 
 void interface::readMatchupChart()
