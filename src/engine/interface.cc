@@ -37,7 +37,7 @@ interface::interface()
 	select[0] = 0;
 	select[1] = 0;
 
-	read.open("Misc/res.conf");
+	read.open("Misc/.res.conf");
 	if(read.fail()){ 
 		scalingFactor = 0.5;
 		fullscreen = false;
