@@ -28,6 +28,34 @@ struct cf{
 	bool dash:1;
 };
 
+struct sf
+{
+	/**Scorefield for one entity
+	 * in the opera (player, announcer, stage) 
+	 * Names not specified because 
+	 * states vary among entities,
+	 * and should be defined in .ocfg files.
+	 * **/
+	bool s1:1;
+	bool s2:1;
+	bool s4:1;
+	bool s8:1;
+	bool s16:1;
+	bool s32:1;
+	bool s64:1;
+	bool s128:1;
+	bool s256:1;
+	bool s512:1;
+	bool s1024:1;
+	bool s2048:1;
+	bool s4096:1;
+	bool s8192:1;
+	bool s16384:1;
+	bool s32768:2;
+
+};
+
+
 typedef union {
 	unsigned int i;
 	cf b;
@@ -37,4 +65,10 @@ typedef union {
 	unsigned int i;
 	bf b; 
 } blockField;
+
+typedef union 
+{
+	unsigned int i;
+	sf b;
+} scoreField;
 #endif

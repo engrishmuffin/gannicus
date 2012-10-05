@@ -1,19 +1,16 @@
 #include "opera.h"
 #include "operaEvent.h"
 #include <SDL/SDL_mixer.h>
-#include <fstream>
-#include <string>
+#include <libconfig.h>
 
 
-
-
-opera::opera()
+opera::opera(char* character1, char* character2, char* stage, char* narrator)
 { 
-	charEvents = operaEvent[16];
-	charEvents = operaEventParse("resources/operaChars.yaml");
-	stageEvents = parseEvents("resources/operaStage.yaml");
-	numEvents = charEvents.number + stageEvents.number;
+	baseVolume = 32;
 	Mix_OpenAudio(44100, AUDIO_S16, 2, 2048);
+
+	
+
 	Mix_AllocateChannels(numEvents);
 }
 
@@ -22,9 +19,23 @@ opera::~opera()
 	Mix_CloseAudio();
 }
 
+void opera::getCharEvents()
+{
+}
 
+void opera::getStageEvents()
+{
+	masterConfigPath = "resources/opera/stage/stage.ocfg";
+	config_t stageEvents;
+	config_init(&stageEvents);
+	if (config_read_file(
+}
 
+void opera::getAnnouncerEvents()
+{
+}
 
 void opera::beat()
 {	
 }
+

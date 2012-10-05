@@ -1,7 +1,9 @@
 #include <SDL/SDL_mixer.h>
-
+#include "../engine/masks.h"
 #ifndef OPERA_EVENT
 #define OPERA_EVENT
+
+
 
 class operaEvent
 {
@@ -10,20 +12,24 @@ public:
        ~operaEvent();
 	bool loadConfig(const char*); 
 	void loadOgg(const char*); 
-//	void check(int);
+	void check(scoreField, int);
 	void play();
-//      void grow();	
-//	void decay();
+        void grow();	
+	void decay();
+	void age();
 private:
-	int bitAnd;
-	int bitNot;
+	scoreField scoreMask;
 	int eventChannel;
 	int baseVolume;
+	int tempVolume;
 	int framesModulus; //period of potential recurrence
 	int framesCooldown; //period before the sound can play again
-	int framesHalflife; //period for growth or decay to happen
+	int framesGrowth; //period for growth or decay to happen
 	int framesAgoPlayed; 
 	int framesAgoChecked;
+	int framesAgoGrew;
+	int growthNum;
+	int growthDenom;
 	Mix_Chunk* oggSound;
 };
 

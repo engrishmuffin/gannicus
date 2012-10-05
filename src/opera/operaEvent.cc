@@ -1,31 +1,32 @@
 #include "operaEvent.h"
-#include <fstream>
 #include <libconfig.h>
 
 operaEvent::operaEvent(const char* eventPath, int channel)
 {
 /**
- * eventPath is the relative path to a pair of .ogg and .config files with the same name omitting extension.
+ * eventPath is the relative path to a pair of .ogg and .ocfg files with the same name omitting extension.
  * This constructor will first look for the config before loading any ogg files.
  *
  * channel is an arbitrary channel, which will be assigned by the opera class.
  **/
 
-
+	growthNum = 2;
+	growthDenom = 1;
 	if (loadConfig(eventPath))
 	{
 		loadOgg(eventPath);
 		eventChannel = channel;
-		framesAgoPlayed = 0;
-		framesAgoChecked = 0;
-		Mix_Volume(eventChannel, baseVolume);
+		tempVolume = baseVolume;
 	}
 }
 
 operaEvent::~operaEvent()
 {
-//	Mix_HaltChannel(channel);
+	Mix_HaltChannel(eventChannel);
+	Mix_FreeChunk(oggSound);
+	oggSound = NULL;
 }
+
 
 bool operaEvent::loadConfig(const char* eventPath)
 {
@@ -35,12 +36,13 @@ bool operaEvent::loadConfig(const char* eventPath)
 	config_init(&event);
 	if (config_read_file(&event, configPath))
 	{
-		config_lookup_int(&event, "bitAnd", &bitAnd);
-		config_lookup_int(&event, "bitNot", &bitNot);
+		int tempScore;
+		config_lookup_int(&event, "scoreMask", &tempScore);
+		scoreMask.i = tempScore;
 		config_lookup_int(&event, "baseVolume", &baseVolume);
 		config_lookup_int(&event, "framesModulus", &framesModulus);
 		config_lookup_int(&event, "framesCooldown", &framesCooldown);
-		config_lookup_int(&event, "framesHalflife", &framesCooldown);
+		config_lookup_int(&event, "framesGrowth", &framesCooldown);
 		config_destroy(&event);
 		return 1;
 	}
@@ -60,39 +62,53 @@ void operaEvent::loadOgg(const char* eventPath)
 	oggSound = Mix_LoadWAV(oggPath);
 }
 
-/*
-void operaEvent::check(int condition)
+
+void operaEvent::check(scoreField condition, int elapsedFrames)
 {
-	if !condition return;
-	else 
+	
+	if (condition.i ==  scoreMask.i)
 	{
-		if (framesAgoPlayed >= framesCooldown) && !(elapsedFrames % framesModulus)
-		       	play();
-		if (framesAgoActivated <= framesCooldown)
-			grow();
+		if (framesAgoPlayed >= framesCooldown)
+		{
+			if (elapsedFrames % framesModulus)
+		       		play();
+		}
+		if (framesAgoChecked <= framesCooldown)
+		{
+			if (framesAgoPlayed && !(framesAgoPlayed % framesGrowth))
+				grow();
+		}
+		framesAgoChecked = 0;
 	}
-	decay();
-//if lastFired < frames, increase volume
-//otherwise set volume to defaultVolume
-//zero lastFired
+	if (framesAgoChecked && !(framesAgoChecked % framesGrowth)) 
+		decay();
+	age();
 }
-*/
+
 void operaEvent::play()
 {
+	framesAgoPlayed = 0;
+	if (framesAgoChecked >= framesAgoPlayed)
+		tempVolume = baseVolume;
+	Mix_Volume(eventChannel, tempVolume);
 	Mix_PlayChannel(eventChannel, oggSound, 0);
 }
 
-/*
+
 void operaEvent::grow()
 {
-//if framesAgoPlayed >= framesHalflife, grow.
+	tempVolume *= growthNum;
+	tempVolume /= growthDenom;
 }
 
 void operaEvent::decay()
 {
-//if framesAgoActivated >= framesHalflife, shrink.
-framesAgoPlayed++;
-framesAgoActivated++;
+	tempVolume *= growthDenom;
+	tempVolume /= growthNum;
 }
-*/
 
+void operaEvent::age()
+{	
+	framesAgoPlayed++;
+	framesAgoChecked++;
+}
