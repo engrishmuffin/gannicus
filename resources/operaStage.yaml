@@ -1,8 +1,0 @@
-         
-- eventClass: Stage
-events:
-    - name: ambience
-      bitAnd:0
-      bitNot:0
-
-

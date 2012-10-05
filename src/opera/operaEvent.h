@@ -3,31 +3,27 @@
 #ifndef OPERA_EVENT
 #define OPERA_EVENT
 
-struct eventConfig
-{
-	int bitAnd;
-	int bitNot;
-	int baseVolume;
-        int framesModulus;
-	int framesCooldown;
-	int scaleConstant;
-};
-
 class operaEvent
 {
 public:
-	 operaEvent(const char*); //takes a path to a config as an argument
-	~operaEvent();
-	eventConfig parseConfig(const char*); //from config named
+	operaEvent(const char*, int); //takes a path to a config and a channel
+       ~operaEvent();
+	void loadConfig(const char*); 
 //	Mix_Chunk loadOgg(); 
-//	void check(int); //send it the signal bitmask, maybe activate
+//	void check(int);
 //	void play();
 //      void grow();	
 //	void decay();
+	int bitAnd;
 private:
-	int framesAgoPlayed;
-	int framesAgoActivated;
-	eventConfig config;
+	int bitNot;
+	int eventChannel;
+	int baseVolume;
+	int framesModulus; //period of potential recurrence
+	int framesCooldown; //period before the sound can play again
+	int framesHalflife; //period for growth or decay to happen
+	int framesAgoPlayed; 
+	int framesAgoChecked;
 
 };
 

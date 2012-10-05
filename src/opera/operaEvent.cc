@@ -1,15 +1,16 @@
 #include "operaEvent.h"
 #include <fstream>
+#include <libconfig.h>
 
-
-operaEvent::operaEvent(const char* eventPath)
+operaEvent::operaEvent(const char* eventPath, int channel)
 {
 	
-	config = parseConfig(eventPath);
+	loadConfig(eventPath);
 //	eventSample = loadOgg();
 //	Mix_Volume(channel, baseVolume);
+	eventChannel = channel;
 	framesAgoPlayed = 0;
-	framesAgoActivated = 0;
+	framesAgoChecked = 0;
 
 }
 
@@ -18,13 +19,15 @@ operaEvent::~operaEvent()
 //	Mix_HaltChannel(channel);
 }
 
-
-eventConfig operaEvent::parseConfig(const char* eventPath)
+void operaEvent::loadConfig(const char* eventPath)
 {
-//	std::ifstream in(eventPath);
-	eventConfig event;
-	return event;
+	std::ifstream in(eventPath);
+	config_t event;
+	config_init(&event);
+	config_read_file(&event, eventPath);
+	config_lookup_int(&event, "bitAnd", &bitAnd);
 }
+
 
 /*
 Mix_Chunk operaEvent::loadOgg()
@@ -57,12 +60,12 @@ void operaEvent::play()
 
 void operaEvent::grow()
 {
-//increase volume at a rate proportional to framesCoefficient.
+//if framesAgoPlayed >= framesHalflife, grow.
 }
 
 void operaEvent::decay()
 {
-//decrease volume at a rate proportional to framesAgoActivated and framesCoefficient
+//if framesAgoActivated >= framesHalflife, shrink.
 framesAgoPlayed++;
 framesAgoActivated++;
 }
