@@ -8,14 +8,14 @@ class operaEvent
 public:
 	operaEvent(const char*, int); //takes a path to a config and a channel
        ~operaEvent();
-	void loadConfig(const char*); 
-//	Mix_Chunk loadOgg(); 
+	bool loadConfig(const char*); 
+	void loadOgg(const char*); 
 //	void check(int);
-//	void play();
+	void play();
 //      void grow();	
 //	void decay();
-	int bitAnd;
 private:
+	int bitAnd;
 	int bitNot;
 	int eventChannel;
 	int baseVolume;
@@ -24,7 +24,7 @@ private:
 	int framesHalflife; //period for growth or decay to happen
 	int framesAgoPlayed; 
 	int framesAgoChecked;
-
+	Mix_Chunk* oggSound;
 };
 
 #endif
