@@ -12,10 +12,83 @@
 #include <SDL/SDL_opengl.h>
 void interface::draw()
 {
-
-	char buffer[200];
 	glClear(GL_COLOR_BUFFER_BIT);
+	if(!select[0] || !select[1]) drawCSelect();
+	else drawGame();
+	SDL_GL_SwapBuffers();
+}
 
+void interface::drawCSelect()
+{
+	glColor4f(0.1f, 0.1f, 0.1f, 1.0f);
+	glRectf(0.0f*scalingFactor, 0.0f*scalingFactor, (GLfloat)screenWidth*scalingFactor, (GLfloat)screenHeight*scalingFactor);
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+
+	for(int i = 0; i < 2; i++) if(menu[i] > 0) drawMainMenu(i);
+	glEnable( GL_TEXTURE_2D );
+
+	glBindTexture(GL_TEXTURE_2D, selectScreen);
+	glBegin(GL_QUADS);
+		glTexCoord2i(0, 0);
+		glVertex3f(350.0f*scalingFactor, 0.0f*scalingFactor, 0.f*scalingFactor);
+
+		glTexCoord2i(1, 0);
+		glVertex3f(1250.0f*scalingFactor, 0.0f*scalingFactor, 0.f*scalingFactor);
+
+		glTexCoord2i(1, 1);
+		glVertex3f(1250.0f*scalingFactor, 900.0f*scalingFactor, 0.f*scalingFactor);
+
+		glTexCoord2i(0, 1);
+		glVertex3f(350.0f*scalingFactor, 900.0f*scalingFactor, 0.f*scalingFactor);
+	glEnd();
+
+	for(int i = 0; i < 2; i++){
+		if(!menu[i]){
+			glBindTexture(GL_TEXTURE_2D, cursor[i]);
+			glBegin(GL_QUADS);
+				glTexCoord2i(0, 0);
+				glVertex3f(350.0f*scalingFactor, 0.0f*scalingFactor, 0.f*scalingFactor);
+
+				glTexCoord2i(1, 0);
+				glVertex3f(1250.0f*scalingFactor, 0.0f*scalingFactor, 0.f*scalingFactor);
+
+				glTexCoord2i(1, 1);
+				glVertex3f(1250.0f*scalingFactor, 900.0f*scalingFactor, 0.f*scalingFactor);
+
+				glTexCoord2i(0, 1);
+				glVertex3f(350.0f*scalingFactor, 900.0f*scalingFactor, 0.f*scalingFactor);
+			glEnd();
+		}
+	}
+
+	glDisable( GL_TEXTURE_2D );
+
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+}
+
+void interface::drawMainMenu(int ID)
+{
+	glColor4f(0.0f, 0.0f, 0.0f, 0.8f);
+	char buffer[200];
+	glRectf(0.0f * scalingFactor + 800.0 * scalingFactor * ID, 0.0 * scalingFactor, (screenWidth/2*ID*scalingFactor) + (GLfloat)screenWidth/2.0*scalingFactor, (GLfloat)screenHeight*scalingFactor);
+	glEnable( GL_TEXTURE_2D );
+	glColor4f(0.0, 0.0, 1.0, 0.4 + (float)(menu[ID] == 1)*0.4);
+	drawGlyph("Key Config", 20 + 1260*ID, 300, 370, 40, 2*ID);
+	glColor4f(0.0, 0.0, 1.0, 0.4 + (float)(menu[ID] == 2)*0.4);
+	drawGlyph("Exit Menu", 20 + 1260*ID, 300, 410, 40, 2*ID);
+	glColor4f(0.0, 0.0, 1.0, 0.4 + (float)(menu[ID] == 3)*0.4);
+	if(shortcut) sprintf(buffer, "Rematch");
+	else sprintf(buffer, "Reselect");
+	drawGlyph(buffer, 20 + 1260*ID, 300, 450, 40, 2*ID);
+	glColor4f(0.0, 0.0, 1.0, 0.4 + (float)(menu[ID] == 4)*0.4);
+	drawGlyph("Quit Game", 20 + 1260*ID, 300, 490, 40, 2*ID);
+	glDisable( GL_TEXTURE_2D );
+	glColor4f(1.0, 1.0, 1.0, 1.0f);
+}
+
+void interface::drawGame()
+{
+	char buffer[200];
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	glEnable( GL_TEXTURE_2D );
 	glBindTexture(GL_TEXTURE_2D, background);
@@ -58,7 +131,6 @@ void interface::draw()
 	if(timer > 99 * 60 && timer < 99 * 60 + 31){ 
 		drawGlyph("FIGHT", 0, 1600, 375, 150, 1);
 	}
-
 	if(roundEnd && endTimer > 5 * 60 - 31){ 
 		if(p[0]->pick()->meter[0] > 0 && p[1]->pick()->meter[0] > 0){
 			drawGlyph("TIME OUT", 0, 1600, 300, 200, 1);
@@ -88,10 +160,9 @@ void interface::draw()
 		p[i]->drawMeters(numRounds, scalingFactor);
 		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	}
-
 	glEnable( GL_TEXTURE_2D );
 	for(int i = 0; i < thingComplexity; i++){
-		if(things[i]->spriteCheck()) 
+		if(things[i]->spriteCheck())
 			things[i]->draw(bg.x, bg.y, scalingFactor);
 		glDisable(GL_TEXTURE_2D);
 		if(!things[i]->spriteCheck() || boxen)
@@ -108,9 +179,22 @@ void interface::draw()
 		freeze--;
 	}
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	if(rMenu != 0) drawRematchMenu();
+}
 
-	if(rMenu != 0) reMenu();
-	SDL_GL_SwapBuffers();
+void interface::drawRematchMenu()
+{
+	glColor4f(0.0f, 0.0f, 0.0f, 0.8f);
+	glRectf(0.0, 0.0, (GLfloat)screenWidth*scalingFactor, (GLfloat)screenHeight*scalingFactor);
+	glEnable( GL_TEXTURE_2D );
+	glColor4f(0.0, 0.0, 1.0, 0.4 + (float)(rMenu == 1)*0.4);
+	drawGlyph("Rematch", 0, 1600, 360, 60, 1);
+	glColor4f(0.0, 0.0, 1.0, 0.4 + (float)(rMenu == 2)*0.4);
+	drawGlyph("Character Select", 0, 1600, 420, 60, 1);
+	glColor4f(0.0, 0.0, 1.0, 0.4 + (float)(rMenu == 3)*0.4);
+	drawGlyph("Quit Game", 0, 1600, 480, 60, 1);
+	glDisable( GL_TEXTURE_2D );
+	glColor4f(1.0, 1.0, 1.0, 1.0f);
 }
 
 void player::drawMeters(int n, float scalingFactor)
@@ -285,6 +369,7 @@ int interface::drawGlyph(const char * string, int x, int space, int y, int heigh
 
 void action::draw(int facing, int x, int y, int f, float scalingFactor)
 {
+	if(modifier && basis) basis->draw(facing, x, y, currentFrame, scalingFactor);
 	if(sprite[f]){
 		glBindTexture(GL_TEXTURE_2D, sprite[f]);
 		glBegin(GL_QUADS);
@@ -330,7 +415,8 @@ bool avatar::spriteCheck(action *& cMove, int f)
 
 bool action::spriteCheck(int f)
 {
-	if(sprite[f] != 0) { 
+	if(modifier && basis) basis->spriteCheck(currentFrame);
+	if(sprite[f] != 0) {
 		return 1;
 	}
 	else return 0;

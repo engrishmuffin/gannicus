@@ -152,11 +152,6 @@ bool player::readConfig()
 	}
 }
 
-bool player::aerial()
-{
-	return pick()->aerial;
-}
-
 SDL_Event player::writeConfig(int i)
 {
 	SDL_Event temp; 
@@ -430,12 +425,18 @@ void instance::step()
 	if(posX > 3300 || posX < -100) dead = true;
 	if(!freeze) counter++;
 	pick()->step(cMove, currentFrame, freeze);
-
 	if(cMove && currentFrame >= cMove->frames){
-		cMove = cMove->next;
-		currentFrame = 0;
-		connectFlag = 0;
-		hitFlag = 0;
+		if(cMove->modifier && cMove->basis){ 
+			currentFrame = cMove->currentFrame;
+			connectFlag = cMove->connectFlag;
+			hitFlag = cMove->hitFlag;
+			cMove = cMove->basis;
+		} else {
+			cMove = cMove->next;
+			currentFrame = 0;
+			connectFlag = 0;
+			hitFlag = 0;
+		}
 	}
 }
 
@@ -510,15 +511,13 @@ void instance::pullVolition()
 				momentumComplexity = 0;
 		}
 	}
-	if(cMove->displaceFrame == currentFrame) setPosition(posX + facing*cMove->displaceX, posY + cMove->displaceY);
+	int dx = cMove->displace(posX, posY, currentFrame);
+	setPosition(posX + facing*dx, posY);
 	if(freeze < 1){
 		if(currentFrame < cMove->frames){
 			int complexity;
 			SDL_Rect * temp; 
 			cMove->pollDelta(temp, complexity, currentFrame);
-			if(cMove->displaceFrame == currentFrame){ 
-				setPosition(posX + facing*cMove->displace(posX, posY), posY);
-			}
 			for(int i = 0; i < complexity; i++){
 				temp[i].x *= facing;
 				if(temp[i].x || temp[i].y || temp[i].h){
@@ -628,7 +627,9 @@ void player::readEvent(SDL_Event & event, bool *& sAxis, int *& posEdge, bool *&
 void instance::connect(int combo, hStat & s)
 {
 //	printf("Hit with %s!\n", cMove->name);
-	if(!s.ghostHit) freeze = s.stun/4+10;
+	if(s.pause < 0){
+		if(!s.ghostHit) freeze = s.stun/4+10;
+	} else freeze = s.pause;
 	pick()->connect(cMove, bMove, sMove, s, connectFlag, currentFrame);
 	if(bMove == cMove) bMove = NULL;
 }
@@ -660,8 +661,7 @@ int player::takeHit(int combo, hStat & s)
 	int f;
 	if(slide) s.lift += 7 - s.lift/5;
 	f = instance::takeHit(combo, s);
-	if(s.ghostHit) freeze = 0;
-	else freeze = f;
+	freeze = f;
 	if(particleType != 1){ 
 		temp = cMove->blockSuccess();
 	}
@@ -696,7 +696,7 @@ int player::takeHit(int combo, hStat & s)
 		hitFlag = 0;
 	}
 	updateRects();
-	if(s.ghostHit && combo < 1) return 0;
+	if(s.ghostHit) return 0;
 	else if(particleType == 1) return particleType;
 	else return -1;
 }
