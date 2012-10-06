@@ -69,6 +69,7 @@ void action::zero()
 	displaceFrame = -1;
 	displaceX = 0;
 	displaceY = 0;
+	soundClip = NULL;
 	next = NULL;
 	attempt = NULL;
 	riposte = NULL;
@@ -85,7 +86,7 @@ void action::build(const char * n)
 	char savedBuffer[100];
 	buffer[0] = '\0';
 
-	sprintf(fname, "%s.mv", n);
+	sprintf(fname, "resources/characters/%s.mv", n);
 	read.open(fname);
 	assert(!read.fail());
 
@@ -139,7 +140,7 @@ void action::build(const char * n)
 	height = new int[frames];
 	sprite = new GLuint[frames];
 	for(int i = 0; i < frames; i++){
-		sprintf(fname, "%s#%i.png", n, i);
+		sprintf(fname, "resources/characters/%s#%i.png", n, i);
 		temp = aux::load_image(fname);
 		if(!temp){
 			width[i] = 0;
@@ -151,6 +152,8 @@ void action::build(const char * n)
 			sprite[i] = aux::surface_to_texture(temp);
 		}
 	}
+	sprintf(fname, "resources/characters/%s.ogg", n);
+	soundClip = Mix_LoadWAV(fname);
 }
 
 bool action::setParameter(char * buffer)
@@ -700,7 +703,8 @@ action * action::blockSuccess()
 
 void action::playSound(int channel)
 {
-	//operaScore gets a 1 in some field 
+	//if (opera) operaScore gets a 1 in some field; else
+	Mix_PlayChannel(channel, soundClip, 0);
 }
 
 void action::execute(action * last, int *& meter, int &f, int &c, int &h)
