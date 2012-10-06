@@ -21,4 +21,3 @@ cyan
 ?ForwardTech = a6 a9 a3
 ?StopTech = a8
 #Moves
-blink4 = h4D
