@@ -2,13 +2,19 @@
 
 
 #include "operaEvent.h"
+#include "opera.h"
 #include <iostream>
-#include <SDL/SDL_mixer.h>
 
 int main(int argc, char* argv[])
 {
-	Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 2048);
-	operaEvent event(argv[1], 1);
-	event.play();
+	scoreField score;
+	score.i = 13;
+	opera test;	
+	test.loadEvents(argv[1]);
+	test.beat(score, 1);	
+	std::cin.get();
+	test.beat(score, 4);
+	std::cin.get();
+	test.allEvents.at(1)->play();
 	std::cin.get();
 }

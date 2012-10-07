@@ -1,45 +1,60 @@
 #include "opera.h"
 #include "operaEvent.h"
 #include <SDL/SDL_mixer.h>
-#include <libconfig.h>
+#include <fstream>
 
-
-opera::opera(char* character1, char* character2, char* stage, char* narrator)
-{ 
+opera::opera()
+{
+	/**The constructor just opens up the mixer. 
+	 * This way, we can potentially load a menu event list during the menu, and others during the game. **/
 	Mix_OpenAudio(44100, AUDIO_S16, 2, 2048);
-	int numEvents = getCharEvents(character1) + getCharEvents(character2) + getStageEvents(stage) + getAnnouncerEvents(narrator);
-	Mix_AllocateChannels(numEvents);
 }
 
 opera::~opera()
 {
 	Mix_CloseAudio();
-}
-
-int opera::getCharEvents(char* characterName)
-{
-	//do the same thing as getStageEvents, but for characters
-}
-
-int opera::getStageEvents(char* stageName)
-{
-	char masterConfigPath[200];
-       	sprintf (masterConfigPath, "resources/stages/%s/events.ocfg", stageName);
-	config_t stageEvents;
-	config_init(&stageEvents);
-	if (config_read_file(&stageEvents, masterConfigPath))
+	//unload all events	
+	for(int n = 0; n < allEvents.size(); n++)
 	{
-		//look for the configs named in events.ocfg
-		//generate stage events
-		//return them or assign variables to them or something!?
+		delete allEvents.at(n);
+		allEvents.erase(allEvents.begin() + n);
+	}
+
+}
+
+void opera::loadEvents(char* folder)
+{
+	/**loadEvents looks for events.ocfg in folder**/
+	char listPath[200];
+        sprintf(listPath, "%s/events.ocfg", folder);	
+	std::string name;
+	std::ifstream list(listPath);
+	std::vector<std::string> eventNames;
+
+	while (list >> name) 
+	{
+		eventNames.push_back(name);
+	}
+	
+	int numEvents = eventNames.size();
+	Mix_AllocateChannels(numEvents);
+	
+	for (int n = 0; n < numEvents; n++)
+	{
+		char eventPath[200];
+		const char* eventName = eventNames.at(n).c_str();
+		sprintf(eventPath, "%s/%s.ocfg", folder, eventName);
+		operaEvent* eventPtr;
+		eventPtr = new operaEvent(eventPath,  n);
+
 	}
 }
 
-int opera::getAnnouncerEvents(char* announcerName)
-{
-}
-
-void opera::beat()
+void opera::beat(scoreField condition, int elapsedFrames)
 {	
+	for(int n = 0; n < allEvents.size(); n++)
+	{
+		allEvents.at(n)->check(condition, elapsedFrames);
+	}
 }
 

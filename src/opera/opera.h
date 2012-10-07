@@ -1,20 +1,18 @@
 #include "operaEvent.h"
+#include <vector>
+
 #ifndef OPERA
 #define OPERA
 
 class opera
 {
 public:
-	 opera(char*,char*,char*,char*);
+	 opera();
 	~opera(); 
-	void beat();
-	int getCharEvents(char*);
-	int getStageEvents(char*);
-	int getAnnouncerEvents(char*);
-	operaEvent* char1Events;
-	operaEvent* char2Events;
-	operaEvent* stageEvents;
-	operaEvent* announcerEvents;
+	void loadEvents(char*);
+	void beat(scoreField, int);
+	std::vector<operaEvent*> allEvents;
+
 };
 
 #endif 
