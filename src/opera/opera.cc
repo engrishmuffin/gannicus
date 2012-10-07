@@ -45,8 +45,8 @@ void opera::loadEvents(char* folder)
 		const char* eventName = eventNames.at(n).c_str();
 		sprintf(eventPath, "%s/%s.ocfg", folder, eventName);
 		operaEvent* eventPtr;
-		eventPtr = new operaEvent(eventPath,  n);
-
+		eventPtr = new operaEvent(eventPath, n);
+		allEvents.push_back(eventPtr);
 	}
 }
 

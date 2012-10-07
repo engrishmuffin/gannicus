@@ -1,5 +1,6 @@
-//build with g++ operaEvent.cc test.cc -lconfig -lSDL -lSDL_mixer
-
+//build with g++ opera.cc operaEvent.cc test.cc -lconfig -lSDL -lSDL_mixer
+/*Pretty arbitrary test. I've been running it with 
+ * a.out ../../resources/stages/1/ */
 
 #include "operaEvent.h"
 #include "opera.h"
