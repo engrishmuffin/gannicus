@@ -57,6 +57,12 @@ add_executable (gufg
 		src/game.cc
 		${SOURCES})
 
+add_executable (rand
+		MACOSX_BUNDLE
+		EXCLUDE_FROM_ALL
+		src/rand.cc
+		${SOURCES})
+
 add_executable (bmpout
 		WIN32
 		MACOSX_BUNDLE
