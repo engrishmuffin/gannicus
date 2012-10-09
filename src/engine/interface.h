@@ -19,7 +19,9 @@ public:
 	~interface();
 	void createPlayers();
 	void createDaemons();
+	void createDaemons(replay*);
 	void startGame();
+	void loadMatchBackground();
 /*Important interface functions that will remain interface functions*/
 
 /*The main game loop runs readInput() and resolve() each exactly once per frame loop.*/
@@ -78,6 +80,8 @@ public:
 	bool firstFrame:1;
 	bool shortcut:1;
 	bool continuous:1;
+	bool single:1;
+	bool analytics:1;
 	int combo[2];
 	int damage[2];
 	bool illegit[2];
@@ -111,6 +115,7 @@ public:
 	int timer;
 	bool roundEnd:1;
 	int endTimer;
+	replay * currentMatch;
 private:
 	int screenHeight, screenWidth, floor, wall;
 	int freeze;
