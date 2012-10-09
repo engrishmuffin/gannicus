@@ -23,6 +23,8 @@ interface::interface()
 	for(int i = 0; i < numChars+1; i++) matchup[i] = new int[numChars+1];
 	shortcut = false;
 	continuous = false;
+	analytics = false;
+	single = false;
 	boxen = false;
 	std::ifstream read;
 
@@ -71,6 +73,7 @@ interface::interface()
 			sAxis[1][i] = 0;
 		}
 	}
+	currentMatch = NULL;
 }
 
 void interface::createPlayers()
@@ -96,6 +99,35 @@ void interface::createDaemons()
 		menu[i] = 0;
 	}
 	continuous = true;
+	analytics = true;
+}
+
+void interface::createDaemons(replay * script)
+{
+	srand(time(NULL));
+	for(int i = 0; i < 2; i++){
+		p[i] = new daemon(i+1, script->start[i]);
+		selection[i] = script->selection[i];
+		p[i]->characterSelect(selection[i]);
+		select[i] = 1;
+		menu[i] = 0;
+	}
+	loadMatchBackground();
+
+	single = true;
+}
+
+void interface::loadMatchBackground()
+{
+	char buffer[100];
+	if(selection[0] == selection[1]) p[1]->secondInstance = true;
+
+	sprintf(buffer, "resources/stages/%i/bg.png", selection[0]);
+	background = aux::load_texture(buffer);
+
+	if(selection[0] == selection[1]) sprintf(buffer, "resources/sound/Mirror.ogg");
+	else sprintf(buffer, "resources/sound/%i.ogg", selection[1]);
+	matchMusic = Mix_LoadMUS(buffer);
 }
 
 void interface::startGame()
@@ -107,7 +139,10 @@ void interface::startGame()
 	things = NULL;
 	//Mix_PlayChannel(3, announceSelect, 0);
 	matchInit();
-	if(select[0] && select[1]) roundInit();
+	if(select[0] && select[1]){ 
+		if(analytics) currentMatch = new replay(selection[0], selection[1]);
+		roundInit();
+	}
 }
 
 /*This function loads a few miscellaneous things the game will need in all cases*/
@@ -413,8 +448,19 @@ void interface::runTimer()
 						Mix_HaltMusic();
 						Mix_FreeMusic(matchMusic);
 					}
-					matchInit();
-					if(select[0] && select[1]) roundInit();
+					if(analytics && currentMatch){
+						currentMatch->write();
+						delete currentMatch;
+						currentMatch = NULL;
+					}
+					if(single) gameover = true;
+					else{
+						matchInit();
+						if(select[0] && select[1]){
+							if(analytics) currentMatch = new replay(selection[0], selection[1]);
+							roundInit();
+						}
+					}
 				}
 			}
 			else roundInit();
@@ -441,7 +487,9 @@ void interface::resolve()
 					negEdge[i][j] = 0;
 				}
 			}
-		} else for(int i = 0; i < thingComplexity; i++) things[i]->pushInput(sAxis[things[i]->ID - 1]);
+		} else { 
+			for(int i = 0; i < thingComplexity; i++) things[i]->pushInput(sAxis[things[i]->ID - 1]);
+		}
 		p[1]->getMove(posEdge[1], negEdge[1], prox, 1);
 		for(int i = 0; i < thingComplexity; i++){
 			if(i < 2){
@@ -545,6 +593,7 @@ void interface::cleanup()
 		runTimer();
 	}
 	/*Reinitialize inputs*/
+	if(analytics && currentMatch) currentMatch->append(new frame(sAxis[0], posEdge[0], negEdge[0]), new frame(sAxis[1], posEdge[1], negEdge[1]));
 	for(int i = 0; i < 2; i++){
 		for(int j = 0; j < 6; j++){
 			if(posEdge[i][j] > 0) posEdge[i][j]++;
@@ -722,7 +771,7 @@ void interface::cSelectMenu()
 				}
 			}
 			if(posEdge[i][5] == 1){
-				if(!select[i]) menu[i] = 2;
+				if(!select[i]) menu[i] = 3;
 				else select[i] = 0;
 				counter[i] = 10;
 			}
@@ -741,15 +790,9 @@ void interface::cSelectMenu()
 		p[0]->characterSelect(selection[0]);
 		p[1]->characterSelect(selection[1]);
 
-		if(selection[0] == selection[1]) p[1]->secondInstance = true;
-
-		sprintf(buffer, "resources/stages/%i/bg.png", selection[0]);
-		background = aux::load_texture(buffer);
-
-		if(selection[0] == selection[1]) sprintf(buffer, "resources/sound/Mirror.ogg");
-		else sprintf(buffer, "resources/sound/%i.ogg", selection[1]);
-		matchMusic = Mix_LoadMUS(buffer);
+		loadMatchBackground();
 		Mix_HaltMusic();
+		if(analytics) if(analytics) currentMatch = new replay(selection[0], selection[1]);
 
 		roundInit();
 	}
@@ -764,26 +807,32 @@ void interface::mainMenu(int ID)
 		menu[ID]++;
 		counter[ID] = 10;
 	}
-	if(menu[ID] > 4) menu[ID] = 1;
-	else if(menu[ID] < 1) menu[ID] = 4;
+	if(menu[ID] > 5) menu[ID] = 1;
+	else if(menu[ID] < 1) menu[ID] = 5;
 	for(int i = 0; i < 5; i++){
 		if(posEdge[ID][i] == 1 && !counter[ID]){
 			switch(menu[ID]){
 			case 1:
+				if(analytics)
+					analytics = false;
+				else
+					analytics = true;
+				break;
+			case 2:
 				glDisable( GL_TEXTURE_2D );
 				writeConfig(ID);
 				glEnable( GL_TEXTURE_2D );
 				break;
-			case 2:
+			case 3:
 				menu[ID] = 0;
 				break;
-			case 3:
+			case 4:
 				if(shortcut) 
 					shortcut = false;
 				else 
 					shortcut = true;
 				break;
-			case 4:
+			case 5:
 				gameover = 1;
 				break;
 			}
