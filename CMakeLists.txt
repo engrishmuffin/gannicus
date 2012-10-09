@@ -50,11 +50,18 @@ if (APPLE)
 endif (APPLE)
 
 execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory .data)
+execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory .data/replays)
 
 add_executable (gufg 
 		WIN32
 		MACOSX_BUNDLE
 		src/game.cc
+		${SOURCES})
+
+add_executable (replay
+		MACOSX_BUNDLE
+		EXCLUDE_FROM_ALL
+		src/replay.cc
 		${SOURCES})
 
 add_executable (rand
