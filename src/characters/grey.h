@@ -4,7 +4,7 @@
 class grey : public character {
 public:
 	grey();
-	int takeHit(action *&, hStat&, int, int&, int&, int&, int&);
+	int takeHit(action *&, hStat&, int, int&, int&, int&, int&, bool&);
 	void tick();
 	void init(action*&);
 	action * noirActivate;

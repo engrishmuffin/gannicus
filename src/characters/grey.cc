@@ -7,10 +7,10 @@ grey::grey(){
 	noirActivate = neutral;
 }
 
-int grey::takeHit(action *& cMove, hStat & s, int b, int &f, int &c, int &h, int &p)
+int grey::takeHit(action *& cMove, hStat & s, int blockType, int &frame, int &connectFlag, int &hitFlag, int &hitType, bool &aerial)
 {
-	int freeze = character::takeHit(cMove, s, b, f, c, h, p);
-	if(p == -1) meter[4] += 205;
+	int freeze = character::takeHit(cMove, s, blockType, frame, connectFlag, hitFlag, blockType, aerial);
+	if(hitType == -1) meter[4] += 205;
 	if(meter[4] >= 1020){
 		meter[4] = 1023;
 		freeze = 0;

@@ -76,6 +76,9 @@ interface::interface()
 		}
 	}
 	currentMatch = NULL;
+	/*Game and round end conditions*/
+	gameover = 0;
+	numRounds = 2;
 }
 
 void interface::createPlayers()
@@ -89,19 +92,6 @@ void interface::createPlayers()
 	}
 }
 
-<<<<<<< HEAD
-	/* init shaders */
-	effect_greyscale.init();
-	effect_greyscale.load("Misc/shaders/grey.frag", GL_FRAGMENT_SHADER);
-	effect_greyscale.link();
-
-	/* test shaders */
-	//effect_greyscale.enable();
-
-	/*Game and round end conditions*/
-	gameover = 0;
-	numRounds = 2;
-=======
 void interface::createDaemons()
 {
 	srand(time(NULL));
@@ -144,7 +134,6 @@ void interface::loadMatchBackground()
 	else sprintf(buffer, "resources/sound/%i.ogg", selection[1]);
 	matchMusic = Mix_LoadMUS(buffer);
 }
->>>>>>> alpha
 
 void interface::startGame()
 {
@@ -289,6 +278,15 @@ bool interface::screenInit()
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+	
+	/* init shaders */
+	effect_greyscale.init();
+	effect_greyscale.load("Misc/shaders/grey.frag", GL_FRAGMENT_SHADER);
+	effect_greyscale.link();
+
+	/* test shaders */
+	//effect_greyscale.enable();
+
 
 	initd = true;
 	return true;
