@@ -1,11 +1,13 @@
 gufg
 bmpout
 rand
+replay
 *.o
 *.a
 *.7z
 *.zip
 *.dll
+*.app
 *.exe
 *.lib
 *.cmake
