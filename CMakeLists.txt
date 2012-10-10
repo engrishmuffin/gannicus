@@ -20,8 +20,7 @@ aux_source_directory (	src/characters CHARACTERS)
 
 set (SOURCES	${ENGINE}
 		${CHARACTERS}) 
-
-set (CMAKE_CXX_FLAGS "-D_GLIBCXX_USE_NANOSLEEP -O2 -g -Wall -Wctor-dtor-privacy -Wno-format-contains-nul -std=c++11 -pedantic")
+set (CMAKE_CXX_FLAGS "-D_GLIBCXX_USE_NANOSLEEP -O2 -g -Wall -Wctor-dtor-privacy -Wno-overloaded-virtual -Wno-format -Wno-format-contains-nul -std=c++11 -pedantic")
 set (QT_USE_QTOPENGL TRUE)
 
 find_package (SDL REQUIRED)
@@ -56,25 +55,21 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory .data/replays)
 
 add_executable (gufg 
 		WIN32
-		MACOSX_BUNDLE
 		src/game.cc
 		${SOURCES})
 
 add_executable (replay
-		MACOSX_BUNDLE
 		EXCLUDE_FROM_ALL
 		src/replay.cc
 		${SOURCES})
 
 add_executable (rand
-		MACOSX_BUNDLE
 		EXCLUDE_FROM_ALL
 		src/rand.cc
 		${SOURCES})
 
 add_executable (bmpout
 		WIN32
-		MACOSX_BUNDLE
 		EXCLUDE_FROM_ALL
 		src/bmp.cc
 		${SOURCES})
@@ -87,68 +82,54 @@ if (DOXYGEN_FOUND)
 	${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
 endif(DOXYGEN_FOUND)
 
-INSTALL(TARGETS gufg
-	RUNTIME
-	DESTINATION package
-	COMPONENT gufg)
+if(WIN32 AND NOT UNIX)
+	INSTALL(TARGETS gufg
+		RUNTIME
+		DESTINATION package
+		COMPONENT gufg)
 
-INSTALL(DIRECTORY .config
-	DESTINATION package
-	COMPONENT gufg)
+	INSTALL(DIRECTORY .config
+		DESTINATION package
+		COMPONENT gufg)
 
-INSTALL(DIRECTORY .data
-	DESTINATION package
-	COMPONENT gufg)
+	INSTALL(DIRECTORY .data
+		DESTINATION package
+		COMPONENT gufg)
 
-INSTALL(DIRECTORY resources
-	DESTINATION package
-	COMPONENT gufg)
+	INSTALL(DIRECTORY resources
+		DESTINATION package
+		COMPONENT gufg)
 
-INSTALL(DIRECTORY shaders
-	DESTINATION .
-	COMPONENT gufg)
+	INSTALL(DIRECTORY shaders
+		DESTINATION package
+		COMPONENT gufg)
 
-INSTALL(DIRECTORY scripts
-	DESTINATION package
-	COMPONENT source
-	DESTINATION .
-	COMPONENT utilities)
+	INSTALL(DIRECTORY scripts
+		DESTINATION package
+		COMPONENT source
+		DESTINATION package
+		COMPONENT utilities)
 
-LIST(GET SDL_LIBRARY 1 ACTUAL_SDL_LIBRARY)
+	LIST(GET SDL_LIBRARY 1 ACTUAL_SDL_LIBRARY)
 
-INSTALL(FILES ${ACTUAL_SDL_LIBRARY} 
-		${SDLIMAGE_LIBRARY} 
-		${PNG_LIBRARY}
-		${ZLIB_LIBRARY}
-		${SDLMIXER_LIBRARY}
-		${VORBIS_LIBRARY}
-		${GLEW_LIBRARY}
-	DESTINATION package
-	COMPONENT gufg
-	DESTINATION package
-	COMPONENT utilities)
+	INSTALL(FILES README.md Disclaimer.md COPYING
+		DESTINATION package
+		COMPONENT gufg
+		DESTINATION package
+		COMPONENT utilities
+		DESTINATION package
+		COMPONENT source)
 
-INSTALL(FILES README.md Disclaimer.md COPYING
-	DESTINATION package
-	COMPONENT gufg
-	DESTINATION package
-	COMPONENT utilities
-	DESTINATION package
-	COMPONENT source)
+	INSTALL(FILES CMakeLists.txt .gitignore .gitmodules
+		DESTINATION package/src
+		COMPONENT source)
 
-INSTALL(FILES CMakeLists.txt .gitignore .gitmodules
-       	DESTINATION package/src
-	COMPONENT source)
-
-INSTALL(DIRECTORY CMakeModules
-	DESTINATION src
-	COMPONENT source)
-
-INSTALL(DIRECTORY src/
-	DESTINATION package/src
-	COMPONENT source
-		PATTERN "*.cc"
-		PATTERN "*.h")
+	INSTALL(DIRECTORY src/
+		DESTINATION package/src
+		COMPONENT source
+			PATTERN "*.cc"
+			PATTERN "*.h")
+endif (WIN32 AND NOT UNIX)
 
 set (CPACK_PACKAGE_NAME "GUFG")
 set (CPACK_PACKAGE_VENDOR "The GUFG Team")
@@ -182,6 +163,19 @@ if (WIN32 AND NOT UNIX)
 	set (CPACK_NSIS_CONTACT "eshink@gmail.com")
 	set (CPACK_NSIS_MODIFY_PATH OFF)
 	set (CPACK_NSIS_EXECUTABLES_DIRECTORY ".")
+
+INSTALL(FILES ${ACTUAL_SDL_LIBRARY} 
+		${SDLIMAGE_LIBRARY} 
+		${PNG_LIBRARY}
+		${ZLIB_LIBRARY}
+		${SDLMIXER_LIBRARY}
+		${VORBIS_LIBRARY}
+		${GLEW_LIBRARY}
+	DESTINATION package
+	COMPONENT gufg
+	DESTINATION package
+	COMPONENT utilities)
+
 else (WIN32 AND NOT UNIX)
 	set (CPACK_STRIP_FILES "gufg bmpout")
 endif (WIN32 AND NOT UNIX)

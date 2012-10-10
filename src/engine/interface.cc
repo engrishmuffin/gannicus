@@ -15,6 +15,7 @@
 #include <fstream>
 #include <iostream>
 #include <math.h>
+#include <vector>
 
 interface::interface()
 {
@@ -105,7 +106,7 @@ void interface::createDaemons()
 {
 	srand(time(NULL));
 	for(int i = 0; i < 2; i++){
-		p[i] = new daemon(i+1);
+		p[i] = new daemon(i+1); //Okay, so this is really stupid. APPLE doesn't like, understand that this is a class and clang won't build cause like, expected a type. Daemon's totally not a type that works on other systems and that inherits from a type that clang is okay with...
 		selection[i] = rand()%numChars + 1;
 		p[i]->characterSelect(selection[i]);
 		printf("p%i selected %s\n", i+1, p[i]->pick()->name);
@@ -120,7 +121,7 @@ void interface::createDaemons(replay * script)
 {
 	srand(time(NULL));
 	for(int i = 0; i < 2; i++){
-		p[i] = new daemon(i+1, script->start[i]);
+		p[i] = new daemon(i+1, script->start[i]); //APPLE
 		selection[i] = script->selection[i];
 		p[i]->characterSelect(selection[i]);
 		select[i] = 1;
@@ -509,7 +510,7 @@ void interface::resolve()
 		p[1]->getMove(posEdge[1], negEdge[1], prox, 1);
 		for(int i = 0; i < thingComplexity; i++){
 			if(i < 2){
-				if(p[(i+1)%2]->pick()->aerial) prox.y = 1;
+				if(p[(i+1)%2]->aerial) prox.y = 1;
 				else prox.y = 0;
 				prox.x = p[(i+1)%2]->throwInvuln;
 			}
@@ -562,7 +563,7 @@ void interface::resolve()
 			p[1]->checkFacing(p[0]);
 
 		for(int i = 0; i < 2; i++){
-			if(!p[i]->pick()->aerial) { p[i]->deltaX = 0; p[i]->deltaY = 0; }
+			if(!p[i]->aerial) { p[i]->deltaX = 0; p[i]->deltaY = 0; }
 
 			if(!roundEnd){
 				switch (p[i]->pick()->comboState(p[i]->cMove)){ 
@@ -763,7 +764,6 @@ void interface::cSelectMenu()
 		assert(screenInit() != false);
 	}
 	char base[2][40];
-	char buffer[200];
 
 	for(int i = 0; i < 2; i++){
 		if(!menu[i]){
@@ -992,11 +992,11 @@ void interface::resolveThrows()
 
 void interface::resolveHits()
 {
-	hStat s[thingComplexity];
-	int hit[thingComplexity];
-	bool connect[thingComplexity];
-	bool taken[thingComplexity];
-	int hitBy[thingComplexity];
+	std::vector<hStat> s(thingComplexity);
+	std::vector<int> hit(thingComplexity);
+	std::vector<bool> connect(thingComplexity);
+	std::vector<bool> taken(thingComplexity);
+	std::vector<int> hitBy(thingComplexity);
 	int h;
 	int push[2];
 	for(int i = 0; i < thingComplexity; i++){
@@ -1031,7 +1031,7 @@ void interface::resolveHits()
 	for(int i = 0; i < thingComplexity; i++){
 		if(connect[i]){
 			things[i]->connect(combo[things[i]->ID-1], s[i]);
-			if(i < 2 && p[i]->cMove->allowed.i < 128 && !p[i]->pick()->aerial) p[i]->checkFacing(p[(i+1)%2]);
+			if(i < 2 && p[i]->cMove->allowed.i < 128 && !p[i]->aerial) p[i]->checkFacing(p[(i+1)%2]);
 		}
 	}
 
@@ -1058,9 +1058,9 @@ void interface::resolveHits()
 
 	for(int i = 0; i < 2; i++){ 
 		if(connect[i]){
-			if(p[i]->pick()->aerial) residual.y = -8;
+			if(p[i]->aerial) residual.y = -8;
 			else{ 
-				if(p[(i+1)%2]->pick()->aerial) residual.x = -2;
+				if(p[(i+1)%2]->aerial) residual.x = -2;
 				else {
 					if(combo[i] > 1) residual.x = -2*(abs(combo[i]-1));
 					if(p[(i+1)%2]->particleType == -2) residual.x -= push[i];
