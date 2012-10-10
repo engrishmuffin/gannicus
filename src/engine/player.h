@@ -52,6 +52,8 @@ public:
 	virtual void connect(int, hStat&);
 	virtual void pushInput(bool*);
 	virtual int passSignal(int);
+	bool aerial;
+	int * meter;
 	int particleType;
 	int blockType;
 	int counter;
@@ -114,10 +116,8 @@ public:
 	daemon(int);
 	daemon(int, frame*);
 	frame * script;
-	void roundInit();
 	void genEvent(bool *&, int *&, bool *&);
 	character * pick() { return v; }
-	void characterSelect(int);
 protected:
 	character * v;
 };
