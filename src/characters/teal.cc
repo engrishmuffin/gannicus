@@ -116,7 +116,7 @@ void teal::init(action *& cMove)
 	character::init(cMove);
 }
 
-void teal::neutralize(action *& cMove)
+void teal::neutralize(action *& cMove, bool aerial)
 {
 	if(aerial) cMove = airNeutral[meter[4]];
 	else cMove = neutral[meter[4]];
@@ -128,7 +128,7 @@ void teal::resetAirOptions()
 	if(meter[4] == 3) meter[3] = 2;
 }
 
-int teal::checkBlocking(action *& cMove, int input[], int &connectFlag, int &hitFlag)
+int teal::checkBlocking(action *& cMove, int input[], int &connectFlag, int &hitFlag, bool aerial)
 {
 	if(meter[4] == 3) return -1;
 	int st;
@@ -203,16 +203,16 @@ int teal::checkBlocking(action *& cMove, int input[], int &connectFlag, int &hit
 	return ret;
 }
 
-int teal::takeHit(action *& cMove, hStat & s, int b, int &f, int &c, int &h, int &p)
+int teal::takeHit(action *& cMove, hStat & s, int blockType, int &frame, int &connectFlag, int &hitFlag, int &hitType, bool &aerial)
 {
 	int freeze = s.stun/4 + 10;
-	p = cMove->takeHit(s, b, f, c, h);
-	if (p == 1){
+	hitType = cMove->takeHit(s, blockType, frame, connectFlag, hitFlag);
+	if (hitType == 1){
 		if(s.launch) aerial = 1;
-		health -= s.damage;
-		if(health < 0) health = 0;
+		meter[0] -= s.damage;
+		if(meter[0] < 0) meter[0] = 0;
 		if(s.stun > 0){
-			f = 0;
+			frame = 0;
 			if(aerial){
 				untech[meter[4]]->init(s.stun+s.untech);
 				cMove = untech[meter[4]];
@@ -225,7 +225,7 @@ int teal::takeHit(action *& cMove, hStat & s, int b, int &f, int &c, int &h, int
 				cMove = reel[meter[4]];
 			}
 		}
-	} else if (p == -1) {
+	} else if (hitType == -1) {
 		if(meter[0] + 6 < 300) meter[0] += 6;
 		else meter[0] = 300;
 	}
@@ -234,7 +234,7 @@ int teal::takeHit(action *& cMove, hStat & s, int b, int &f, int &c, int &h, int
 	return freeze;
 }
 
-action * teal::hook(int inputBuffer[30], int i, int f, int * r, int down[5], bool up[5], action * c, SDL_Rect &p, int &cFlag, int &hFlag)
+action * teal::hook(int inputBuffer[30], int i, int f, int * r, int down[5], bool up[5], action * c, SDL_Rect &p, int &cFlag, int &hFlag, bool aerial)
 {
 	if(aerial) return airHead[meter[4]]->actionHook(inputBuffer, 0, -1, meter, down, up, c, p, cFlag, hFlag);
 	else return head[meter[4]]->actionHook(inputBuffer, 0, -1, meter, down, up, c, p, cFlag, hFlag);

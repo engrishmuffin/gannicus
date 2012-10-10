@@ -18,14 +18,14 @@ public:
 	~teal();
 	void build(const char*, const char*);
 	void sortMove(action*, char*);
-	void neutralize(action *&);
-	int checkBlocking(action *&, int[], int&, int&);
+	void neutralize(action *&, bool);
+	int checkBlocking(action *&, int[], int&, int&, bool);
 	virtual action * createMove(char*);
 	void resetAirOptions();
 	int comboState(action *);
 	void init(action *&);
-	int takeHit(action *&, hStat&, int, int&, int&, int&, int&);
-	action * hook(int[40], int, int, int*, int[5], bool[5], action *, SDL_Rect&, int&, int&);
+	int takeHit(action *&, hStat&, int, int&, int&, int&, int&, bool&);
+	action * hook(int[40], int, int, int*, int[5], bool[5], action *, SDL_Rect&, int&, int&, bool);
 
 	actionTrie * head[4];
 	actionTrie * airHead[4];
