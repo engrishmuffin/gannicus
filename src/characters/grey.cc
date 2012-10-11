@@ -2,14 +2,20 @@
 grey::grey(){
 	head = new actionTrie;
 	airHead = new actionTrie;
-	meter = new int[5];
 	build("Grey", "Grey");
 	noirActivate = neutral;
 }
 
-int grey::takeHit(action *& cMove, hStat & s, int blockType, int &frame, int &connectFlag, int &hitFlag, int &hitType, bool &aerial)
+int * grey::generateMeter()
 {
-	int freeze = character::takeHit(cMove, s, blockType, frame, connectFlag, hitFlag, blockType, aerial);
+	int * meter;
+	meter = new int[5];
+	return meter;
+}
+
+int grey::takeHit(action *& cMove, hStat & s, int blockType, int &frame, int &connectFlag, int &hitFlag, int &hitType, bool &aerial, int *& meter)
+{
+	int freeze = character::takeHit(cMove, s, blockType, frame, connectFlag, hitFlag, hitType, aerial, meter);
 	if(hitType == -1) meter[4] += 205;
 	if(meter[4] >= 1020){
 		meter[4] = 1023;
@@ -19,13 +25,13 @@ int grey::takeHit(action *& cMove, hStat & s, int blockType, int &frame, int &co
 	return freeze;
 }
 
-void grey::tick()
+void grey::tick(int *& meter)
 {
 	if(meter[4] > 0) meter[4]--;
 }
 
-void grey::init(action *& cMove)
+void grey::init(int *& meter)
 {
 	meter[4] = 0;
-	character::init(cMove);
+	character::init(meter);
 }
