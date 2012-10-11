@@ -88,14 +88,14 @@ void interface::createPlayers()
 	}
 }
 
-void interface::createDaemons()
+void interface::createDemons()
 {
 	srand(time(NULL));
 	for(int i = 0; i < 2; i++){
-		p[i] = new daemon(i+1); //Okay, so this is really stupid. APPLE doesn't like, understand that this is a class and clang won't build cause like, expected a type. Daemon's totally not a type that works on other systems and that inherits from a type that clang is okay with...
+		p[i] = new demon(i+1); 
 		selection[i] = rand()%numChars + 1;
-		p[i]->characterSelect(selection[i]);
-		printf("p%i selected %s\n", i+1, p[i]->pick()->name);
+		p[i]->characterSelect(selection[i]); 
+		printf("p%i selected %s\n", i+1, p[i]->pick()->name); //currently segfaults here
 		select[i] = 1;
 		menu[i] = 0;
 	}
@@ -103,11 +103,11 @@ void interface::createDaemons()
 	analytics = true;
 }
 
-void interface::createDaemons(replay * script)
+void interface::createDemons(replay * script)
 {
 	srand(time(NULL));
 	for(int i = 0; i < 2; i++){
-		p[i] = new daemon(i+1, script->start[i]); //APPLE
+		p[i] = new demon(i+1, script->start[i]);
 		selection[i] = script->selection[i];
 		p[i]->characterSelect(selection[i]);
 		select[i] = 1;
@@ -670,12 +670,12 @@ void interface::resolveSummons()
 /*Check if someone won*/
 void interface::checkWin()
 {
-	if(p[0]->pick()->meter[0] == 0 || p[1]->pick()->meter[0] == 0 || timer == 0){
+	if(p[0]->meter[0] == 0 || p[1]->meter[0] == 0 || timer == 0){
 		roundEnd = true;
-		if(p[0]->pick()->meter[0] > p[1]->pick()->meter[0]) {
+		if(p[0]->meter[0] > p[1]->meter[0]) {
 			p[0]->rounds++;
 		}
-		else if(p[1]->pick()->meter[0] > p[0]->pick()->meter[0]) {
+		else if(p[1]->meter[0] > p[0]->meter[0]) {
 			p[1]->rounds++;
 		}
 		else {
@@ -877,6 +877,8 @@ void interface::rematchMenu()
 					delete p[1]->pick();
 					select[0] = 0;
 					select[1] = 0;
+					delete [] p[0]->meter;
+					delete [] p[1]->meter;
 					Mix_HaltMusic();
 					Mix_FreeMusic(matchMusic);
 					//Mix_PlayChannel(3, announceSelect, 0);
@@ -1021,7 +1023,7 @@ void interface::resolveHits()
 
 	for(int i = 0; i < thingComplexity; i++){ 
 		if(taken[i]){
-			h = p[i]->pick()->meter[0];
+			h = p[i]->meter[0];
 			hit[hitBy[i]] = p[i]->takeHit(combo[hitBy[i]], s[hitBy[i]]);
 			if(i < 2 && hitBy[i] < 2){
 				if(p[i]->particleType == -2){ 
@@ -1036,7 +1038,7 @@ void interface::resolveHits()
 			if(hit[hitBy[i]] == 1) things[hitBy[i]]->hitFlag = things[hitBy[i]]->connectFlag;
 			p[(i+1)%2]->checkCorners(floor, bg.x + wall, bg.x + screenWidth - wall);
 			if(p[i]->facing * p[(i+1)%2]->facing == 1) p[i]->invertVectors(1);
-			damage[(i+1)%2] += h - p[i]->pick()->meter[0];
+			damage[(i+1)%2] += h - p[i]->meter[0];
 		}
 	}
 
@@ -1069,7 +1071,7 @@ void interface::resolveHits()
 		p[i]->hover--;
 	}
 	for(int i = 0; i < 2; i++) {
-		if(p[i]->pick()->meter[0] <= 0 && endTimer >= 5 * 60){ 
+		if(p[i]->meter[0] <= 0 && endTimer >= 5 * 60){ 
 			i = 2;
 			p[0]->freeze = 30;
 			p[1]->freeze = 30;
