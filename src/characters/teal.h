@@ -16,15 +16,16 @@ class teal : public character {
 public:
 	teal();
 	~teal();
+	int * generateMeter();
 	void build(const char*, const char*);
 	void sortMove(action*, char*);
-	void neutralize(action *&, bool);
-	int checkBlocking(action *&, int[], int&, int&, bool);
+	void neutralize(action *&, bool, int *&);
+	int checkBlocking(action *&, int[], int&, int&, bool, int*);
 	virtual action * createMove(char*);
-	void resetAirOptions();
+	void resetAirOptions(int *&);
 	int comboState(action *);
-	void init(action *&);
-	int takeHit(action *&, hStat&, int, int&, int&, int&, int&, bool&);
+	void init(int *&);
+	int takeHit(action *&, hStat&, int, int&, int&, int&, int&, bool&, int *&);
 	action * hook(int[40], int, int, int*, int[5], bool[5], action *, SDL_Rect&, int&, int&, bool);
 
 	actionTrie * head[4];
