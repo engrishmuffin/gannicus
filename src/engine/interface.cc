@@ -15,6 +15,7 @@
 #include <fstream>
 #include <iostream>
 #include <math.h>
+#include <vector>
 
 interface::interface()
 {
@@ -87,14 +88,14 @@ void interface::createPlayers()
 	}
 }
 
-void interface::createDaemons()
+void interface::createDemons()
 {
 	srand(time(NULL));
 	for(int i = 0; i < 2; i++){
-		p[i] = new daemon(i+1);
+		p[i] = new demon(i+1); 
 		selection[i] = rand()%numChars + 1;
-		p[i]->characterSelect(selection[i]);
-		printf("p%i selected %s\n", i+1, p[i]->pick()->name);
+		p[i]->characterSelect(selection[i]); 
+		printf("p%i selected %s\n", i+1, p[i]->pick()->name); //currently segfaults here
 		select[i] = 1;
 		menu[i] = 0;
 	}
@@ -102,11 +103,11 @@ void interface::createDaemons()
 	analytics = true;
 }
 
-void interface::createDaemons(replay * script)
+void interface::createDemons(replay * script)
 {
 	srand(time(NULL));
 	for(int i = 0; i < 2; i++){
-		p[i] = new daemon(i+1, script->start[i]);
+		p[i] = new demon(i+1, script->start[i]);
 		selection[i] = script->selection[i];
 		p[i]->characterSelect(selection[i]);
 		select[i] = 1;
@@ -493,7 +494,7 @@ void interface::resolve()
 		p[1]->getMove(posEdge[1], negEdge[1], prox, 1);
 		for(int i = 0; i < thingComplexity; i++){
 			if(i < 2){
-				if(p[(i+1)%2]->pick()->aerial) prox.y = 1;
+				if(p[(i+1)%2]->aerial) prox.y = 1;
 				else prox.y = 0;
 				prox.x = p[(i+1)%2]->throwInvuln;
 			}
@@ -546,7 +547,7 @@ void interface::resolve()
 			p[1]->checkFacing(p[0]);
 
 		for(int i = 0; i < 2; i++){
-			if(!p[i]->pick()->aerial) { p[i]->deltaX = 0; p[i]->deltaY = 0; }
+			if(!p[i]->aerial) { p[i]->deltaX = 0; p[i]->deltaY = 0; }
 
 			if(!roundEnd){
 				switch (p[i]->pick()->comboState(p[i]->cMove)){ 
@@ -669,12 +670,12 @@ void interface::resolveSummons()
 /*Check if someone won*/
 void interface::checkWin()
 {
-	if(p[0]->pick()->meter[0] == 0 || p[1]->pick()->meter[0] == 0 || timer == 0){
+	if(p[0]->meter[0] == 0 || p[1]->meter[0] == 0 || timer == 0){
 		roundEnd = true;
-		if(p[0]->pick()->meter[0] > p[1]->pick()->meter[0]) {
+		if(p[0]->meter[0] > p[1]->meter[0]) {
 			p[0]->rounds++;
 		}
-		else if(p[1]->pick()->meter[0] > p[0]->pick()->meter[0]) {
+		else if(p[1]->meter[0] > p[0]->meter[0]) {
 			p[1]->rounds++;
 		}
 		else {
@@ -747,7 +748,6 @@ void interface::cSelectMenu()
 		assert(screenInit() != false);
 	}
 	char base[2][40];
-	char buffer[200];
 
 	for(int i = 0; i < 2; i++){
 		if(!menu[i]){
@@ -877,6 +877,8 @@ void interface::rematchMenu()
 					delete p[1]->pick();
 					select[0] = 0;
 					select[1] = 0;
+					delete [] p[0]->meter;
+					delete [] p[1]->meter;
 					Mix_HaltMusic();
 					Mix_FreeMusic(matchMusic);
 					//Mix_PlayChannel(3, announceSelect, 0);
@@ -976,11 +978,11 @@ void interface::resolveThrows()
 
 void interface::resolveHits()
 {
-	hStat s[thingComplexity];
-	int hit[thingComplexity];
-	bool connect[thingComplexity];
-	bool taken[thingComplexity];
-	int hitBy[thingComplexity];
+	std::vector<hStat> s(thingComplexity);
+	std::vector<int> hit(thingComplexity);
+	std::vector<bool> connect(thingComplexity);
+	std::vector<bool> taken(thingComplexity);
+	std::vector<int> hitBy(thingComplexity);
 	int h;
 	int push[2];
 	for(int i = 0; i < thingComplexity; i++){
@@ -1019,13 +1021,13 @@ void interface::resolveHits()
 	for(int i = 0; i < thingComplexity; i++){
 		if(connect[i]){
 			things[i]->connect(combo[things[i]->ID-1], s[i]);
-			if(i < 2 && p[i]->cMove->allowed.i < 128 && !p[i]->pick()->aerial) p[i]->checkFacing(p[(i+1)%2]);
+			if(i < 2 && p[i]->cMove->allowed.i < 128 && !p[i]->aerial) p[i]->checkFacing(p[(i+1)%2]);
 		}
 	}
 
 	for(int i = 0; i < thingComplexity; i++){ 
 		if(taken[i]){
-			h = p[i]->pick()->meter[0];
+			h = p[i]->meter[0];
 			hit[hitBy[i]] = p[i]->takeHit(combo[hitBy[i]], s[hitBy[i]]);
 			if(i < 2 && hitBy[i] < 2){
 				if(p[i]->particleType == -2){ 
@@ -1040,17 +1042,17 @@ void interface::resolveHits()
 			if(hit[hitBy[i]] == 1) things[hitBy[i]]->hitFlag = things[hitBy[i]]->connectFlag;
 			p[(i+1)%2]->checkCorners(floor, bg.x + wall, bg.x + screenWidth - wall);
 			if(p[i]->facing * p[(i+1)%2]->facing == 1) p[i]->invertVectors(1);
-			damage[(i+1)%2] += h - p[i]->pick()->meter[0];
+			damage[(i+1)%2] += h - p[i]->meter[0];
 		}
 	}
 
 	for(int i = 0; i < 2; i++){ 
 		if(connect[i]){
-			if(p[i]->pick()->aerial) residual.y = -8;
+			if(p[i]->aerial) residual.y = -8;
 			else{ 
-				if(p[(i+1)%2]->pick()->aerial) residual.x = -2;
+				if(p[(i+1)%2]->aerial) residual.x = -2;
 				else {
-					if(combo[i] > 1) residual.x = -2*(abs(combo[i]-1));
+					if(combo[i] > 1) residual.x = -3*(abs(combo[i]-1));
 					if(p[(i+1)%2]->particleType == -2) residual.x -= push[i];
 					else if(p[(i+1)%2]->rCorner || p[(i+1)%2]->lCorner){
 						residual.x -= 2;
@@ -1073,7 +1075,7 @@ void interface::resolveHits()
 		p[i]->hover--;
 	}
 	for(int i = 0; i < 2; i++) {
-		if(p[i]->pick()->meter[0] <= 0 && endTimer >= 5 * 60){ 
+		if(p[i]->meter[0] <= 0 && endTimer >= 5 * 60){ 
 			i = 2;
 			p[0]->freeze = 30;
 			p[1]->freeze = 30;

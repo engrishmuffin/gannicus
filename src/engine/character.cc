@@ -8,12 +8,11 @@
 #include <cstring>
 
 character::character()
+//Character constructor. This loads the whole character into memory so that that we don't have disk reads during gameplay
 {
-	meter = new int[4];
 }
 
 character::character(const char*)
-//Character constructor. This loads the whole character into memory so that that we don't have disk reads during gameplay
 {
 /*	action * temp;
 
@@ -52,8 +51,6 @@ character::character(const char*)
 	head->insert(9, new utility("White/JF"));
 	
 	throwBreak = new utility("White/break");
-
-	meter = new int[3];
 */
 }
 
@@ -72,16 +69,15 @@ character::~character()
 		delete standBlock;
 		delete airBlock;
 		delete down;
-		delete [] meter;
 		if(name) delete [] name;
 	}
 }
 
-void avatar::prepHooks(int freeze, action *& cMove, action *& bMove, action *& sMove, int inputBuffer[30], int down[5], bool up[5], SDL_Rect &p, int &f, int &cFlag, int &hFlag, bool dryrun)
+void avatar::prepHooks(int freeze, action *& cMove, action *& bMove, action *& sMove, int inputBuffer[30], int down[5], bool up[5], SDL_Rect &p, int &f, int &cFlag, int &hFlag, bool dryrun, bool aerial, int *& meter)
 {
 	action * t = NULL;
-	if (cMove == NULL) neutralize(cMove);
-	t = hook(inputBuffer, 0, -1, meter, down, up, cMove, p, cFlag, hFlag);
+	if (cMove == NULL) neutralize(cMove, aerial);
+	t = hook(inputBuffer, 0, -1, meter, down, up, cMove, p, cFlag, hFlag, aerial);
 
 	if(t == NULL && cMove->window(f)){
 		if(cMove->attempt->check(p, meter)) t = cMove->attempt;
@@ -118,7 +114,7 @@ void avatar::prepHooks(int freeze, action *& cMove, action *& bMove, action *& s
 	}
 }
 
-action * avatar::hook(int inputBuffer[30], int i, int f, int * r, int down[5], bool up[5], action * c, SDL_Rect &p, int &cFlag, int &hFlag)
+action * avatar::hook(int inputBuffer[30], int i, int f, int * meter, int down[5], bool up[5], action * c, SDL_Rect &p, int &cFlag, int &hFlag, bool aerial)
 {
 	return head->actionHook(inputBuffer, 0, -1, meter, down, up, c, p, cFlag, hFlag);
 }
@@ -128,17 +124,19 @@ action * avatar::moveSignal(int)
 	return NULL;
 }
 
-action * character::hook(int inputBuffer[30], int i, int f, int * r, int down[5], bool up[5], action * c, SDL_Rect &p, int &cFlag, int &hFlag)
+action * character::hook(int inputBuffer[30], int i, int f, int * meter, int down[5], bool up[5], action * c, SDL_Rect &p, int &cFlag, int &hFlag, bool aerial)
 {
 	if(aerial) return airHead->actionHook(inputBuffer, 0, -1, meter, down, up, c, p, cFlag, hFlag);
-	else return avatar::hook(inputBuffer, 0, -1, meter, down, up, c, p, cFlag, hFlag);
+	else return avatar::hook(inputBuffer, 0, -1, meter, down, up, c, p, cFlag, hFlag, aerial);
 }
 
-void avatar::neutralize(action *& cMove){
+void avatar::neutralize(action *& cMove, bool aerial)
+{
 	cMove = neutral;
 }
 
-void character::neutralize(action *& cMove){
+void character::neutralize(action *& cMove, bool aerial)
+{
 	if(aerial) cMove = airNeutral;
 	else cMove = neutral;
 }
@@ -352,14 +350,6 @@ void character::build(const char *directory, const char *file)
 	airHead->insert(5, airNeutral);
 }
 
-void character::init(action *& cMove){
-	meter[0] = 600;
-	meter[1] = 0;
-	resetAirOptions();
-	aerial = 0;
-	neutralize(cMove);
-}
-
 void avatar::processMove(action * m)
 {
 	char* temp = NULL;
@@ -445,16 +435,16 @@ instance * avatar::spawn(action * source)
 	return source->spawn();
 }
 
-void avatar::connect(action *& cMove, action *& bMove, action *& sMove, hStat & s, int & c, int f)
+void avatar::connect(action *& cMove, action *& bMove, action *& sMove, hStat & s, int & connectFlag, int frame, int *& meter)
 {
-	action * t = cMove->connect(meter, c, f);
+	action * t = cMove->connect(meter, connectFlag, frame);
 	if(t != NULL){
 		if(bMove != NULL) sMove = bMove;
 		bMove = t;
 	}
 }
 
-int character::checkBlocking(action *& cMove, int input[], int &connectFlag, int &hitFlag)
+int character::checkBlocking(action *& cMove, int input[], int &connectFlag, int &hitFlag, bool aerial)
 {
 	int st;
 	bool success = false;
@@ -528,7 +518,7 @@ int character::checkBlocking(action *& cMove, int input[], int &connectFlag, int
 	return ret;
 }
 
-int character::takeHit(action *& cMove, hStat & s, int b, int &f, int &c, int &h, int &p)
+int character::takeHit(action *& cMove, hStat & s, int blockType, int &frame, int &connectFlag, int &hitFlag, int &hitType, bool &aerial, int *& meter)
 {
 	bool dead = false;
 	int freeze = 0;
@@ -536,11 +526,11 @@ int character::takeHit(action *& cMove, hStat & s, int b, int &f, int &c, int &h
 		freeze = s.stun/4 + 10;
 		if(s.ghostHit) freeze = 0;
 	} else freeze = s.pause;
-	p = cMove->takeHit(s, b, f, c, h);
-	if(p == 1) meter[0] -= s.damage;
-	else if(p > -2) { 
+	hitType = cMove->takeHit(s, blockType, frame, connectFlag, hitFlag);
+	if(hitType == 1) meter[0] -= s.damage;
+	else if(hitType > -2) { 
 		meter[0] -= s.chip;
-		if(p == -1 && meter[0] <= 0){ 
+		if(hitType == -1 && meter[0] <= 0){ 
 			meter[0] = 1;
 		}
 	}
@@ -551,14 +541,14 @@ int character::takeHit(action *& cMove, hStat & s, int b, int &f, int &c, int &h
 	if(dead == true){
 		cMove = die;
 		aerial = true;
-	} else if (p == 1){
-		if(s.launch) aerial = 1;
+	} else if (hitType == 1){
+		if(s.launch) aerial = true;
 		if(s.stun != 0){
-			f = 0;
+			frame = 0;
 			if(aerial){
 				untech->init(s.stun+s.untech);
 				cMove = untech;
-				resetAirOptions();
+				resetAirOptions(meter);
 			} else if(cMove->crouch){
 				crouchReel->init(s.stun + s.stun/5);
 				cMove = crouchReel;
@@ -567,18 +557,31 @@ int character::takeHit(action *& cMove, hStat & s, int b, int &f, int &c, int &h
 				cMove = reel;
 			}
 		} 
-	} else if (p == -1) {
+	} else if (hitType == -1) {
 		if(meter[1] + 6 < 300) meter[1] += 6;
 		else meter[1] = 300;
-	}
-	if(p > -2){
+	} else if (hitType > -2) {
 		if(meter[1] + 1 < 300) meter[1] += 1;
 		else meter[1] = 300;
 	}
 	return freeze;
 }
 
-void character::resetAirOptions()
+int * avatar::generateMeter()
+{
+	int * meter;
+	meter = new int[4];
+	return meter;
+}
+
+void character::init(int *& meter)
+{
+	meter[0] = 600;
+	meter[1] = 0;
+	resetAirOptions(meter);
+}
+
+void character::resetAirOptions(int *& meter)
 {
 	meter[2] = 1;
 	meter[3] = 1;
@@ -589,24 +592,23 @@ bool avatar::acceptTarget(action * c, int f)
 	return 1;
 }
 
-void character::land(action *& cMove, int &f, int &c, int &h)
+void character::land(action *& cMove, int &frame, int &connectFlag, int &hitFlag, int *& meter)
 {
 	if(cMove->allowed.b.block){
 		standBlock->init(airBlock->counter);
 		cMove = standBlock;
 	} else { 
-		cMove = cMove->land(f, c, h);
+		cMove = cMove->land(frame, connectFlag, hitFlag);
 		if(!cMove) cMove = neutral;
 	}
-	aerial = 0; 
-	resetAirOptions();
+	resetAirOptions(meter);
 }
 
-void avatar::step(action *& cMove, int &currentFrame, int &freeze)
+void avatar::step(action *& cMove, int &currentFrame, int &freeze, int *& meter)
 {
 	if(freeze <= 0) {
 		cMove->step(meter, currentFrame);
-		tick();
+		tick(meter);
 	} else {
 		freeze--;
 	}

@@ -52,6 +52,8 @@ public:
 	virtual void connect(int, hStat&);
 	virtual void pushInput(bool*);
 	virtual int passSignal(int);
+	bool aerial;
+	int * meter;
 	int particleType;
 	int blockType;
 	int counter;
@@ -81,7 +83,7 @@ public:
 	virtual void genEvent(bool *&, int *&, bool *&) {}
 	virtual void roundInit();
 	virtual int takeHit(int, hStat&);
-	virtual void connect(int, hStat&);
+//	virtual void connect(int, hStat&);
 	virtual bool CHState();
 	bool elasticX:1;
 	bool elasticY:1;
@@ -108,16 +110,16 @@ private:
 	SDL_Event input[10];	//Inputs. These are the SDL_Events tied to the 10 buttons in the actual game
 };
 
-class daemon : public player{
+class demon : public player{
 public:
-	daemon();
-	daemon(int);
-	daemon(int, frame*);
+	demon();
+	demon(int);
+	demon(int, frame*);
 	frame * script;
-	void roundInit();
-	void genEvent(bool *&, int *&, bool *&);
+	virtual void genEvent(bool *&, int *&, bool *&);
+	virtual void roundInit();
+	virtual void characterSelect(int);
 	character * pick() { return v; }
-	void characterSelect(int);
 protected:
 	character * v;
 };

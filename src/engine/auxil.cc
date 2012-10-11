@@ -4,11 +4,12 @@
 
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
+#include <SDL/SDL_image.h>
 #include <string>
 #include <iostream>
 #include <cmath>
 #include "auxil.h"
-#include "../compat.h"
+#include <vector>
 
 using namespace std;
 
@@ -239,7 +240,7 @@ int aux::defineRectArray(char * definition, SDL_Rect *& array)
 		if(definition[i] == '\t') complexity++;
 	}
 	array = new SDL_Rect[complexity];
-	char * coordinate[complexity*4];
+	std::vector<char *> coordinate(complexity*4);
 	coordinate[0] = strtok(definition, ",\n\t ");
 	for(int i = 1; i < complexity*4; i++){
 		coordinate[i] = strtok(NULL, ", \n\t"); i++;
