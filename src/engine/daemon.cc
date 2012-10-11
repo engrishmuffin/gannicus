@@ -1,13 +1,13 @@
 #include "analytics.h"
 #include <ctime>
 
-daemon::daemon()
+demon::demon()
 {
 	init();
 	script = NULL;
 }
 
-daemon::daemon(int id)
+demon::demon(int id)
 {
 	wins = 0;
 	ID = id;
@@ -15,7 +15,7 @@ daemon::daemon(int id)
 	script = NULL;
 }
 
-daemon::daemon(int id, frame * s)
+demon::demon(int id, frame * s)
 {
 	wins = 0;
 	ID = id;
@@ -23,7 +23,7 @@ daemon::daemon(int id, frame * s)
 	script = s;
 }
 
-void daemon::genEvent(bool *& sAxis, int *& posEdge, bool *& negEdge) 
+void demon::genEvent(bool *& sAxis, int *& posEdge, bool *& negEdge)
 {
 	if(script){
 		for(int i = 0; i < 5; i++){
@@ -51,3 +51,46 @@ void daemon::genEvent(bool *& sAxis, int *& posEdge, bool *& negEdge)
 	}
 }
 
+void demon::characterSelect(int i)
+{
+	v = NULL;
+	switch(i){
+	case 1:
+		v = new red;
+		break;
+	case 2:
+		v = new yellow;
+		break;
+	default:
+		v = new character("White");
+		break;
+	}
+	meter = pick()->generateMeter();
+}
+
+void demon::roundInit()
+{
+	instance::init();
+	pick()->neutralize(cMove, aerial);
+	if(v) pick()->init(meter);
+	updateRects();
+	lCorner = 0;
+	rCorner = 0;
+	elasticX = 0;
+	elasticY = 0;
+	blockType = 0;
+	slide = 0;
+	stick = 0;
+	hover = 0;
+	throwInvuln = 0;
+	particleLife = 0;
+	particleType = 0;
+	if(ID == 1){ 
+		facing = 1;
+		posX = 1400;
+	} else {
+		facing = -1;
+		posX = 1800;
+	}
+	updateRects();
+}
