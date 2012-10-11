@@ -4,7 +4,6 @@ projectile::projectile(const char* directory, const char* file)
 	head = new actionTrie;
 	neutral = NULL;
 	build(directory, file);
-	meter = new int[4];
 }
 
 void projectile::build(const char* directory, const char* file)
@@ -26,9 +25,12 @@ bool projectile::acceptTarget(action * c, int f)
 	else return 0;
 }
 
-void projectile::init(action *& cMove)
+void projectile::init(int *& meter)
 {
-	cMove = neutral;
+	meter[0] = 600;
+	meter[1] = 0;
+	meter[2] = 1;
+	meter[3] = 1;
 }
 
 void projectile::processMove(action * m)
@@ -55,7 +57,6 @@ airSummon::airSummon(const char * n)
 
 instance * summon::spawn()
 {
-	payload->init(payload->neutral);
 	instance * ret = new instance(payload);
 	return ret;
 }
