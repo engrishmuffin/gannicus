@@ -16,5 +16,5 @@ generic
 ?ForwardTech = a6 a9 a3
 ?StopTech = a8
 #Moves
-A = hA
+A = hA aA
 B = hB
