@@ -18,3 +18,4 @@ generic
 #Moves
 A = hA aA
 B = hB
+_Cthrow = h6C
