@@ -55,14 +55,8 @@ void demon::characterSelect(int i)
 {
 	v = NULL;
 	switch(i){
-	case 1:
-		v = new red;
-		break;
-	case 2:
-		v = new yellow;
-		break;
 	default:
-		v = new character("White");
+		v = new character("generic");
 		break;
 	}
 	meter = pick()->generateMeter();
