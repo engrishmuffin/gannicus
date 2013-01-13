@@ -378,7 +378,7 @@ void instance::combineDelta()
 void instance::enforceAttractor(attractor* p)
 {
 	SDL_Rect resultant;
-	int midpoint;
+	int midpoint, xDist, yDist;
 	if(facing == 1) midpoint = posX + facing*cMove->collision[currentFrame].x + facing*collision.w/2;
 	else midpoint = posX + facing*cMove->collision[currentFrame].x + facing*collision.w/2 + collision.w%2;
 	resultant.x = p->x; resultant.y = p->y; resultant.w = 0; resultant.h = 0;
@@ -388,34 +388,43 @@ void instance::enforceAttractor(attractor* p)
 	else if(midpoint < p->posX) directionX = -1;
 	if(collision.y + collision.h/2 > p->posY) directionY = 1;
 	else if(collision.y + collision.h/2 < p->posY) directionY = -1;
-	float totalDist = sqrt(pow(midpoint - p->posX, 2) + pow(collision.y + collision.h/2 - p->posY, 2));
-	switch(p->type){
-	case 0:
-		break;
-	case 1:
-		resultant.x -= totalDist/p->radius;
-		resultant.y -= totalDist/p->radius;
-		resultant.x *= directionX;
-		resultant.y *= directionY;
-		break;
-	case 2:
-		for(int i = 1; i < totalDist/p->radius; i++){
-			resultant.x /= 2;
-			resultant.y /= 2;
+	xDist = abs(midpoint - p->posX);
+	yDist = abs(collision.y + collision.h/2 - p->posY);
+	float totalDist = sqrt(pow(xDist, 2) + pow(yDist, 2));
+	if(totalDist < p->eventHorizon && p->eventHorizon > 0){
+		resultant.x = 0;
+		resultant.y = 0;
+		deltaX = 0; deltaY = 0;
+		momentumComplexity = 0;
+	} else {
+		switch(p->type){
+		case 0:
+			break;
+		case 1:
+			resultant.x -= yDist/p->radius;
+			resultant.y -= yDist/p->radius;
+			resultant.x *= directionX;
+			resultant.y *= directionY;
+			break;
+		case 2:
+			for(int i = 1; i < xDist/p->radius; i++)
+				resultant.x /= 2;
+			for(int i = 1; i < yDist/p->radius; i++)
+				resultant.y /= 2;
+			resultant.x *= directionX;
+			resultant.y *= directionY;
+			break;
+		case 3:
+			if(totalDist > p->radius){
+				resultant.x = 0;
+				resultant.y = 0;
+			}
+			resultant.x *= directionX;
+			resultant.y *= directionY;
+			break;
+		default:
+			return;
 		}
-		resultant.x *= directionX;
-		resultant.y *= directionY;
-		break;
-	case 3:
-		if(totalDist > p->radius){
-			resultant.x = 0;
-			resultant.y = 0;
-		}
-		resultant.x *= directionX;
-		resultant.y *= directionY;
-		break;
-	default:
-		return;
 	}
 	addVector(resultant);
 }
