@@ -575,13 +575,13 @@ void interface::cleanup()
 			}
 		}
 	}
-	for(unsigned int i = 0; i < P.size(); i++){
+	for(unsigned int i = 0; i < p.size(); i++){
 		for(int j = 0; j < 6; j++){
 			if(posEdge[i][j] > 0) posEdge[i][j]++;
 			negEdge[i][j] = 0;
 		}
 	}
-	for(unsigned int i = 0; i < P.size(); i++) if(counter[i] > 0) counter[i]--;
+	for(unsigned int i = 0; i < p.size(); i++) if(counter[i] > 0) counter[i]--;
 }
 
 void interface::resolveSummons()
