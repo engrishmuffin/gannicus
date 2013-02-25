@@ -83,25 +83,36 @@ void interface::drawMainMenu(int ID)
 	glColor4f(0.0, 0.0, 1.0, 0.4 + (float)(menu[ID] == 1)*0.4);
 	if(analytics) sprintf(buffer, "Replay");
 	else sprintf(buffer, "No Replay");
-	drawGlyph(buffer, 20 + 1260*ID, 300, 310, 40, 2*ID);
+	drawGlyph(buffer, 20 + 1260*ID, 300, 290, 40, 2*ID);
+
 	glColor4f(0.0, 0.0, 1.0, 0.4 + (float)(menu[ID] == 2)*0.4);
-	drawGlyph("Key Config", 20 + 1260*ID, 300, 350, 40, 2*ID);
+	drawGlyph("Key Config", 20 + 1260*ID, 300, 330, 40, 2*ID);
 	glColor4f(0.0, 0.0, 1.0, 0.4 + (float)(menu[ID] == 3)*0.4);
-	drawGlyph("Exit Menu", 20 + 1260*ID, 300, 390, 40, 2*ID);
+	drawGlyph("Exit Menu", 20 + 1260*ID, 300, 370, 40, 2*ID);
+
 	glColor4f(0.0, 0.0, 1.0, 0.4 + (float)(menu[ID] == 4)*0.4);
 	if(shortcut) sprintf(buffer, "Rematch");
 	else sprintf(buffer, "Reselect");
-	drawGlyph(buffer, 20 + 1260*ID, 300, 430, 40, 2*ID);
+	drawGlyph(buffer, 20 + 1260*ID, 300, 410, 40, 2*ID);
+
 	glColor4f(0.0, 0.0, 1.0, 0.4 + (float)(menu[ID] == 5)*0.4);
 	if(scripting) sprintf(buffer, "Scripts on");
 	else sprintf(buffer, "Scripts off");
-	drawGlyph(buffer, 20 + 1260*ID, 300, 470, 40, 2*ID);
+	drawGlyph(buffer, 20 + 1260*ID, 300, 450, 40, 2*ID);
+
 	glColor4f(0.0, 0.0, 1.0, 0.4 + (float)(menu[ID] == 6)*0.4);
 	if(pauseEnabled) sprintf(buffer, "Pause on");
 	else sprintf(buffer, "Pause off");
-	drawGlyph(buffer, 20 + 1260*ID, 300, 510, 40, 2*ID);
+	drawGlyph(buffer, 20 + 1260*ID, 300, 490, 40, 2*ID);
+
 	glColor4f(0.0, 0.0, 1.0, 0.4 + (float)(menu[ID] == 7)*0.4);
-	drawGlyph("Quit Game", 20 + 1260*ID, 300, 550, 40, 2*ID);
+	if(P[ID]->boxen && P[ID]->sprite) sprintf(buffer, "Both");
+	else if(P[ID]->boxen) sprintf(buffer, "Boxen");
+	else sprintf(buffer, "Sprites");
+	drawGlyph(buffer, 20 + 1260*ID, 300, 530, 40, 2*ID);
+
+	glColor4f(0.0, 0.0, 1.0, 0.4 + (float)(menu[ID] == 8)*0.4);
+	drawGlyph("Quit Game", 20 + 1260*ID, 300, 570, 40, 2*ID);
 	glDisable( GL_TEXTURE_2D );
 	glColor4f(1.0, 1.0, 1.0, 1.0f);
 }
@@ -202,13 +213,21 @@ void interface::drawHUD()
 	else sprintf(buffer, "%i", timer / 60);
 
 	drawGlyph(buffer, 700, 200, 0, 90, 1);
-	for(int i = 0; i < 2; i++){
-		drawGlyph(things[i]->pick()->name, 100+800*i, 600, 30, 40, 0+2*i);
+	for(unsigned int i = 0; i < P.size(); i++){
+		if(P[i]->name) drawGlyph(P[i]->name, 100+800*i, 600, 30, 40, 0+2*i);
+		else drawGlyph(things[i]->pick()->name, 100+800*i, 600, 30, 40, 0+2*i);
 		if(P[i]->record){
 			glColor4f(0.5, 1.0, 1.0, 0.7);
 			drawGlyph("Recording", 100+800*i, 600, 200, 55, 0+2*i);
 			glColor4f(1.0, 1.0, 1.0, 1.0);
 		}
+		/*
+		if(P[i]->current.reversalFlag && P[i]->current.frame + 5 < P[i]->current.move->frames){
+			glColor4f(1.0, 0.0, 0.0, 1.0);
+			drawGlyph("Autolink", 100+800*i, 600, 600, 35, 0+2*i);
+			glColor4f(1.0, 1.0, 1.0, 1.0);
+		}
+		//*/
 		if(combo[i] > 1){
 			glColor4f(1.0, 1.0-.5*illegit[i], 1.0-.5*illegit[i], 1.0);
 			sprintf(buffer, "%i hits", combo[i]);
@@ -320,8 +339,8 @@ void player::drawMeters(int n)
 	}
 	glFlush();
 	int h = 0;
-	if(cMove){
-		if(cMove->hidesMeter) h = cMove->cost;
+	if(current.move){
+		if(current.move->hidesMeter) h = current.move->cost;
 	}
 	pick()->drawMeters(ID, h, meter);
 	glFlush();
@@ -361,7 +380,7 @@ void instance::drawBoxen()
 		glTranslatef(collision.x, -collision.y, 0);
 		glRectf(0.0f, 0.0f, (GLfloat)(collision.w), (GLfloat)(-collision.h));
 	glPopMatrix();
-	for(int i = 0; i < regComplexity; i++){
+	for(unsigned int i = 0; i < hitreg.size(); i++){
 		glFlush();
 		glColor4f(0.0f, 1.0f, (GLfloat)(ID - 1.0f)/2.0f, 0.5f);
 		glNormal3f(0.0f, 0.0f, 1.0f);
@@ -370,7 +389,7 @@ void instance::drawBoxen()
 			glRectf(0.0f, 0.0f, (GLfloat)(hitreg[i].w), (GLfloat)(-hitreg[i].h));
 		glPopMatrix();
 	}
-	for(int i = 0; i < hitComplexity; i++){
+	for(unsigned int i = 0; i < hitbox.size(); i++){
 		glFlush();
 		glColor4f(1.0f, 0.0f, (GLfloat)(ID - 1.0f)/2.0f, 0.5f);
 		glPushMatrix();
@@ -385,23 +404,23 @@ void instance::drawBoxen()
 void instance::draw()
 {
 	int realPosY = collision.y;
-	int realPosX = posX;
+	int realPosX = current.posX;
 	glEnable(GL_TEXTURE_2D);
-	if(spriteCheck()){
-		for(int i = 0; i < hitComplexity; i++){
-			if(hitbox[i].y < realPosY) realPosY = hitbox[i].y;
-			if(facing == 1){
-				if(hitbox[i].x < realPosX) realPosX = hitbox[i].x;
-			} else {
-				if(hitbox[i].x + hitbox[i].w > realPosX) realPosX = hitbox[i].x + hitbox[i].w;
-			}
-		}
-		for(int i = 0; i < regComplexity; i++){
+	if(spriteCheck() && sprite){
+		for(unsigned int i = 0; i < hitreg.size(); i++){
 			if(hitreg[i].y < realPosY) realPosY = hitreg[i].y;
-			if(facing == 1){
+			if(current.facing == 1){
 				if(hitreg[i].x < realPosX) realPosX = hitreg[i].x;
 			} else {
 				if(hitreg[i].x + hitreg[i].w > realPosX) realPosX = hitreg[i].x + hitreg[i].w;
+			}
+		}
+		for(unsigned int i = 0; i < hitbox.size(); i++){
+			if(hitbox[i].y < realPosY) realPosY = hitbox[i].y;
+			if(current.facing == 1){
+				if(hitbox[i].x < realPosX) realPosX = hitbox[i].x;
+			} else {
+				if(hitbox[i].x + hitbox[i].w > realPosX) realPosX = hitbox[i].x + hitbox[i].w;
 			}
 		}
 		if(secondInstance)
@@ -409,14 +428,16 @@ void instance::draw()
 		glPushMatrix();
 			glTranslatef(realPosX, -realPosY, 0);
 			glPushMatrix();
-				glScalef(facing, 1.0, 1.0);
-				pick()->draw(cMove, currentFrame);
+				glScalef(current.facing, 1.0, 1.0);
+				pick()->draw(current.move, current.frame);
 			glPopMatrix();
 		glPopMatrix();
 	}
 	glDisable(GL_TEXTURE_2D);
 	if(!spriteCheck() || boxen){
-		drawBoxen();
+		if(!current.move || current.frame > current.move->frames)
+			pick()->neutral->drawBoxen(0);
+		else drawBoxen();
 	}
 }
 
@@ -439,8 +460,8 @@ void player::drawHitParticle()
 			break;
 		}
 		glPushMatrix();
-			glTranslatef(posX, -collision.y, 0.0f);
-			glRectf((GLfloat)(-10*facing), (GLfloat)(-collision.h), (GLfloat)(50 * facing), (GLfloat)(-collision.h - 40));
+			glTranslatef(current.posX, -collision.y, 0.0f);
+			glRectf((GLfloat)(-10*current.facing), (GLfloat)(-collision.h), (GLfloat)(50 * current.facing), (GLfloat)(-collision.h - 40));
 		glPopMatrix();
 		particleLife--;
 	} else blockType = 0;
@@ -525,7 +546,7 @@ void action::draw(int f)
 
 bool instance::spriteCheck()
 {
-	if(cMove) return cMove->spriteCheck(currentFrame);
+	if(current.move) return current.move->spriteCheck(current.frame);
 	else return 0;
 }
 bool avatar::spriteCheck(action *& cMove, int f)
@@ -550,7 +571,7 @@ void interface::writeImage(const char * movename, int frame, action * move)
 	SDL_Surface * image = NULL;
 	int maxY = move->collision[frame].y + move->collision[frame].h, 
 	    maxX = move->collision[frame].x + move->collision[frame].w;
-	for(int i = 0; i < move->regComplexity[frame]; i++){
+	for(unsigned int i = 0; i < move->hitreg[frame].size(); i++){
 		if(move->hitreg[frame][i].y < realPosY) 
 			realPosY = move->hitreg[frame][i].y;
 		if(move->hitreg[frame][i].x < realPosX) 
@@ -560,7 +581,7 @@ void interface::writeImage(const char * movename, int frame, action * move)
 		if(move->hitreg[frame][i].y + move->hitreg[frame][i].h > maxY)
 			maxY = move->hitreg[frame][i].y + move->hitreg[frame][i].h;
 	}
-	for(int i = 0; i < move->hitComplexity[frame]; i++){
+	for(unsigned int i = 0; i < move->hitbox[frame].size(); i++){
 		if(move->hitbox[frame][i].y < realPosY) 
 			realPosY = move->hitbox[frame][i].y;
 		if(move->hitbox[frame][i].x < realPosX) 
@@ -602,7 +623,10 @@ void interface::writeImage(const char * movename, int frame, action * move)
 	glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
 	glRectf(0.0f, 0.0f, (GLfloat)w, (GLfloat)h);
 
-	move->drawBoxen(frame, x, y - h);
+	glPushMatrix();
+		glTranslatef(-x, -(y-h), 0.0);
+		move->drawBoxen(frame);
+	glPopMatrix();
 
 	glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, image->pixels);
 
@@ -611,18 +635,18 @@ void interface::writeImage(const char * movename, int frame, action * move)
 	if(SDL_SaveBMP(image, fname)) printf("You dun fucked up\n");
 }
 
-void action::drawBoxen(int frame, int x, int y){
+void action::drawBoxen(int frame){
 	glColor4f(1.0f, 1.0f, 1.0f, 0.5f);
-	glRectf((GLfloat)(collision[frame].x - x), (GLfloat)(-collision[frame].y - y), (GLfloat)(collision[frame].x + collision[frame].w - x), (GLfloat)(-collision[frame].y - collision[frame].h - y));
-	for(int i = 0; i < regComplexity[frame]; i++){
+	glRectf((GLfloat)(collision[frame].x), (GLfloat)(-collision[frame].y), (GLfloat)(collision[frame].x + collision[frame].w), (GLfloat)(-collision[frame].y - collision[frame].h));
+	for(unsigned int i = 0; i < hitreg[frame].size(); i++){
 		glFlush();
 		glColor4f(0.0f, 1.0f, 0.0f, 0.5f);
-		glRectf((GLfloat)(hitreg[frame][i].x - x), (GLfloat)(-hitreg[frame][i].y - y), (GLfloat)(hitreg[frame][i].x + hitreg[frame][i].w - x), (GLfloat)(-hitreg[frame][i].y - hitreg[frame][i].h - y));
+		glRectf((GLfloat)(hitreg[frame][i].x), (GLfloat)(-hitreg[frame][i].y), (GLfloat)(hitreg[frame][i].x + hitreg[frame][i].w), (GLfloat)(-hitreg[frame][i].y - hitreg[frame][i].h));
 	}
-	for(int i = 0; i < hitComplexity[frame]; i++){
+	for(unsigned int i = 0; i < hitbox[frame].size(); i++){
 		glFlush();
 		glColor4f(1.0f, 0.0f, 0.0f, 0.5f);
-		glRectf((GLfloat)(hitbox[frame][i].x - x), (GLfloat)(-hitbox[frame][i].y - y), (GLfloat)(hitbox[frame][i].x + hitbox[frame][i].w - x), (GLfloat)(-hitbox[frame][i].y - hitbox[frame][i].h - y));
+		glRectf((GLfloat)(hitbox[frame][i].x), (GLfloat)(-hitbox[frame][i].y), (GLfloat)(hitbox[frame][i].x + hitbox[frame][i].w), (GLfloat)(-hitbox[frame][i].y - hitbox[frame][i].h));
 	}
 	glFlush();
 }

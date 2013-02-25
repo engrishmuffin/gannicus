@@ -19,9 +19,10 @@ interface::interface()
 {
 	numChars = 1;
 	stats = new chart(numChars);
+	killTimer = false;
 	shortcut = false;
 	continuous = false;
-	analytics = false;
+	analytics = true;
 	scripting = false;
 	pauseEnabled = false;
 	single = false;
@@ -93,6 +94,7 @@ void interface::createPlayers()
 		configMenu[i] = 0;
 		things.push_back(P[i]);
 		P[i]->boxen = false;
+		P[i]->sprite = true;
 	}
 }
 
@@ -222,7 +224,7 @@ void interface::matchInit()
 	if(!select[0] || !select[1]){
 		Mix_VolumeMusic(100);
 		Mix_PlayMusic(menuMusic, -1);
-		printf("Please select a character:\n");
+		//printf("\n");
 	}
 	while (SDL_PollEvent(&event));
 }
@@ -239,7 +241,7 @@ void interface::roundInit()
 	bg.y = -900;
 
 	for(player* i:P){
-		i->posY = floor;
+		i->current.posY = floor;
 		i->roundInit();
 	}
 	/*Initialize input containers*/
@@ -269,8 +271,8 @@ void interface::runTimer()
 	int plus;
 	for(unsigned int i = 0; i < P.size(); i++){
 		if(select[i] == true){
-			if(things[i]->cMove != NULL){
-				plus = (things[i]->cMove->arbitraryPoll(31, things[i]->currentFrame));
+			if(things[i]->current.move != NULL){
+				plus = (things[i]->current.move->arbitraryPoll(31, things[i]->current.frame));
 				if(plus != 0){
 					timer += plus;
 					if(timer > 60*99) timer = 60*99 + 1;
@@ -287,24 +289,25 @@ void interface::runTimer()
 		 */
 		if(endTimer > 0) endTimer--;
 		else{
-			things[0]->momentumComplexity = 0;
-			things[1]->momentumComplexity = 0;
+			things[0]->momentum.clear();
+			things[1]->momentum.clear();
 			if(P[0]->rounds == numRounds || P[1]->rounds == numRounds){
 				if(!oldReplay){
 					if(P[0]->rounds == P[1]->rounds);
 					else if(P[0]->rounds == numRounds){ 
 						P[0]->wins++;
-						printf("P1: %i wins\n", P[0]->wins);
+						//printf("P1: %i wins\n", P[0]->wins);
 					} else {
 						P[1]->wins++;
-						printf("P2: %i wins\n", P[1]->wins);
+						//printf("P2: %i wins\n", P[1]->wins);
 					}
 					if(P[0]->rounds == P[1]->rounds);
 					else{
 						if(P[0]->rounds == numRounds) stats->recordWin(selection[0], selection[1]);
 						else stats->recordWin(selection[1], selection[0]);
 					}
-					printf("Matchup: %f\n", stats->matchup(selection[0], selection[1]));
+					//printf("Matchup: %f\n", stats->matchup(selection[0], selection[1]));
+					printf("\n");
 				}
 				if(shortcut) rMenu = 1;
 				else{
@@ -351,172 +354,161 @@ void interface::runTimer()
 			}
 			else roundInit();
 		}
-	} else timer--;
+	} else if(!killTimer || timer > 99 * 60)timer--;
+}
+
+void gameInstance::print()
+{
+	std::cout << "\x1b[A" << "\x1b[A";
+	for(int i = 0; i < 2; i++){
+		for(int j = 0; j < 80; j++) std::cout << " ";
+		std::cout << ('\n');
+	}
+	for(player* i:P) i->print();
 }
 
 /*Main function for a frame. This resolves character spritions, background scrolling, and hitboxes*/
 void interface::resolve()
 {
-	if(!select[0] || !select[1]) cSelectMenu(); 
+	if(!select[0] || !select[1]) cSelectMenu();
 	else if(rMenu) rematchMenu();
 	else if(pMenu) pauseMenu();
 	else {
-		if(timer > 99 * 60){
-			for(unsigned int i = 0; i < P.size(); i++){
-				if(timer == 106 * 60) things[i]->inputBuffer[0] = 0;
-				else if(timer == 106 * 60 - 1) things[i]->inputBuffer[0] = i;
-				else if(timer == 106 * 60 - 2) things[i]->inputBuffer[0] = selection[(i+1)%2] / 10;
-				else if(timer == 106 * 60 - 3) things[i]->inputBuffer[0] = selection[(i+1)%2] % 10;
-				else if(timer == 106 * 60 - 4) things[i]->inputBuffer[0] = 0;
-				else(things[i]->inputBuffer[0] = 5);
-				for(int j:currentFrame[i].pos) j = 0;
-				for(int j:currentFrame[i].neg) j = 0;
-			}
-		} else {
-			for(unsigned int i = 0; i < things.size(); i++) 
-				things[i]->pushInput(currentFrame[things[i]->ID - 1].axis);
-			things[1]->getMove(currentFrame[1].pos, currentFrame[1].neg, prox, 1);
-			for(unsigned int i = 0; i < things.size(); i++){
-				if(i < P.size()){
-					if(things[(i+1)%2]->aerial) prox.y = 1;
-					else prox.y = 0;
-					prox.x = things[(i+1)%2]->throwInvuln;
-				}
-				things[i]->getMove(currentFrame[things[i]->ID - 1].pos, currentFrame[things[i]->ID - 1].neg, prox, 0);
-			}
-		}
-		if(analytics){
-			for(unsigned int i = 0; i < replay->command.size(); i++){
-				replay->command[i].push_back(currentFrame[i]);
-			}
-		}
-		for(unsigned int i = 0; i < P.size(); i++){
-			if(P[i]->record){
-				int temp;
-				if(P[i]->facing == -1){
-					temp = currentFrame[i].axis[3];
-					currentFrame[i].axis[3] = currentFrame[i].axis[2];
-					currentFrame[i].axis[2] = temp;
-				}
-				currentFrame[i].pos[5] = 0;
-				currentFrame[i].neg[5] = 0;
-				P[i]->record->command[0].push_back(currentFrame[i]);
-				if(P[i]->facing == -1){
-					temp = currentFrame[i].axis[3];
-					currentFrame[i].axis[3] = currentFrame[i].axis[2];
-					currentFrame[i].axis[2] = temp;
-				}
-			}
-		}
-	/*Current plan for this function: Once I've got everything reasonably functionally abstracted into player members,
-	the idea is to do the procedure as follows:
-		1. Update to current rectangles. Since the actual step is part of the draw routine, this should happen first.
-		2. Figure out all deltas that should currently apply to sprite spritions. Basically move the sprites to where
-		   they'd be if there were no collision rules.
-		3. Check for things like hits and blocks. Enact all the effects of these, including stun, damage, etc.
-		4. Check for collision against the opponent or against boundaries such as the floor or the corners.
-		   Haven't decided if there should be a cieling yet.
-		5. Apply any changes to deltas that need to be made before the next frame
-		6. Initialize sprites.
-	*/
-
+		resolveInputs();
 		for(instance *i:things) i->updateRects();
-
 		resolveThrows();
 		doSuperFreeze();
-
 		for(instance *i:things) i->updateRects();
+		resolvePhysics();
+		resolveCamera();
+		resolveCollision();
+		resolveCombos();
+		resolveHits();
+	}
+}
 
+void interface::resolveCombos()
+{
+	for(unsigned int i = 0; i < P.size(); i++){
+		if(!roundEnd){
+			switch (P[i]->pick()->comboState(things[i]->current.move)){ 
+			case -2: 
+				illegit[(i+1)%2] = 1;
+				break;
+			case 0:
+				combo[(i+1)%2] = 0;
+				damage[(i+1)%2] = 0;
+				prorate[(i+1)%2] = 1.0;
+				P[i]->elasticX = 0;
+				P[i]->elasticY = 0;
+				illegit[(i+1)%2] = 0;
+				break;
+			}
+		}
+	}
+}
+
+void interface::resolveCamera()
+{
+	/*Really rudimentary camera logic. Really just scrolls the background (Which characters are drawn relative to)
+	 *appropriately, attempting to adjust to approximately be looking at the point in the middle of the two characters.
+	 */
+	int dx = things[1]->dragBG(bg.x + wall, bg.x + screenWidth - wall) + things[0]->dragBG(bg.x + wall, bg.x + screenWidth - wall);
+	/*If a character leaves the camera boundaries, follow them immediately*/
+	if(!dx){
+		dx = -(((bg.x + screenWidth/2) - things[0]->current.posX) + ((bg.x + screenWidth/2) - things[1]->current.posX));
+		dx /= 10;
+		/*Otherwise follow the middle at a rate of (disparity from middle view)/10.
+		 *Chosen by trial and error, this rate feels most natural
+		 */
+	}
+	dragBG(dx);
+}
+
+void interface::resolveInputs()
+{
+	if(timer > 99 * 60){
+		for(unsigned int i = 0; i < P.size(); i++){
+			if(timer == 106 * 60) things[i]->inputBuffer[0] = 0;
+			else if(timer == 106 * 60 - 1) things[i]->inputBuffer[0] = i;
+			else if(timer == 106 * 60 - 2) things[i]->inputBuffer[0] = selection[(i+1)%2] / 10;
+			else if(timer == 106 * 60 - 3) things[i]->inputBuffer[0] = selection[(i+1)%2] % 10;
+			else if(timer == 106 * 60 - 4) things[i]->inputBuffer[0] = 0;
+			else(things[i]->inputBuffer[0] = 5);
+			for(int j:currentFrame[i].pos) j = 0;
+			for(int j:currentFrame[i].neg) j = 0;
+		}
+	} else {
+		
+		for(unsigned int i = 0; i < things.size(); i++)
+			things[i]->pushInput(currentFrame[things[i]->ID - 1].n.raw.dir);
+		for(unsigned int i = 0; i < P.size(); i++){ 
+			bool test = 1;
+			P[i]->getMove(currentFrame[i].pos, currentFrame[i].neg, prox, test);
+			if(!test && !P[i]->current.aerial){ 
+				P[i]->checkFacing(P[(i+1)%2]);
+			}
+		}
 		for(unsigned int i = 0; i < things.size(); i++){
-			if(!things[i]->freeze){
-				if(things[i]->cMove->stop & 4);
-				else { 
-					things[i]->pullVolition();
-					if(things[i]->ID) things[i]->follow(things[(things[i]->ID)%2]);
-					things[i]->combineDelta();
-					things[i]->enforceGravity(grav, floor);
-				}
-				for(unsigned int j = 0; j < globals.size(); j++){
-					if(globals[j]->ID != things[i]->ID){
-						if(i < P.size()){
-							if(globals[j]->effectCode & 1){
-								things[i]->enforceAttractor(globals[j]);
-							}
-						} else {
-							if(globals[j]->effectCode & 2){
-								things[i]->enforceAttractor(globals[j]);
-							}
+			if(i < P.size()){
+				if(things[(i+1)%2]->current.aerial) prox.y = 1;
+				else prox.y = 0;
+				prox.x = things[(i+1)%2]->current.throwInvuln;
+			}
+			bool d = 0;
+			things[i]->getMove(currentFrame[things[i]->ID - 1].pos, currentFrame[things[i]->ID - 1].neg, prox, d);
+		}
+	}
+	for(unsigned int i = 0; i < P.size(); i++){
+		currentFrame[i].pos[5] = 0;
+		currentFrame[i].neg[5] = 0;
+		if(analytics)
+			replay->push(i, currentFrame[i]);
+		if(P[i]->record) 
+			P[i]->record->push(currentFrame[i]);
+	}
+}
+
+void interface::resolvePhysics()
+{
+	for(unsigned int i = 0; i < things.size(); i++){
+		if(!things[i]->current.freeze){
+			if(things[i]->current.move->stop & 4);
+			else { 
+				things[i]->pullVolition();
+				if(things[i]->ID) things[i]->follow(things[(things[i]->ID)%2]);
+				things[i]->combineDelta();
+				things[i]->enforceGravity(grav, floor);
+			}
+			for(unsigned int j = 0; j < globals.size(); j++){
+				if(globals[j]->ID != things[i]->ID){
+					if(i < P.size()){
+						if(globals[j]->effectCode & 1){
+							things[i]->enforceAttractor(globals[j]);
+						}
+					} else {
+						if(globals[j]->effectCode & 2){
+							things[i]->enforceAttractor(globals[j]);
 						}
 					}
 				}
 			}
 		}
-
-		/*Really rudimentary camera logic. Really just scrolls the background (Which characters are drawn relative to)
-		 *appropriately, attempting to adjust to approximately be looking at the point in the middle of the two characters.
-		 */
-		int dx = things[1]->dragBG(bg.x + wall, bg.x + screenWidth - wall) + things[0]->dragBG(bg.x + wall, bg.x + screenWidth - wall);
-		/*If a character leaves the camera boundaries, follow them immediately*/
-		if(!dx){
-			dx = -(((bg.x + screenWidth/2) - things[0]->posX) + ((bg.x + screenWidth/2) - things[1]->posX));
-			dx /= 10;
-			/*Otherwise follow the middle at a rate of (disparity from middle view)/10.
-			 *Chosen by trial and error, this rate feels most natural
-			 */
-		}
-		dragBG(dx);
-		for(player *i:P){
-			i->enforceFloor(floor);
-			i->checkCorners(bg.x + wall, bg.x + screenWidth - wall);
-		}
-
-		resolveCollision();
-
-		for(unsigned int i = 0; i < things.size(); i++){
-			if((things[i]->cMove->state[things[i]->connectFlag].i & 1 && things[i]->cMove != P[i]->pick()->airNeutral) || things[i]->cMove->track)
-				things[i]->checkFacing(P[(things[i]->ID)%2]);
-		}
-
-		for(unsigned int i = 0; i < P.size(); i++){
-			if(!things[i]->aerial) { things[i]->deltaX = 0; things[i]->deltaY = 0; }
-
-			if(!roundEnd){
-				switch (P[i]->pick()->comboState(things[i]->cMove)){ 
-				case -2: 
-					illegit[(i+1)%2] = 1;
-					break;
-				case 0:
-					combo[(i+1)%2] = 0;
-					damage[(i+1)%2] = 0;
-					prorate[(i+1)%2] = 1.0;
-					P[i]->elasticX = 0;
-					P[i]->elasticY = 0;
-					illegit[(i+1)%2] = 0;
-					break;
-				}
-			}
-		}
-
-		for(unsigned int i = 0; i < things.size(); i++){
-			if(things[i]->hitbox[0].w > 0){
-				if(!freeze) P[(things[i]->ID)%2]->checkBlocking();
-			}
-		}
-
-		//Check if moves hit. This will probably be a function at some point
-		resolveHits();
-
-		/*Draw the sprites*/
 	}
 }
 
 void interface::cleanup()
 {
+	//if(select[0] && select[1]) print();
 	if(!pMenu){
+		for(unsigned int i = 0; i < P.size(); i++) {
+			things[i]->current.throwInvuln--;
+			P[i]->hover--;
+		}
 		if(!rMenu && select[0] && select[1]){
 			for(unsigned int i = 0; i < things.size(); i++){
 				things[i]->step();
-				if(i > 1 && things[i]->dead){ 
+				if(i > 1 && things[i]->current.dead){ 
 					things.erase(things.begin()+i);
 					i--;
 				}
@@ -554,12 +546,12 @@ void interface::resolveSummons()
 	instance * larva;
 	int x, y, f;
 	for(unsigned int i = 0; i < things.size(); i++){
-		if(things[i]->cMove){
-			temp = things[i]->cMove;
-			if(temp->arbitraryPoll(50, things[i]->currentFrame)){
+		if(things[i]->current.move){
+			temp = things[i]->current.move;
+			if(temp->arbitraryPoll(50, things[i]->current.frame)){
 				larva = things[i]->pick()->spawn(temp);
 				if(larva){
-					switch (temp->arbitraryPoll(56, things[i]->currentFrame)){
+					switch (temp->arbitraryPoll(56, things[i]->current.frame)){
 					case 0:
 						larva->ID = 0;
 						break;
@@ -570,22 +562,22 @@ void interface::resolveSummons()
 					larva->ID = (things[i]->ID)%2+1;
 						break;
 					}
-					if(temp->arbitraryPoll(51, things[i]->currentFrame)){
-						x = things[(things[i]->ID)%2]->posX;
-						f = things[(things[i]->ID)%2]->facing;
+					if(temp->arbitraryPoll(51, things[i]->current.frame)){
+						x = things[(things[i]->ID)%2]->current.posX;
+						f = things[(things[i]->ID)%2]->current.facing;
 					} else {
-						x = things[(things[i]->ID)-1]->posX;
-						f = things[(things[i]->ID)-1]->facing;
+						x = things[(things[i]->ID)-1]->current.posX;
+						f = things[(things[i]->ID)-1]->current.facing;
 					}
-					if(temp->arbitraryPoll(52, things[i]->currentFrame))
-						y = things[(things[i]->ID)%2]->posY;
-					else if(temp->arbitraryPoll(53, things[i]->currentFrame))
+					if(temp->arbitraryPoll(52, things[i]->current.frame))
+						y = things[(things[i]->ID)%2]->current.posY;
+					else if(temp->arbitraryPoll(53, things[i]->current.frame))
 						y = 0;
 					else
-						y = things[(things[i]->ID)-1]->posY;
-					x += temp->arbitraryPoll(54, things[i]->currentFrame)*f;
-					y += temp->arbitraryPoll(55, things[i]->currentFrame);
-					larva->facing = f;
+						y = things[(things[i]->ID)-1]->current.posY;
+					x += temp->arbitraryPoll(54, things[i]->current.frame)*f;
+					y += temp->arbitraryPoll(55, things[i]->current.frame);
+					larva->current.facing = f;
 					larva->setPosition(x, y);
 					things.push_back(larva);
 					larva->init();
@@ -594,7 +586,7 @@ void interface::resolveSummons()
 		}
 	}
 	for(unsigned int i = 0; i < things.size(); i++){
-		if(things[i]->cMove && things[i]->currentFrame == things[i]->cMove->distortSpawn) tvec = things[i]->cMove->distortion;
+		if(things[i]->current.move && things[i]->current.frame == things[i]->current.move->distortSpawn) tvec = things[i]->current.move->distortion;
 		if(tvec != NULL){ 
 			avec = new attractor;
 			avec->x = tvec->x;
@@ -604,10 +596,10 @@ void interface::resolveSummons()
 			avec->radius = tvec->radius;
 			avec->effectCode = tvec->effectCode;
 			avec->eventHorizon = tvec->eventHorizon;
-			if(things[i]->facing == 1) avec->posX = things[i]->collision.x + things[i]->collision.w / 2;
+			if(things[i]->current.facing == 1) avec->posX = things[i]->collision.x + things[i]->collision.w / 2;
 			else avec->posX = things[i]->collision.x + things[i]->collision.w / 2 + things[i]->collision.w % 2;
 			avec->posY = things[i]->collision.y + things[i]->collision.h/2;
-			if(avec->type == 0) avec->x *= things[i]->facing;
+			if(avec->type == 0) avec->x *= things[i]->current.facing;
 			switch(tvec->ID){
 			case 1:
 				avec->ID = things[i]->ID;
@@ -662,7 +654,7 @@ void gameInstance::genInput()
 					if(!P[i]->currentMacro->genEvent(0, P[i]->iterator, currentFrame[i])){
 						P[i]->currentMacro = NULL;
 					} else {
-						if(P[i]->facing == -1){
+						if(P[i]->current.facing == -1){
 							bool s = currentFrame[i].axis[2];
 							currentFrame[i].axis[2] = currentFrame[i].axis[3];
 							currentFrame[i].axis[3] = s;
@@ -736,7 +728,7 @@ void interface::readInput()
 	if(scripting || oldReplay) genInput();
 	for(SDL_Event i:events){
 		for(unsigned int j = 0; j < p.size(); j++){
-			if(!p[j]->currentMacro) p[j]->readEvent(i, currentFrame[j]);
+			if(!p[j]->currentMacro) P[j]->readEvent(i, currentFrame[j]);
 		}
 	}
 }
@@ -813,6 +805,7 @@ void interface::cSelectMenu()
 	}
 
 	if(select[0] && select[1]){
+		//std::cout << "2 6\n" << selection[0] << " " << selection[1] << '\n';
 		P[0]->characterSelect(selection[0]);
 		P[1]->characterSelect(selection[1]);
 		if(analytics){
@@ -836,8 +829,8 @@ void interface::mainMenu(int ID)
 		menu[ID]++;
 		counter[ID] = 10;
 	}
-	if(menu[ID] > 7) menu[ID] = 1;
-	else if(menu[ID] < 1) menu[ID] = 7;
+	if(menu[ID] > 8) menu[ID] = 1;
+	else if(menu[ID] < 1) menu[ID] = 8;
 	for(unsigned int i = 0; i < currentFrame[ID].pos.size()-1; i++){
 		if(currentFrame[ID].pos[i] == 1 && !counter[ID]){
 			switch(menu[ID]){
@@ -876,6 +869,13 @@ void interface::mainMenu(int ID)
 				}
 				break;
 			case 7:
+				if(P[ID]->boxen && P[ID]->sprite) P[ID]->sprite = false;
+				else if(P[ID]->boxen){
+					P[ID]->sprite = true;
+					P[ID]->boxen = false;
+				} else P[ID]->boxen = true;
+				break;
+			case 8:
 				gameover = 1;
 				break;
 			}
@@ -925,15 +925,15 @@ void interface::keyConfig(int ID)
 	}
 }
 
-void interface::dragBG(int deltaX)
+void interface::dragBG(int dx)
 {
 	int dy = 900;
-	bg.x += deltaX;
+	bg.x += dx;
 	if(bg.x < 0) bg.x = 0;
 	else if(bg.x > bg.w - screenWidth) bg.x = bg.w - screenWidth;
 	for(unsigned int i = 0; i < P.size(); i++){
-		if(dy < things[i]->posY + things[i]->collision.h){
-			dy = things[i]->posY + things[i]->collision.h;
+		if(dy < things[i]->current.posY + things[i]->collision.h){
+			dy = things[i]->current.posY + things[i]->collision.h;
 			if(dy > bg.h) dy = bg.h;
 		}
 	}
@@ -1041,34 +1041,34 @@ void gameInstance::unitCollision(instance *a, instance *b)
 	if(a->middle() > b->middle()){ right = a; left = b; }
 	else if(a->middle() < b->middle()){ right = b; left = a; }
 	else {
-		if(a->facing == 1 && b->facing == -1){ left = a; right = b; }
-		else if(b->facing == 1 && a->facing == -1){ left = b; right = a; }
+		if(a->current.facing == 1 && b->current.facing == -1){ left = a; right = b; }
+		else if(b->current.facing == 1 && a->current.facing == -1){ left = b; right = a; }
 	}
 
 	/*Collision between players. Unfortunately a lot of specialcasing necessary here.*/
 
-	int rLOffset = right->posX - right->collision.x;
-	int rROffset = right->posX - (right->collision.x + right->collision.w);
-	int lLOffset = left->posX - left->collision.x;
-	int lROffset = left->posX - (left->collision.x + left->collision.w);
-	int dOffset = (left->deltaX - right->deltaX) % 2;
+	int rLOffset = right->current.posX - right->collision.x;
+	int rROffset = right->current.posX - (right->collision.x + right->collision.w);
+	int lLOffset = left->current.posX - left->collision.x;
+	int lROffset = left->current.posX - (left->collision.x + left->collision.w);
+	int dOffset = (left->current.deltaX - right->current.deltaX) % 2;
 	int totalMiddle = (right->collision.x + left->collision.x + left->collision.w)/2;
-	if(abs(left->deltaX) > abs(right->deltaX)) totalMiddle += dOffset;
+	if(abs(left->current.deltaX) > abs(right->current.deltaX)) totalMiddle += dOffset;
 
-	if(left->lCorner){ 
-		right->posX = left->collision.x + left->collision.w + rLOffset;
+	if(left->current.lCorner){ 
+		right->current.posX = left->collision.x + left->collision.w + rLOffset;
 	}
-	else if(right->rCorner) left->posX = right->collision.x + lROffset;
+	else if(right->current.rCorner) left->current.posX = right->collision.x + lROffset;
 	else {
-		right->posX = totalMiddle + right->collision.w + rROffset;
-		left->posX = totalMiddle - left->collision.w + lLOffset;
+		right->current.posX = totalMiddle + right->collision.w + rROffset;
+		left->current.posX = totalMiddle - left->collision.w + lLOffset;
 	}
 	if(left->collision.x < 50) {
 		left->updateRects();
-		right->posX = left->collision.x + left->collision.w + rLOffset;
+		right->current.posX = left->collision.x + left->collision.w + rLOffset;
 	} else if (right->collision.x + right->collision.w > 3150) {
 		right->updateRects();
-		left->posX = right->collision.x + lROffset;
+		left->current.posX = right->collision.x + lROffset;
 	}
 	right->updateRects();
 	left->updateRects();
@@ -1076,27 +1076,57 @@ void gameInstance::unitCollision(instance *a, instance *b)
 
 void interface::resolveCollision()
 {
+	for(player *i:P){
+		i->enforceFloor(floor);
+		i->checkCorners(bg.x + wall, bg.x + screenWidth - wall);
+	}
+
 	if (aux::checkCollision(P[0]->collision, P[1]->collision))
 		unitCollision(P[0], P[1]);
-	prox.w = abs(things[0]->posX - things[1]->posX);
-	prox.h = abs(things[0]->posY - things[1]->posY);
+	prox.w = abs(things[0]->current.posX - things[1]->current.posX);
+	prox.h = abs(things[0]->current.posY - things[1]->current.posY);
+
+	for(unsigned int i = 0; i < things.size(); i++){
+		if(things[i]->current.move->track)
+			things[i]->checkFacing(P[(things[i]->ID)%2]);
+		else if (i < 2){
+			if(things[i]->current.move->state[things[i]->current.connect].i & 1 && P[i]->current.move != P[i]->pick()->airNeutral){
+				things[i]->checkFacing(P[(things[i]->ID)%2]);
+			}
+		}
+		if(i < 2 && !things[i]->current.aerial) {
+			things[i]->current.deltaX = 0; 
+			things[i]->current.deltaY = 0; 
+		}
+	}
+
+	for(player *i:P){
+		i->enforceFloor(floor);
+		i->checkCorners(bg.x + wall, bg.x + screenWidth - wall);
+	}
+
+	//Some issues arise if you don't have this second pass
+	if (aux::checkCollision(P[0]->collision, P[1]->collision))
+		unitCollision(P[0], P[1]);
+	prox.w = abs(things[0]->current.posX - things[1]->current.posX);
+	prox.h = abs(things[0]->current.posY - things[1]->current.posY);
 }
 
 void interface::resolveThrows()
 {
 	bool isThrown[2] = {false, false};
 	for(unsigned int i = 0; i < P.size(); i++){
-		if(things[i]->cMove->arbitraryPoll(28, things[i]->currentFrame)){ 
+		if(things[i]->current.move->arbitraryPoll(28, things[i]->current.frame)){ 
 			isThrown[(i+1)%2] = true;
 		}
 	}
 	if(isThrown[0] && isThrown[1]){
-		things[0]->cMove = P[0]->pick()->throwBreak;
-		things[1]->cMove = P[1]->pick()->throwBreak;
+		things[0]->current.move = P[0]->pick()->throwBreak;
+		things[1]->current.move = P[1]->pick()->throwBreak;
 	} else {
 		for(unsigned int i = 0; i < P.size(); i++){
 			if(isThrown[i]){
-				P[i]->getThrown(things[(i+1)%2]->cMove, things[(i+1)%2]->posX*things[(i+1)%2]->facing, things[(i+1)%2]->posY);
+				P[i]->getThrown(things[(i+1)%2]->current.move, things[(i+1)%2]->current.posX*things[(i+1)%2]->current.facing, things[(i+1)%2]->current.posY);
 				P[i]->checkFacing(P[(i+1)%2]);
 			}
 		}
@@ -1119,17 +1149,22 @@ void interface::resolveHits()
 	}
 	SDL_Rect residual = {0, 0, 1, 0};
 	for(unsigned int i = 0; i < things.size(); i++){
+		if(!things[i]->hitbox.empty()){
+			if(!freeze) P[(things[i]->ID)%2]->checkBlocking();
+		}
+	}
+	for(unsigned int i = 0; i < things.size(); i++){
 		for(int m = (int)things.size()-1; m >= 0; m--){
 			if(m != (int)i && !taken[m] && !connect[i]){
-				for(int j = 0; j < things[i]->hitComplexity; j++){
-					for(int k = 0; k < things[m]->regComplexity; k++){
+				for(unsigned int j = 0; j < things[i]->hitbox.size(); j++){
+					for(unsigned int k = 0; k < things[m]->hitreg.size(); k++){
 						if(aux::checkCollision(things[i]->hitbox[j], things[m]->hitreg[k])){
 							if(things[i]->acceptTarget(things[m])){
 								connect[i] = 1;
-								things[i]->cMove->pollStats(s[i], things[i]->currentFrame, things[m]->CHState());
+								things[i]->current.move->pollStats(s[i], things[i]->current.frame, things[m]->CHState());
 								if(i < P.size()) push[i] = s[i].push;
-								k = things[m]->regComplexity;
-								j = things[i]->hitComplexity;
+								k = things[m]->hitreg.size();
+								j = things[i]->hitbox.size();
 								taken[m] = 1;
 								hitBy[m] = i;
 								break;
@@ -1144,42 +1179,46 @@ void interface::resolveHits()
 	for(unsigned int i = 0; i < things.size(); i++){
 		if(connect[i]){
 			things[i]->connect(combo[things[i]->ID-1], s[i]);
-			if(i < P.size() && things[i]->cMove->allowed.i < 128 && !things[i]->aerial) P[i]->checkFacing(P[(i+1)%2]);
+			if(i < P.size() && things[i]->current.move->allowed.i < 128 && !things[i]->current.aerial) P[i]->checkFacing(P[(i+1)%2]);
 		}
 	}
 
 	for(unsigned int i = 0; i < things.size(); i++){ 
 		if(taken[i]){
 			int health = things[things[i]->ID-1]->meter[0];
+			bool actuallyDoesDamage = (s[hitBy[i]].damage != 0);
 			s[hitBy[i]].damage *= prorate[things[hitBy[i]]->ID-1];
-			if(s[hitBy[i]].damage < 1) s[hitBy[i]].damage = 1;
+			if(actuallyDoesDamage && s[hitBy[i]].damage == 0) s[hitBy[i]].damage = 1;
 			hit[hitBy[i]] = things[i]->takeHit(combo[things[hitBy[i]]->ID-1], s[hitBy[i]], prox);
-			if(i < P.size() && hitBy[i] < (int)P.size()){
+			if(i < P.size()){
 				if(things[i]->particleType == -2){
 					hStat ths;
-					ths.damage = s[hitBy[i]].chip;
+					ths.damage = s[hitBy[i]].chip ? s[hitBy[i]].chip : 1;
 					ths.ghostHit = true;
 					ths.stun = 0;
 					ths.push = s[hitBy[i]].push;
-					if(things[i]->aerial) ths.push += s[hitBy[i]].blowback;
-					things[hitBy[i]]->takeHit(combo[i], ths, prox);
+					if(things[i]->current.aerial){
+						if(P[things[hitBy[i]]->ID-1]->current.aerial) ths.push += s[hitBy[i]].blowback*5;
+						else ths.push += s[hitBy[i]].blowback;
+					}
+					P[things[hitBy[i]]->ID-1]->takeHit(combo[i], ths, prox);
 				}
+				if(s[hitBy[i]].stun) combo[(i+1)%2] += hit[hitBy[i]];
 			}
-			if(i < P.size() && s[hitBy[i]].stun) combo[(i+1)%2] += hit[hitBy[i]];
 			if(hit[hitBy[i]] == 1){ 
-				things[hitBy[i]]->hitFlag = things[hitBy[i]]->connectFlag;
+				things[hitBy[i]]->current.hit = things[hitBy[i]]->current.connect;
 				prorate[things[hitBy[i]]->ID-1] *= s[hitBy[i]].prorate;
 			}
 			P[(i+1)%2]->enforceFloor(floor);
 			P[(i+1)%2]->checkCorners(bg.x + wall, bg.x + screenWidth - wall);
-			if(things[i]->facing * things[(i+1)%2]->facing == 1) things[i]->invertVectors(1);
+			if(things[i]->current.facing * things[(i+1)%2]->current.facing == 1) things[i]->invertVectors(1);
 			if(i < P.size()) damage[(i+1)%2] += health - P[i]->meter[0];
 		}
 	}
 
 	for(unsigned int i = 0; i < P.size(); i++){ 
 		if(connect[i]){
-			if(P[i]->aerial){ 
+			if(P[i]->current.aerial){ 
 				switch(s[i].pause){
 				case -1:
 					residual.y = 6 + (s[i].stun/4+9)/4;
@@ -1192,35 +1231,34 @@ void interface::resolveHits()
 					break;
 				}
 			} else { 
-				if(things[(i+1)%2]->aerial) residual.x = -2;
+				if(things[(i+1)%2]->current.aerial){
+					if(P[(i+1)%2]->current.rCorner || P[(i+1)%2]->current.lCorner) residual.x -= combo[i];
+					if(P[(i+1)%2]->stick) residual.x -= s[i].push/2 + combo[i];
+					residual.x -= 2;
+				}
 				else {
 					if(combo[i] > 1) residual.x = -3*(abs(combo[i]-1));
 					if(things[(i+1)%2]->particleType == -2) residual.x -= push[i];
-					else if(P[(i+1)%2]->rCorner || P[(i+1)%2]->lCorner){
+					else if(P[(i+1)%2]->current.rCorner || P[(i+1)%2]->current.lCorner){
 						residual.x -= 2;
 						residual.x -= s[i].push/2;
 						residual.x -= abs(combo[i]);
 					}
 				}
-				residual.x *= things[i]->facing;
+				residual.x *= things[i]->current.facing;
 			}
-			things[i]->addVector(residual);
+			things[i]->momentum.push_back(residual);
 		}
 	}
-
-/*	if(connect[0] || connect[1]){
+	if(connect[0] || connect[1]){
 		resolveCollision();
-	}*/
-
-	for(unsigned int i = 0; i < P.size(); i++) {
-		things[i]->throwInvuln--;
-		P[i]->hover--;
 	}
+
 	for(unsigned int i = 0; i < P.size(); i++) {
 		if(things[i]->meter[0] <= 0 && endTimer >= 5 * 60){ 
 			i = 2;
 			for(unsigned int j = 0; j < things.size(); j++)
-				things[j]->freeze = 30;
+				things[j]->current.freeze = 30;
 		}
 	}
 }
@@ -1229,10 +1267,10 @@ void interface::doSuperFreeze()
 {
 	int go[2] = {0, 0};
 	for(unsigned int i = 0; i < P.size(); i++){
-		go[i] = things[i]->cMove->arbitraryPoll(2, things[i]->currentFrame);
+		go[i] = things[i]->current.move->arbitraryPoll(2, things[i]->current.frame);
 		if(go[i] > 0){ 
 			P[(i+1)%2]->checkBlocking();
-			things[(i+1)%2]->freeze += go[i];
+			things[(i+1)%2]->current.freeze += go[i];
 		}
 	}
 	if(go[0] > 0 || go[1] > 0)

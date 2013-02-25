@@ -19,8 +19,12 @@ int main(int argc, char* argv[])
         std::chrono::high_resolution_clock::time_point frameStart;
 	interface game;
 	assert(game.screenInit() != false);
-	if(argc > 1) game.createPlayers(argv[1]);
-	else game.createPlayers();
+	if(argc > 1){ 
+		if(!strcmp(argv[1], "eleven")){ 
+			game.killTimer = true;
+			game.createPlayers();
+		} else game.createPlayers(argv[1]);
+	} else game.createPlayers();
 	game.loadMisc();
 	game.startGame();
 	game.numRounds = 2;
@@ -30,8 +34,8 @@ int main(int argc, char* argv[])
 		frameStart = std::chrono::high_resolution_clock::now();
 		game.readInput();
 		game.resolve();
-		game.cleanup();
 		game.draw();
+		game.cleanup();
 		frame_t frameElapsed;
 		/*Now eat up the rest of the frame: 
 		 *Check the time elapsed thus far in a loop
