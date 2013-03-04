@@ -141,22 +141,27 @@ void interface::drawConfigMenu(int ID)
 		sprintf(buffer, "%s", p[ID]->inputName[i+2]);
 		glColor4f(0.0, 0.0, 1.0, 0.4 + (float)(configMenu[ID] == i)*0.4);
 		drawGlyph(buffer, 20 + 1230*ID, 300, 310+40*(i-1), 40, 0);
+		int a = 0;
 		for(unsigned int j = 0; j < p[ID]->input.size(); j++)
 			if(p[ID]->input[j]->effect == 1 << (i+2)){
 				switch(p[ID]->input[j]->trigger.type){
 				case SDL_KEYDOWN:
 					sprintf(buffer, "%s", SDL_GetKeyName(p[ID]->input[j]->trigger.key.keysym.sym));
+					a = 1;
 					break;
 				case SDL_JOYBUTTONDOWN:
 					sprintf(buffer, "B%i", p[ID]->input[j]->trigger.jbutton.button);
+					a = 2;
 					break;
 				case SDL_JOYAXISMOTION:
+					a = 3;
 					sprintf(buffer, "Axis %i %i", p[ID]->input[j]->trigger.jaxis.axis,
 						p[ID]->input[j]->trigger.jaxis.value);
 					break;
 			}
 		}
-		glColor4f(1.0, 1.0, 0.0, 0.4 + (float)(configMenu[ID] == i)*0.4);
+		if(a == 0) glColor4f(1.0, 0.0, 0.0, 0.4 + (float)(configMenu[ID] == i)*0.4);
+		else glColor4f(1.0, 1.0, 0.0, 0.4 + (float)(configMenu[ID] == i)*0.4);
 		drawGlyph(buffer, 70 + 1230*ID, 300, 310+40*(i-1), 40, 0);
 	}
 	glColor4f(0.0, 0.0, 1.0, 0.4 + (float)(configMenu[ID] == 7)*0.4);
@@ -209,10 +214,14 @@ void interface::drawHUD()
 {
 	char buffer[200];
 	if(timer / 60 > 99) sprintf(buffer, "99");
-	else if(timer / 60 < 10) sprintf(buffer, "0%i", timer / 60);
+	else if(timer / 60 < 10){
+		glColor4f(1.0, 1.0, 0.0, 0.0);
+		sprintf(buffer, "0%i", timer / 60);
+	}
 	else sprintf(buffer, "%i", timer / 60);
 
 	drawGlyph(buffer, 700, 200, 0, 90, 1);
+	glColor4f(1.0, 1.0, 1.0, 1.0);
 	for(unsigned int i = 0; i < P.size(); i++){
 		if(P[i]->name) drawGlyph(P[i]->name, 100+800*i, 600, 30, 40, 0+2*i);
 		else drawGlyph(things[i]->pick()->name, 100+800*i, 600, 30, 40, 0+2*i);
@@ -458,6 +467,8 @@ void player::drawHitParticle()
 		case -2:
 			glColor4f(1.0f, 1.0f, 0.0f, 0.7f);
 			break;
+		case -5:
+			glColor4f(0.4f, 0.4f, 0.4f, 0.5f);
 		}
 		glPushMatrix();
 			glTranslatef(current.posX, -collision.y, 0.0f);

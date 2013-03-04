@@ -648,23 +648,19 @@ int instance::passSignal(int sig)
 
 void instance::pushInput(unsigned int i)
 {
-	if(current.facing == -1){
-		if(i % 3 == 0) i -= 2;
-		else if(i % 3 == 1) i += 2; 
-	}
 	inputBuffer[0] = i;
 	for(int i = 29; i > 0; i--){
 		inputBuffer[i] = inputBuffer[i-1];
 	}
 }
 
-void instance::getMove(std::vector<int> down, std::vector<bool> up, SDL_Rect &p, bool& dryrun)
+void instance::getMove(std::vector<int> buttons, SDL_Rect &p, bool& dryrun)
 {
 	action * dummyMove, *save;
 	dummyMove = current.move;
 	save = current.move;
 	int n = current.frame;
-	pick()->prepHooks(current, dummyMove, inputBuffer, down, up, p, dryrun, meter);
+	pick()->prepHooks(current, dummyMove, inputBuffer, buttons, p, dryrun, meter);
 	if(dummyMove){
 		if(dummyMove->throwinvuln == 1 && current.throwInvuln <= 0) current.throwInvuln = 1;
 		if(dummyMove->throwinvuln == 2) current.throwInvuln = 6;
@@ -750,13 +746,19 @@ void controller::readEvent(SDL_Event & event, frame &t)
 	if(effect != 0){
 		for(int i = 0; i < 4; i++){
 			if(abs(effect) & (1 << i)){
-				t.axis[i] = (effect > 0);
+				if(effect > 0){
+					t.axis[i] = 1;
+				} else {
+					t.axis[i] = 0;
+				}
+				if(i%2 == 0) t.axis[i+1] = 0;
+				else t.axis[i-1] = 0;
 			}
 		}
-		for(unsigned int i = 0; i < t.pos.size(); i++){
+		for(unsigned int i = 0; i < t.buttons.size(); i++){
 			if(abs(effect) & (1 << (i + 4))){
-				t.pos[i] = (effect > 0);
-				t.neg[i] = (effect < 0);
+				if(effect > 0) t.buttons[i] = 1;
+				else if(effect < 0) t.buttons[i] = -1;
 			}
 		}
 	}
@@ -770,12 +772,10 @@ void player::readEvent(SDL_Event & event, frame &t)
 	if(t.axis[1]) d -= 3;
 	if(t.axis[2]) d--;
 	if(t.axis[3]) d++;
+	if(t.buttons[5] == 1) t.n.raw.Start = true;
+	else t.n.raw.Start = false;
 	t.n.raw.dir = d;
-	for(int i = 0; i < 5; i++){
-		if(t.pos[i]) t.n.i += 1 << 4+2*i;
-		else if(t.pos[i]) t.n.i += 2 << 4+2*i;
-	}
-	if(t.pos[5]) t.n.raw.Start = true;
+	t.n.raw.Player = ID%2;
 }
 
 void instance::connect(int combo, hStat & s)
@@ -806,7 +806,7 @@ int player::takeHit(int combo, hStat & s, SDL_Rect &p)
 	action * temp = NULL;
 	if(s.damage > 0){
 		if(combo >= s.damage) s.damage = 1;
-		else s.damage -= combo; 
+		else s.damage -= combo;
 	}
 	s.untech -= combo;
 	int f;
@@ -835,7 +835,7 @@ int player::takeHit(int combo, hStat & s, SDL_Rect &p)
 			v.x /= 5;
 			v.y /= 5;
 		}
-		if(particleType == -2){
+		if(particleType <= -2){
 			v.x = 0;
 			v.y = 0;
 			current.freeze = 0;
@@ -852,7 +852,7 @@ int player::takeHit(int combo, hStat & s, SDL_Rect &p)
 		if(current.aerial && s.stick) stick = true;
 		else stick = false;
 	}
-	if(current.move == pick()->die){ 
+	if(current.move == pick()->die){
 		current.bufferedMove = NULL;
 		current.frame = 0;
 		current.connect = 0;
@@ -861,7 +861,9 @@ int player::takeHit(int combo, hStat & s, SDL_Rect &p)
 	updateRects();
 	if(s.ghostHit) return 0;
 	else if(particleType == 1) return particleType;
-	else return -1;
+	else { 
+		return -1;
+	}
 }
 
 void instance::invertVectors(int operation)
@@ -903,6 +905,9 @@ void instance::setPosition(int x, int y)
 void player::getThrown(action *toss, int x, int y)
 {
 	int xSign = x / abs(x);
+	momentum.clear();
+	current.deltaX = 0;
+	current.deltaY = 0;
 	hStat dummy;
 	dummy.stun = 1;
 	dummy.ghostHit = 1;
