@@ -7,7 +7,7 @@
  *Licensed under MIT OSI: Additional information in the file "COPYING"
  */
 #include <SDL/SDL.h>
-#include <SDL/SDL_mixer.h>
+#include "sdl-compat.h"
 #include <stdio.h>
 #include <vector>
 #include "analytics.h"
@@ -67,6 +67,7 @@ public:
 	void resolveHits();
 	void resolveThrows();
 	void resolveSummons();
+	void summonAttractors();
 	void draw();		/*The primary function in charge of drawing things on the screen.*/
 	void drawHUD();
 	void drawGame();

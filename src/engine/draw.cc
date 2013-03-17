@@ -6,16 +6,15 @@
 #include "session.h"
 #include "thing.h"
 #include "auxil.h"
-#define _USE_MATH_DEFINES
+#define  M_PI 3.14159265358979323846 //FUCK YOU MINGW
 #include "interface.h"
-#include <math.h>
+#include <cmath>
 #include <iomanip>
 #include <sstream>
 #include <string>
-#include <GL/glu.h>
-#include <GL/glut.h>
 #include <SDL/SDL_opengl.h>
 #include <vector>
+#include "gl-compat.h"
 void interface::draw()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -36,7 +35,6 @@ void interface::drawCSelect()
 	int x, y;
 	glColor4f(0.1f, 0.1f, 0.1f, 1.0f);
 	glRectf(0.0f, 0.0f, (GLfloat)screenWidth, (GLfloat)screenHeight);
-	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
 	for(int i = 0; i < 2; i++){
 		if(configMenu[i]) drawConfigMenu(i);
@@ -44,6 +42,7 @@ void interface::drawCSelect()
 	}
 	glEnable( GL_TEXTURE_2D );
 
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	glBindTexture(GL_TEXTURE_2D, selectScreen);
 	glBegin(GL_QUADS);
 		glTexCoord2i(0, 0);
@@ -62,8 +61,8 @@ void interface::drawCSelect()
 	for(int i = 0; i < 2; i++){
 		if(!menu[i]){
 			sprintf(buffer, "P%i", i+1);
-			x = ((float)screenWidth/2.0 + ((float)screenHeight/3.0) * cos(((M_PI*2.0)/(float)numChars)*(float)selection[i]+M_PI/4.0)) - 100.0;
-			y = ((float)screenHeight/2.0 + ((float)screenHeight/3.0) * sin(((M_PI*2.0)/(float)numChars)*(float)selection[i]+M_PI/4.0));
+			x = ((float)screenWidth/2.0 + ((float)screenHeight/3.0) * cos(((M_PI*2.0)/(float)numChars)*(float)selection[i]+M_PI/4.0+M_PI/2.0)) - 100.0;
+			y = ((float)screenHeight/2.0 + ((float)screenHeight/3.0) * sin(((M_PI*2.0)/(float)numChars)*(float)selection[i]+M_PI/4.0+M_PI/2.0));
 			glColor4f(0.0, 0.3+i*0.3, 0.3+(1-i)*0.3, 1.0-select[i]*0.5);
 			drawGlyph(buffer, x, 200, y, 50, i*2);
 		}
@@ -134,6 +133,9 @@ void interface::drawConfigMenu(int ID)
 	case SDL_JOYAXISMOTION:
 		sprintf(buffer, "Joy %i", p[ID]->input[0]->trigger.jbutton.which);
 		break;
+	case SDL_JOYHATMOTION:
+		sprintf(buffer, "Joy %i", p[ID]->input[0]->trigger.jhat.which);
+		break;
 	}
 	glColor4f(1.0, 1.0, 0.0, 0.4 + (float)(configMenu[ID] == 1)*0.4);
 	drawGlyph(buffer, 20 + 1260*ID, 300, 310, 40, 2*ID);
@@ -157,6 +159,11 @@ void interface::drawConfigMenu(int ID)
 					a = 3;
 					sprintf(buffer, "Axis %i %i", p[ID]->input[j]->trigger.jaxis.axis,
 						p[ID]->input[j]->trigger.jaxis.value);
+					break;
+				case SDL_JOYHATMOTION:
+					a = 4;
+					sprintf(buffer, "Hat %i %i", p[ID]->input[j]->trigger.jhat.hat,
+						p[ID]->input[j]->trigger.jhat.value);
 					break;
 			}
 		}
@@ -215,7 +222,7 @@ void interface::drawHUD()
 	char buffer[200];
 	if(timer / 60 > 99) sprintf(buffer, "99");
 	else if(timer / 60 < 10){
-		glColor4f(1.0, 1.0, 0.0, 0.0);
+		glColor4f(1.0, 0.0, 0.0, 1.0);
 		sprintf(buffer, "0%i", timer / 60);
 	}
 	else sprintf(buffer, "%i", timer / 60);
@@ -355,10 +362,9 @@ void player::drawMeters(int n)
 	glFlush();
 }
 
-void character::drawMeters(int ID, int hidden, int * meter)
+void character::drawMeters(int ID, int hidden, std::vector<int> meter)
 {
-	SDL_Rect m;
-	SDL_Rect h;
+	SDL_Rect m, h, g;
 	if(meter[0] >= 0) h.w = meter[0]; else h.w = 1; 
 
 	if(ID == 1) h.x = 100 + (600 - h.w); 
@@ -367,11 +373,19 @@ void character::drawMeters(int ID, int hidden, int * meter)
 	h.y = 10;
 
 	int R = 0, G = 255, B = 0;
-	if(meter[1] >= 0) m.w = (meter[1]+hidden)*2; else m.w = 0; 
-	if(ID == 1) m.x = 100;
-	else m.x = 900 + (600 - m.w);
+	if(meter[1] >= 0) m.w = (meter[1]+hidden)*2; else m.w = 0;
+	if(hidden) g.w = 0; else g.w = meter[4]*2;
+	if(ID == 1){ 
+		m.x = 100;
+		g.x = m.x + m.w;
+	} else {
+		m.x = 900 + (600 - m.w);
+		g.x = m.x - g.w;
+	}
 	m.h = 10; m.y = 860;
+	g.h = 10; g.y = 860;
 
+	G = (m.w == 600) ? 255 : ((m.w / 150) % 2);
 	if(m.w < 300) R = 191;
 	else if(m.w < 600) B = 255;
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
@@ -380,6 +394,8 @@ void character::drawMeters(int ID, int hidden, int * meter)
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	glColor4f((float)R, (float)G, (float)B, 1.0f);
 	glRectf((GLfloat)(m.x), (GLfloat)(m.y), (GLfloat)(m.x + m.w), (GLfloat)(m.y + m.h));
+	glColor4f((float)R, (float)G, (float)B, 0.4f);
+	glRectf((GLfloat)(g.x), (GLfloat)(g.y), (GLfloat)(g.x + g.w), (GLfloat)(g.y + g.h));
 }
 
 void instance::drawBoxen()
@@ -412,24 +428,40 @@ void instance::drawBoxen()
 
 void instance::draw()
 {
-	int realPosY = collision.y;
+	int realPosY = current.posY;
 	int realPosX = current.posX;
+	bool sCheck = spriteCheck();
 	glEnable(GL_TEXTURE_2D);
-	if(spriteCheck() && sprite){
-		for(unsigned int i = 0; i < hitreg.size(); i++){
-			if(hitreg[i].y < realPosY) realPosY = hitreg[i].y;
+
+	if(sprite && sCheck){
+		if(current.move->offX != 0) realPosX += current.move->offX*current.facing;
+		else{
 			if(current.facing == 1){
-				if(hitreg[i].x < realPosX) realPosX = hitreg[i].x;
+				if(collision.x < realPosX) realPosX = collision.x;
+				for(unsigned int i = 0; i < hitreg.size(); i++){
+					if(hitreg[i].x < realPosX) realPosX = hitreg[i].x;
+				}
+				for(unsigned int i = 0; i < hitbox.size(); i++){
+					if(hitbox[i].x < realPosX) realPosX = hitbox[i].x;
+				}
 			} else {
-				if(hitreg[i].x + hitreg[i].w > realPosX) realPosX = hitreg[i].x + hitreg[i].w;
+				if(collision.x + collision.w > realPosX) realPosX = collision.x + collision.w;
+				for(unsigned int i = 0; i < hitreg.size(); i++){
+					if(hitreg[i].x + hitreg[i].w > realPosX) realPosX = hitreg[i].x + hitreg[i].w;
+				}
+				for(unsigned int i = 0; i < hitbox.size(); i++){
+					if(hitbox[i].x + hitbox[i].w > realPosX) realPosX = hitbox[i].x + hitbox[i].w;
+				}
 			}
 		}
-		for(unsigned int i = 0; i < hitbox.size(); i++){
-			if(hitbox[i].y < realPosY) realPosY = hitbox[i].y;
-			if(current.facing == 1){
-				if(hitbox[i].x < realPosX) realPosX = hitbox[i].x;
-			} else {
-				if(hitbox[i].x + hitbox[i].w > realPosX) realPosX = hitbox[i].x + hitbox[i].w;
+		if(current.move->offY != 0) realPosY += current.move->offY;
+		else{
+			if(collision.y < realPosY) realPosY = collision.y;
+			for(unsigned int i = 0; i < hitreg.size(); i++){
+				if(hitreg[i].y < realPosY) realPosY = hitreg[i].y;
+			}
+			for(unsigned int i = 0; i < hitbox.size(); i++){
+				if(hitbox[i].y < realPosY) realPosY = hitbox[i].y;
 			}
 		}
 		if(secondInstance)
@@ -437,13 +469,13 @@ void instance::draw()
 		glPushMatrix();
 			glTranslatef(realPosX, -realPosY, 0);
 			glPushMatrix();
-				glScalef(current.facing, 1.0, 1.0);
+				glScalef((float)current.facing, 1.0, 1.0);
 				pick()->draw(current.move, current.frame);
 			glPopMatrix();
 		glPopMatrix();
 	}
 	glDisable(GL_TEXTURE_2D);
-	if(!spriteCheck() || boxen){
+	if(!sCheck || boxen){
 		if(!current.move || current.frame > current.move->frames)
 			pick()->neutral->drawBoxen(0);
 		else drawBoxen();
@@ -569,7 +601,8 @@ bool avatar::spriteCheck(action *& cMove, int f)
 bool action::spriteCheck(int f)
 {
 	if(modifier && basis) basis->spriteCheck(currentFrame);
-	if(sprite[f] != 0) {
+	if(sprite.empty()) return 0;
+	else if(sprite[f] != 0) {
 		return 1;
 	}
 	else return 0;
@@ -639,7 +672,7 @@ void interface::writeImage(const char * movename, int frame, action * move)
 		move->drawBoxen(frame);
 	glPopMatrix();
 
-	glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, image->pixels);
+	glReadPixels(0, 0, w, h, GL_RGBA, GUFG_TEXTURE_MODE, image->pixels);
 
 	SDL_GL_SwapBuffers();
 

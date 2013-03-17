@@ -5,12 +5,13 @@
 #include <math.h>
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
-#include <SDL/SDL_image.h>
+#include "sdl-compat.h"
 #include <string>
 #include <iostream>
 #include <cmath>
 #include "auxil.h"
 #include <vector>
+#include "gl-compat.h"
 
 using namespace std;
 
@@ -257,7 +258,7 @@ GLuint aux::surface_to_texture(SDL_Surface * source)
 	GLenum texFormat;
 	GLuint texture;
 	nColors = source->format->BytesPerPixel;
-	if (source->format->Rmask == 0x000000ff)
+  if (source->format->Rmask == 0x000000ff)
 		texFormat = GL_RGBA;
 	else
 		texFormat = GL_BGRA;
@@ -266,7 +267,7 @@ GLuint aux::surface_to_texture(SDL_Surface * source)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	
-	glTexImage2D(GL_TEXTURE_2D, 0, nColors, source->w, source->h, 0, texFormat, GL_UNSIGNED_BYTE, source->pixels);
+	glTexImage2D(GL_TEXTURE_2D, 0, nColors, source->w, source->h, 0, texFormat, GUFG_TEXTURE_MODE, source->pixels);
 	return texture;
 }
 

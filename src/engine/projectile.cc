@@ -26,7 +26,13 @@ int projectile::acceptTarget(action * c, int f)
 	return 0;
 }
 
-void projectile::init(int *& meter)
+void projectile::pollStats(hStat & s, status &current, bool CH)
+{
+	s.isProjectile = true;
+	current.move->pollStats(s, current.frame, CH);
+}
+
+void projectile::init(std::vector<int>& meter)
 {
 	meter[0] = 600;
 	meter[1] = 0;
@@ -52,7 +58,7 @@ bool projectile::turn(int &ID)
 	return 1;
 }
 
-int projectile::takeHit(status &current, hStat &s, int blockType, int &hitType, int *& meter)
+int projectile::takeHit(status &current, hStat &s, int blockType, int &hitType, std::vector<int>& meter)
 {
 	if(s.killsProjectile || current.move->hittable){ 
 		die->execute(current.move, meter, current.frame, current.connect, current.hit);

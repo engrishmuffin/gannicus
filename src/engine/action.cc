@@ -5,7 +5,7 @@
 #include "player.h"
 #include <assert.h>
 using namespace std;
-action::action() : frames(0), hits(0), name(NULL)
+action::action() : frames(0), hits(0)
 {
 }
 
@@ -18,12 +18,13 @@ action::~action()
 {
 	if(!this) return;
 	if(distortion) delete distortion;
-	if(name) delete [] name;
 	if(next) delete next;
 }
 
 void action::zero()
 {
+	offX = 0;
+	offY = 0;
 	linkable = 0;
 	guardType = 0;
 	attemptStart = 0;
@@ -32,18 +33,19 @@ void action::zero()
 	holdFrame = -1;
 	xRequisite = 0;
 	yRequisite = 0;
+	stunMin = 0;
+	stunMax = 0;
 	stop = 0;
 	hits = 0;
 	throwinvuln = 0;
 	minHold = 1;
 	maxHold = 1;
 	crouch = 0;
-	armorStart = 0; armorLength = 0;
+	armorStart = -1; armorLength = 0;
 	armorHits = 0;
-	guardStart = 0; guardLength = 0;
+	guardStart = -1; guardLength = 0;
 	freezeFrame = -1; freezeLength = 0;
 	blockState.i = 0;
-	isProjectile = 0;
 	cost = 0;
 	dies = 0;
 	fch = 0;
@@ -61,13 +63,14 @@ void action::zero()
 	displaceY = 0;
 	hidesMeter = 0;
 	soundClip = NULL;
+	countersProjectile = true;
 	next = NULL;
 	attempt = NULL;
 	riposte = NULL;
 	basis = NULL;
 	onHold = NULL;
-	hittable = 0;
-	modifier = 0;
+	hittable = false;
+	modifier = false;
 	payload = NULL;
 	spawnFrame = 0;
 	spawnTrackY = 0;
@@ -101,9 +104,6 @@ instance * action::spawn()
 int action::arbitraryPoll(int q, int f)
 {
 	switch(q){
-	case 1:
-		if(linkable) return 3;
-		else break;
 	case 2:
 		if(f == freezeFrame) return freezeLength;
 		else break;
@@ -220,8 +220,7 @@ bool action::setParameter(char * buffer)
 
 	if(!strcmp("Name", token)){
 		token = strtok(NULL, "\t:\n");
-		name = new char[strlen(token)+1];
-		sprintf(name, "%s", token);
+		name += token;
 		return 1;
 	} else if (!strcmp("Displace", token)) {
 		token = strtok(NULL, "\t:\n");
@@ -243,6 +242,12 @@ bool action::setParameter(char * buffer)
 
 		token = strtok(NULL, "\t: \n");
 		yRequisite = atoi(token); 
+		return 1;
+	} else if (!strcmp("Offset", token)) {
+		token = strtok(NULL, "\t: \n");
+		offX = atoi(token);
+		token = strtok(NULL, "\t: \n");
+		offY = atoi(token);
 		return 1;
 	} else if (!strcmp("Hold", token)) {
 		token = strtok(NULL, "\t: \n-");
@@ -380,13 +385,10 @@ bool action::setParameter(char * buffer)
 		}
 		return 1;
 	} else if (!strcmp("State", token)) {
-		printf("%s ", name);
 		for(int i = 0; i < hits+1; i++){
 			token = strtok(NULL, "\t: \n");
 			state[i].i = atoi(token);
-			printf("%i ", state[i].i);
 		}
-		printf("\n");
 		return 1;
 	} else if (!strcmp("HitAllows", token)) {
 		for(int i = 0; i < hits; i++){
@@ -499,6 +501,13 @@ bool action::setParameter(char * buffer)
 		token = strtok(NULL, "\t: \n-");
 		guardLength = atoi(token); 
 		guardLength = guardLength - guardStart;
+		return 1;
+	} else if (!strcmp("BearStun", token)) {
+		token = strtok(NULL, "\t: \n-");
+		stunMin = atoi(token); 
+
+		token = strtok(NULL, "\t: \n-");
+		stunMax = atoi(token); 
 		return 1;
 	} else if (!strcmp("GuardType", token)) {
 		token = strtok(NULL, "\t: \n");
@@ -666,6 +675,9 @@ void action::parseProperties(char * buffer, bool counter)
 		case 'f':
 			if(!counter) track = 1;
 			break;
+		case 'i':
+			if(!counter) countersProjectile = false;
+			break;
 		default:
 			break;
 		}
@@ -683,7 +695,7 @@ bool action::window(int f)
 	return 1;
 }
 
-bool action::activate(std::vector<int> inputs, int pattern, int t, int f, int meter[], SDL_Rect &p)
+bool action::activate(std::vector<int> inputs, int pattern, int t, int f, std::vector<int> meter, SDL_Rect &p)
 {
 	for(unsigned int i = 0; i < inputs.size(); i++){
 		if(pattern & (1 << i)){
@@ -696,7 +708,7 @@ bool action::activate(std::vector<int> inputs, int pattern, int t, int f, int me
 	return check(p, meter);
 }
 
-bool action::check(SDL_Rect &p, int meter[])
+bool action::check(SDL_Rect &p, std::vector<int> meter)
 {
 	if(cost > meter[1]) return 0;
 	if(xRequisite > 0 && p.w > xRequisite) return 0;
@@ -828,9 +840,9 @@ bool action::cancel(action *& x, int& c, int &h)
 	return 0;
 }
 
-void action::step(int *& meter, int &f, int &connectFlag, int &hitFlag)
+void action::step(std::vector<int>& meter, int &f, int &connectFlag, int &hitFlag)
 {
-	if(f == 0){
+	if(!f && !meter[4]){
 		if(meter[1] + gain[0] < 300) meter[1] += gain[0];
 		else meter[1] = 300;
 	}
@@ -856,24 +868,29 @@ int action::calcCurrentHit(int frame)
 	return b;
 }
 
-action * action::connect(int *& meter, int &c, int f)
+action * action::connect(std::vector<int>& meter, int &c, int f)
 {
 	if(modifier && basis) return basis->connect(meter, connectFlag, currentFrame);
-	else{
+	else if (hits == 0) return NULL;
+	else {
 		c = calcCurrentHit(f)+1;
-		if(meter[1] + gain[c] < 300) meter[1] += gain[c];
-		else meter[1] = 300;
+		if(!meter[4]){
+			if(meter[1] + gain[c] < 300) meter[1] += gain[c];
+			else meter[1] = 300;
+		}
 		if(onConnect[c-1] != NULL){
 			return onConnect[c-1];
 		} else return NULL;
 	}
 }
 
-action * action::blockSuccess()
+action * action::blockSuccess(int n, bool p)
 {
-	if(modifier && basis) return basis->blockSuccess();
-	if(riposte) return riposte;
-	else return this;
+	if(modifier && basis) return basis->blockSuccess(n, p);
+	if(riposte){
+		if(!p || countersProjectile) return riposte;
+	}
+	return this;
 }
 
 void action::playSound(int channel)
@@ -881,16 +898,17 @@ void action::playSound(int channel)
 	Mix_PlayChannel(channel, soundClip, 0);
 }
 
-void action::execute(action * last, int *& meter, int &f, int &c, int &h)
+void action::execute(action * last, std::vector<int> & meter, int &f, int &c, int &h)
 {
 	armorCounter = 0;
 	meter[1] -= cost;
+	meter[4] += cost;
 	if(modifier){
 		if(last == NULL) basis = NULL;
 		basis = last;
 		currentFrame = f;
 		connectFlag = c;
-		hitFlag = f;
+		hitFlag = h;
 	}
 	f = 0;
 	c = 0;
@@ -943,26 +961,31 @@ char * action::request(int code, int i)
 	}
 }
 
-int action::takeHit(hStat & s, int b, int &f, int &c, int &h)
+int action::takeHit(hStat & s, int b, status &current)
 {
-	if(modifier && basis) return basis->takeHit(s, b, f, c, h);
+	if(modifier && basis) return basis->takeHit(s, b, current);
 	else{
-		if(s.blockMask.i & blockState.i && f > guardStart && f < guardStart + guardLength){
-			if(riposte != NULL) return -5;
-			else return guardType;
-		}
-		else if (f > armorStart && f < armorStart + armorLength && (armorHits < 1 || armorHits < armorCounter)){
-			s.stun = 0;
-			armorCounter++;
-			return 1;
-		} else {
-			if(s.stun != 0){
-				f = 0;
-				c = 0;
-				h = 0;
+		if(!stunMin || s.stun >= stunMin){
+			if(!stunMax || s.stun <= stunMax){
+				if(s.blockMask.i & blockState.i && current.frame >= guardStart && current.frame <= guardStart + guardLength){
+					if(riposte != NULL){ 
+						if(!s.isProjectile || countersProjectile) return -5;
+					}
+					return guardType;
+				} else if (current.frame >= armorStart && current.frame <= armorStart + armorLength && 
+						   (armorHits < 1 || armorHits < armorCounter)){
+					s.stun = 0;
+					armorCounter++;
+					return 1;
+				}
 			}
-			return 1;
 		}
+		if(s.stun != 0){
+			current.frame = 0;
+			current.frame = 0;
+			current.hit = 0;
+		}
+		return 1;
 	}
 }
 

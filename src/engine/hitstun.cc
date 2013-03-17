@@ -7,7 +7,7 @@ void hitstun::init(int n)
 	if(next != NULL) next->init(n - frames);
 }
 
-void hitstun::step(int *& meter, int &f, int &c, int &h)
+void hitstun::step(std::vector<int>& meter, int &f, int &c, int &h)
 {
 	if(counter <= 0){
 		f = frames-1;
@@ -18,29 +18,24 @@ void hitstun::step(int *& meter, int &f, int &c, int &h)
 	}
 }
 
-action * hitstun::blockSuccess(int st){
-	if(st > 0) init(st);
-	return this;
-}
-
-int hitstun::takeHit(hStat& s, int b, int& f, int& c, int& h)
+int hitstun::takeHit(hStat& s, int b, status& current)
 {
 	if(!s.stun) return 1;
 	if(s.blockMask.i & blockState.i){
 		switch (b){
 		case -2:
-			f = 0;
+			current.frame = 0;
 			init(s.stun - 2 - s.stun/4);
 			s.push = 0;
 			return -2;
 		case -1:
-			f = 0;
+			current.frame = 0;
 			init(s.stun - 1  - s.stun/5);
 			s.push = (s.push*4)/5;
 			return -1;
 		case 0:
-			f = 0;
-			init(s.stun - std::max(0, 1 - s.stun/15));
+			current.frame = 0;
+			init(s.stun - std::max(1, s.stun/14));
 			return 0;
 		}
 	}
