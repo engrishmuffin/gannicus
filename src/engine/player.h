@@ -4,6 +4,7 @@
  *Under MIT OSI license, see the file "COPYING" for details
  */
 #include "../charlist.h"
+#include "character.h"
 #include "controller.h"
 #ifndef PLAYER
 #define PLAYER

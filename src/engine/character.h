@@ -28,7 +28,7 @@ public:
 	virtual int takeHit(status&, hStat&, int, int&, std::vector<int>&) { return 0; }
 	virtual void getName(const char*, const char*);
 	virtual void connect(status&, std::vector<int>&);
-	virtual void pollStats(hStat&, status&, bool);
+	virtual void pollStats(hStat&, status&);
 	virtual void step(status&, std::vector<int>&);
 	virtual int acceptTarget(action*, int);
 	virtual instance * spawn(action*);
@@ -88,7 +88,7 @@ public:
 	projectile() {}
 	virtual void build(const char*, const char*);
 	virtual int acceptTarget(action*, int);
-	virtual void pollStats(hStat&, status&, bool);
+	virtual void pollStats(hStat&, status&);
 	virtual int takeHit(status&, hStat&, int, int&, std::vector<int>&);
 	virtual bool turn(int&);
 
