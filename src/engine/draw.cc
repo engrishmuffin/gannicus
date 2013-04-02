@@ -453,7 +453,7 @@ void instance::draw()
 {
 	bool sCheck = spriteCheck();
 	status * n;
-	if(sCheck) n = current.freeze ? &save : &current;
+	if(sCheck) n = current.freeze && current.counter ? &save : &current;
 	else n = &current;
 	int realPosY = n->posY;
 	int realPosX = n->posX;
