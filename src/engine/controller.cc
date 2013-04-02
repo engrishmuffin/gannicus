@@ -1,4 +1,5 @@
 #include "controller.h"
+
 keySetting::keySetting()
 {
 	trigger.type = 0;
@@ -10,7 +11,7 @@ script * controller::patternMatch(int effect)
 	for(unsigned int i = 0; i < pattern.size(); i++){
 		if(abs(effect) & pattern[i]) return macro[i];
 	}
-	return NULL;
+	return nullptr;
 }
 
 void controller::setKey(int effect)

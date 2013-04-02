@@ -1,33 +1,35 @@
 #include "thing.h"
-#include <iostream>
-#include <fstream>
+#include "tokenizer.h"
 #include <assert.h>
-#include <stdio.h>
 #include <cstring>
+#include <fstream>
+#include <iostream>
+
+using std::ifstream;
+
 bool model::readModel()
 {
 	return readModel("model.obj");
 }
 
-bool model::readModel(const char * fname)
+bool model::readModel(string fname)
 {
-	char buffer[300];
-	char * token;
-	std::ifstream read;
+    string buffer;
+	ifstream read;
 	read.open(fname);
 	assert(!read.fail());
 	while(!read.eof()){
-		read.getline(buffer, 300);
-		if(token = strtok(buffer, " \n")){
-			if(!strcmp(token, "v")){
+		getline(read, buffer);
+                tokenizer t(buffer, " \n");
+		if(t().size()){
+			if(!t.current().compare("v")){
 				for(int j = 0; j < 3; j++){
-					token = strtok(NULL, " \n");
-					vertices[j].push_back(atof(token));
+					vertices[j].push_back(stof(t()));
 				}
-			} else if(!strcmp(token, "f")){
-				std::vector<int> face;
-				while(token = strtok(NULL, " \n"))
-					face.push_back(atoi(token));
+			} else if(!t.current().compare("f")){
+				vector<int> face;
+				while(t().size())
+					face.push_back(stoi(t.current()));
 				if(face.size() > 2 && face.size() < 5) faces.push_back(face);
 			}
 		}

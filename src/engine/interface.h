@@ -1,28 +1,19 @@
-/*Interface header for GUFG
- *The interface class/struct is intended as an abstraction between the player and the engine
- *This is where things pertaining to inputs should go, as well as sprsibly information like the
- *round timer.
- *
- *Written by Alex Kelly in 2012
- *Licensed under MIT OSI: Additional information in the file "COPYING"
- */
-#include <SDL/SDL.h>
-#include "sdl-compat.h"
-#include <stdio.h>
-#include <vector>
-#include "analytics.h"
-#include "window.h"
+/*Copyright Somnambulant Studios 2012-2013*/
 #include "harness.h"
-#ifndef INTERFACE
-#define INTERFACE
+#include "window.h"
+#ifndef ___interface
+#define ___interface
+using std::string;
+using std::vector;
+
 class gameInstance : public window, public arcadeHarness{
 public:
-	virtual void resolve() = 0;	/*Every game type requires a resolve loop.*/
-	int drawGlyph(const char *, int, int, int, int, int);
+	virtual void resolve() = 0;
+	int drawGlyph(string, int, int, int, int, int);
 	virtual void loadMisc();
 	virtual bool screenInit();
 	virtual bool screenInit(int, int);
-	virtual void processInput(SDL_Event&);	/*Accepts input into input containers, for use by anything that wants it*/
+	virtual void processInput(SDL_Event&);
 	virtual void initialConfig(int);
 	virtual void unitCollision(instance*, instance*);
 	virtual void genInput();
@@ -30,11 +21,9 @@ public:
 	unsigned int replayIterator;
 	virtual void print();
 
-//Input layer stuff. Players, inputs, etc.
-	std::vector<instance*> things;
-	std::vector<player*> P;
+	vector<instance*> things;
+	vector<player*> P;
 
-//Meta-interface stuff. Gameover state, screen size, etc.
 	int screenHeight, screenWidth, floor, wall;
 	int freeze;
 	bool pauseEnabled:1;
@@ -50,15 +39,15 @@ public:
 	~interface();
 	void readInput();
 	void loadMisc();
-	void processInput(SDL_Event&);	/*Accepts input into input containers, for use by anything that wants it*/
+	void initCharacters();
+	virtual void loadAssets();
+	void processInput(SDL_Event&);
 	void createPlayers();
-	void createPlayers(char*);
+	void createPlayers(string);
 	void startGame();
 	void loadMatchBackground();
-/*Important interface functions that will remain interface functions*/
 
-/*The main game loop runs readInput() and resolve() each exactly once per frame loop.*/
-	void resolve();		/*The main loop of the game*/
+	void resolve();
 	void resolveInputs();
 	void resolvePhysics();
 	void resolveCollision();
@@ -68,8 +57,10 @@ public:
 	void resolveThrows();
 	void resolveSummons();
 	void summonAttractors();
-	void draw();		/*The primary function in charge of drawing things on the screen.*/
+	void draw();
+	void drawHitParticles();
 	void drawHUD();
+	void drawHint(int);
 	void drawGame();
 	void drawCSelect();
 	void drawMainMenu(int);
@@ -77,7 +68,7 @@ public:
 	void drawRematchMenu();
 	void drawPauseMenu();
 	void cleanup();
-	void runTimer();	/*Currently just a decrementer. May always just be a decrementer.*/
+	void runTimer();
 	void roundInit();
 	void matchInit();
 	void cSelectMenu();
@@ -90,13 +81,14 @@ public:
 	void doSuperFreeze();
 	void readMatchupChart();
 	void writeMatchupChart();
-	void writeImage(const char*, int, action*);
+	void writeImage(string, int, action*);
 
 	bool select[2];
-	std::vector<int> selection;
+	vector<int> selection;
 	int menu[2];
 	int configMenu[2];
 	int counterHit[2];
+	int blockFail[2];
 	int rMenu;
 	int pMenu;
 	SDL_Rect bg;
@@ -112,7 +104,7 @@ public:
 	float prorate[2];
 	chart *stats;
 	int numRounds;
-	int grav;	//Gravitational constant. 
+	int grav;
 
 	GLuint background;
 	Mix_Music *matchMusic;
@@ -124,16 +116,15 @@ public:
 	Mix_Chunk *announceEnd[2];
 	Mix_Chunk *announceSelect;
 
-	std::vector<attractor *> globals;
+	vector<attractor *> globals;
 
 	script *replay;
 
-//Variables for cSelectMenu 
 	int numChars;
 	GLuint selectScreen; 
 	SDL_Rect wheel;
 
-	std::vector<std::vector<int> > buttons;
+	vector<vector<int> > buttons;
 	int timer;
 	bool roundEnd:1;
 	bool killTimer:1;

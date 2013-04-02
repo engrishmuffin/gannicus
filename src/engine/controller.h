@@ -1,9 +1,16 @@
 #include <SDL/SDL.h>
+#include <string>
 #include <vector>
-#ifndef CONTROLLER
-#define CONTROLLER
+
+#ifndef ___controller
+#define ___controller
+
+using std::string;
+using std::vector;
+
 struct frame;
 class script;
+
 struct keySetting{
 	keySetting();
 	SDL_Event trigger;
@@ -20,10 +27,10 @@ public:
 	virtual bool same(SDL_Event);
 	virtual int tap(SDL_Event);
 	virtual void swapKey(int, SDL_Event);
-	std::vector<keySetting*> input;
-	std::vector<const char*> inputName;//Input names. This is really just for housekeeping.
-	std::vector<script*> macro;
-	std::vector<int> pattern;
+	vector<keySetting*> input;
+	vector<string> inputName;//This is really just for housekeeping.
+	vector<script*> macro;
+	vector<int> pattern;
 	script * patternMatch(int);
 	script * currentMacro;
 	int iterator;

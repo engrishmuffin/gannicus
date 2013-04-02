@@ -1,21 +1,18 @@
 #include "interface.h"
-projectile::projectile(const char* directory, const char* file)
+
+projectile::projectile(string directory, string file)
 {
 	head = new actionTrie;
-	neutral = NULL;
+	neutral = nullptr;
 	build(directory, file);
 }
 
-void projectile::build(const char* directory, const char* file)
+void projectile::build(string directory, string file)
 {
-	getName(directory, file);
-
-	char buffer[101];
-
-	sprintf(buffer, "%s/die", name);
-	die = new action(buffer);
+	getName(directory.c_str(), file.c_str());
+	die = mandateMove("die");
+	avatar::build(directory.c_str(), file.c_str());
 	head->insert(die, 0);
-	avatar::build(directory, file);
 	lifespan = -1;
 }
 
@@ -30,9 +27,11 @@ void projectile::pollStats(hStat & s, status &current)
 {
 	s.isProjectile = true;
 	current.move->pollStats(s, current.frame, current.counter);
+	if(s.pause == -1 && !s.ghostHit)
+		s.pause = 4;
 }
 
-void projectile::init(std::vector<int>& meter)
+void projectile::init(vector<int>& meter)
 {
 	meter[0] = 600;
 	meter[1] = 0;
@@ -42,7 +41,7 @@ void projectile::init(std::vector<int>& meter)
 
 void projectile::processMove(action * m)
 {
-	if(neutral == NULL){ 
+	if(neutral == die || neutral == nullptr){ 
 		neutral = m;
 	}
 	avatar::processMove(m);
@@ -58,7 +57,7 @@ bool projectile::turn(int &ID)
 	return 1;
 }
 
-int projectile::takeHit(status &current, hStat &s, int blockType, int &hitType, std::vector<int>& meter)
+int projectile::takeHit(status &current, hStat &s, int blockType, int &hitType, vector<int>& meter)
 {
 	if(s.killsProjectile || current.move->hittable){ 
 		die->execute(current.move, meter, current.frame, current.connect, current.hit);

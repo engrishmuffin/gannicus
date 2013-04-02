@@ -1,13 +1,11 @@
-/*Header file for "Player" class in project Ground Up Fighting Game
- *
- *Written by Alex Kelly in 2012
- *Under MIT OSI license, see the file "COPYING" for details
- */
+/*Copyright Somnambulant Studios 2012-2013*/
 #include "../charlist.h"
 #include "character.h"
 #include "controller.h"
-#ifndef PLAYER
-#define PLAYER
+
+#ifndef ___player
+#define ___player
+
 struct frame;
 class instance{
 public:
@@ -17,18 +15,19 @@ public:
 	virtual avatar * pick() { return v; }
 
 	SDL_Rect collision;
-	std::vector<SDL_Rect> hitbox, hitreg, momentum;
+	vector<SDL_Rect> hitbox, hitreg, momentum;
 	bool secondInstance;
 	int ID;
 	int inputBuffer[30];
 	void checkFacing(instance*);
+	virtual void pollStats(hStat&);
 	virtual void neutralize();
 	virtual bool acceptTarget(instance*);
 	virtual bool CHState() { return 0; }
 	virtual void init();
 	virtual void step();
 
-	virtual void getMove(std::vector<int>, SDL_Rect&, bool&);
+	virtual void getMove(vector<int>, SDL_Rect&, bool&);
 	virtual int takeHit(int, hStat&, SDL_Rect&);
 	virtual void enforceGravity(int, int);
 	virtual void invertVectors(int);
@@ -44,14 +43,16 @@ public:
 	virtual int passSignal(int);
 	virtual int dragBG(int, int);
 	virtual void follow(instance*);
+	virtual void loadAssets();
 	void enforceAttractor(attractor*);
 	int middle();
 	void flip();
 	void print();
 
 	status current;
+	status save;
 
-	std::vector<int> meter;
+	vector<int> meter;
 	int particleType;
 	int blockType;
 	int counter;
@@ -69,7 +70,7 @@ public:
 	virtual character * pick() { return v; }
 
 	int rounds;		//How many rounds has this player won this match?
-	int padding[400];	//More magic. Do not touch
+//	int padding[400];	//More magic. Do not touch
 	virtual void characterSelect(int);
 	virtual void drawHitParticle();
 
@@ -93,7 +94,7 @@ public:
 	bool stick;
 	int hover;
 
-	char * name;
+	string name;
 
 	int particleLife;
 

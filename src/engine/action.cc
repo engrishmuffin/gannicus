@@ -1,17 +1,18 @@
-#include <stdio.h>
-#include <iostream>
-#include <fstream>
 #include "action.h"
 #include "player.h"
+#include "tokenizer.h"
 #include <assert.h>
-using namespace std;
-action::action() : frames(0), hits(0)
-{
-}
+#include <fstream>
+#include <iostream>
 
-action::action(const char * n) : frames(0), hits(0)
+using std::ifstream;
+using std::ofstream;
+
+action::action() {}
+
+action::action(string dir, string file)
 {
-	build(n);
+	build(dir, file);
 }
 
 action::~action()
@@ -23,6 +24,23 @@ action::~action()
 
 void action::zero()
 {
+	typeKey = '0';
+	frames = 0;
+	hits = 0;
+	collision.clear();
+	hitbox.clear();
+	hitreg.clear();
+	delta.clear();
+	tempNext.clear();
+	tempOnConnect.clear();
+	tempAttempt.clear();
+	tempPayload.clear();
+	tempRiposte.clear();
+	tempOnHold.clear();
+	tempParticle.clear();
+	particleX = 0;
+	particleY = 0;
+	particleSpawn = -1;
 	offX = 0;
 	offY = 0;
 	linkable = 0;
@@ -52,26 +70,21 @@ void action::zero()
 	track = false;
 	armorCounter = 0;
 	distortSpawn = -1;
-	distortion = NULL;
-	tempNext = NULL;
-	tempAttempt = NULL;
-	tempRiposte = NULL;
-	tempOnHold = NULL;
-	tempPayload = NULL;
+	distortion = nullptr;
 	displaceFrame = -1;
 	displaceX = 0;
 	displaceY = 0;
 	hidesMeter = 0;
-	soundClip = NULL;
+	soundClip = nullptr;
 	countersProjectile = true;
-	next = NULL;
-	attempt = NULL;
-	riposte = NULL;
-	basis = NULL;
-	onHold = NULL;
+	next = nullptr;
+	attempt = nullptr;
+	riposte = nullptr;
+	basis = nullptr;
+	onHold = nullptr;
 	hittable = false;
 	modifier = false;
-	payload = NULL;
+	payload = nullptr;
 	spawnFrame = 0;
 	spawnTrackY = 0;
 	spawnTrackX = 0;
@@ -86,17 +99,15 @@ void action::zero()
 	followYRate = 0;
 }
 
-void action::generate(const char* directory, const char* name)
+void action::generate(string directory, string name)
 {
 	payload = new projectile(directory, name);
 	if(lifespan) payload->lifespan = lifespan;
-	if(tempPayload) delete [] tempPayload;
-	tempPayload = NULL;
 }
 
 instance * action::spawn()
 {
-	instance * ret = NULL;
+	instance * ret = nullptr;
 	if(payload) ret = new instance(payload);
 	return ret;
 }
@@ -136,18 +147,21 @@ void negNormal::zero()
 	maxHold = 0;
 }
 
-void action::build(const char * n)
+void action::build(string dir, string n)
 {
 	zero();
+	fileName = n;
 	ifstream read;
-	char fname[40];
-	char buffer[100];
-	char savedBuffer[100];
+	char buffer[1024];
+	char savedBuffer[1024];
 	buffer[0] = '\0';
 
-	sprintf(fname, "content/characters/%s.mv", n);
-	read.open(fname);
-	assert(!read.fail());
+	read.open("content/characters/"+dir+"/"+fileName+".mv");
+	if(read.fail()){
+		//printf("Move %s/%s not found. Skipping\n", dir.c_str(), fileName.c_str());
+		null = true;
+		return;
+	} else null = false;
 
 	do {
 		read.getline(buffer, 100);
@@ -176,26 +190,23 @@ void action::build(const char * n)
 				hitbox.push_back(aux::defineRectArray(buffer));
 				if(i == totalStartup[currHit]+active[currHit]) currHit++;
 			} else {
-				std::vector<SDL_Rect> hi;
+				vector<SDL_Rect> hi;
 				hitbox.push_back(hi);
 			}
 		} else {
-			std::vector<SDL_Rect> hi;
+			vector<SDL_Rect> hi;
 			hitbox.push_back(hi);
 		}
 	}
 	read.close();
-	unsigned int b = SDL_WasInit(SDL_INIT_VIDEO);
-	if(b != 0)
-		loadMisc(n); 
 }
 
-void action::loadMisc(const char *n)
+void action::loadMisc(string dir)
 {
-	char fname[40];
+	char fname[1024];
 	SDL_Surface *temp;
 	for(int i = 0; i < frames; i++){
-		sprintf(fname, "content/characters/%s#%i.png", n, i);
+		sprintf(fname, "content/characters/%s/%s#%i.png", dir.c_str(), fileName.c_str(), i);
 		temp = aux::load_image(fname);
 		if(!temp){
 			width.push_back(0);
@@ -208,364 +219,272 @@ void action::loadMisc(const char *n)
 		}
 		SDL_FreeSurface(temp);
 	}
-	sprintf(fname, "content/characters/%s.ogg", n);
-	soundClip = Mix_LoadWAV(fname);
+	soundClip = Mix_LoadWAV(string("content/characters/"+dir+"/"+fileName+".ogg").c_str());
 }
 
-bool action::setParameter(char * buffer)
+bool action::setParameter(string buffer)
 {
-	char savedBuffer[100];
-	strcpy(savedBuffer, buffer);
-	char* token = strtok(buffer, "\t:+ \n");
-
-	if(!strcmp("Name", token)){
-		token = strtok(NULL, "\t:\n");
-		name += token;
-		return 1;
-	} else if (!strcmp("Displace", token)) {
-		token = strtok(NULL, "\t:\n");
-		displaceFrame = atoi(token);
-		token = strtok(NULL, "\t:\n");
-		displaceX = atoi(token);
-		token = strtok(NULL, "\t:\n");
-		displaceY = atoi(token);
-		return 1;
-	} else if (!strcmp("Buffer", token)) {
-		token = strtok(NULL, "\t: \n");
-		tolerance = atoi(token);
-		token = strtok(NULL, "\t: \n");
-		activation = atoi(token);
-		return 1;
-	} else if(!strcmp("Proximity", token)){
-		token = strtok(NULL, "\t: \n");
-		xRequisite = atoi(token); 
-
-		token = strtok(NULL, "\t: \n");
-		yRequisite = atoi(token); 
-		return 1;
-	} else if (!strcmp("Offset", token)) {
-		token = strtok(NULL, "\t: \n");
-		offX = atoi(token);
-		token = strtok(NULL, "\t: \n");
-		offY = atoi(token);
-		return 1;
-	} else if (!strcmp("Hold", token)) {
-		token = strtok(NULL, "\t: \n-");
-		minHold = atoi(token);
-		token = strtok(NULL, "\t: \n-");
-		maxHold = atoi(token);
-		return 1;
-	} else if (!strcmp("Counterhit", token)) {
-		parseProperties(savedBuffer, 1);
-		return 1;
-	} else if (!strcmp("Hits", token)) {
-		token = strtok(NULL, "\t: \n");
-		hits = atoi(token);
+	tokenizer t(buffer, "\t:+\n");
+	if(t() == "Name"){;
+		name += t();
+		return true;
+	} else if (t.current() == "Displace") {
+		displaceFrame = stoi(t("\t:\n"));
+		displaceX = stoi(t());
+		displaceY = stoi(t());
+		return true;
+	} else if (t.current() == "Buffer") {
+		tolerance = stoi(t("\t: \n"));
+		activation = stoi(t());
+		return true;
+	} else if(t.current() == "Proximity"){
+		xRequisite = stoi(t("\t: \n"));
+		yRequisite = stoi(t());
+		return true;
+	} else if (t.current() == "Offset") {
+		offX = stoi(t("\t: \n"));
+		offY = stoi(t());
+		return true;
+	} else if (t.current() == "Hold") {
+		minHold = stoi(t("\t: \n-"));
+		maxHold = stoi(t());
+		return true;
+	} else if (t.current() == "Counterhit") {
+		parseProperties(buffer, true);
+		return true;
+	} else if (t.current() == "Hits") {
+		hits = stoi(t("\t: \n"));
 		if(hits > 0){
-			stats = std::vector<hStat> (hits);
-			CHStats = std::vector<hStat> (hits);
-			onConnect = std::vector <action*> (hits);
-			tempOnConnect = std::vector <char*> (hits);
-			for(action* i:onConnect) i = NULL;
-			for(char* i:tempOnConnect) i = NULL;
+			stats = vector<hStat> (hits);
+			CHStats = vector<hStat> (hits);
+			onConnect = vector <action*> (hits);
+			tempOnConnect = vector <string> (hits);
+			for(action* i:onConnect) i = nullptr;
 			for(unsigned int i = 0; i < stats.size(); i++) stats[i].hitState.i = 0;
 			for(unsigned int i = 0; i < CHStats.size(); i++) CHStats[i].hitState.i = 0;
 		}
-		state = std::vector<cancelField> (hits+1);
-		gain = std::vector<int> (hits+1);
+		state = vector<cancelField> (hits+1);
+		gain = vector<int> (hits+1);
 		for(unsigned int i = 0; i < state.size(); i++) state[i].i = 0;
 		for(int i:gain) i = 0;
-		return 1;
-	} else if (!strcmp("Riposte", token)) {
-		token = strtok(NULL, "\t: \n");
-		tempRiposte = new char[strlen(token)+1];
-		strcpy(tempRiposte, token);
-		return 1;
-	} else if (!strcmp("OnHold", token)) {
-		token = strtok(NULL, "\t:- \n");
-		holdFrame = atoi(token);
-		token = strtok(NULL, "\t:- \n");
+		return true;
+	} else if (t.current() == "Riposte") {
+		tempRiposte = t("\t: \n");
+		return true;
+	} else if (t.current() == "OnHold") {
+		holdFrame = stoi(t("\t:- \n"));
 		holdCheck = 0;
-		for(unsigned int i = 0; i < strlen(token); i++){
-			switch(token[i]){
+		for(char c : t()){
+			switch(c){
 			case 'A':
 			case 'B':
 			case 'C':
 			case 'D':
 			case 'E':
-				holdCheck += 1 << (token[i] - 'A');
+				holdCheck += 1 << (c - 'A');
 				break;
 			}
 		}
-		token = strtok(NULL, "\t:- \n");
-		tempOnHold = new char[strlen(token)+1];
-		strcpy(tempOnHold, token);
-		return 1;
-	} else if (!strcmp("Distort", token)) {
+		tempOnHold = t();
+		return true;
+	} else if (t.current() == "Distort") {
 		distortion = new attractor;
-		token = strtok(NULL, "\t:- \n");
-		distortSpawn = atoi(token);
-		token = strtok(NULL, "\t:- \n");
-		distortion->length = atoi(token);
+		distortSpawn = stoi(t("\t:- \n"));
+		distortion->length = stoi(t());
 		distortion->length -= distortSpawn;
-		token = strtok(NULL, "\t: \n");
-		distortion->x = atoi(token);
-		token = strtok(NULL, "\t: \n");
-		distortion->y = atoi(token);
-		return 1;
-	} else if (!strcmp("AttractorType", token)) {
-		if(!distortion) return 1;
-		token = strtok(NULL, "\t: \n");
-		distortion->type = atoi(token);
-		token = strtok(NULL, "\t: \n");
-		distortion->radius = atoi(token);
-		return 1;
-	} else if (!strcmp("EventHorizon", token)) {
-		token = strtok(NULL, "\t: \n");
-		distortion->eventHorizon = atoi(token);
-		return 1;
-	} else if (!strcmp("Attracts", token)) {
-		token = strtok(NULL, "\t: \n");
-		distortion->ID = atoi(token);
-		token = strtok(NULL, "\t: \n");
-		distortion->effectCode = atoi(token);
-		return 1;
-	} else if (!strcmp("Next", token)) {
-		token = strtok(NULL, "\t: \n");
-		tempNext = new char[strlen(token)+1];
-		strcpy(tempNext, token);
-		return 1;
-	} else if (!strcmp("Attempt", token)) {
-		token = strtok(NULL, "\t: \n-");
-		attemptStart = atoi(token); 
-
-		token = strtok(NULL, "\t: \n-");
-		attemptEnd = atoi(token); 
-
-		token = strtok(NULL, "\t: \n");
-		tempAttempt = new char[strlen(token)+1];
-		strcpy(tempAttempt, token);
-		return 1;
-	} else if (!strcmp("Connect", token)) {
-		token = strtok(NULL, "\t: \n");
-		int x = atoi(token);
-		token = strtok(NULL, "\t: \n");
-		tempOnConnect[x] = new char[strlen(token)+1];
-		strcpy(tempOnConnect[x], token);
-		return 1;
-	} else if (!strcmp("Blocks", token)) {
-		token = strtok(NULL, "\t: \n");
-		blockState.i = atoi(token);
-		return 1;
-	} else if (!strcmp("Check", token)) {
-		token = strtok(NULL, "\t: \n");
-		allowed.i = atoi(token);
-		return 1;
-	} else if (!strcmp("Cost", token)) {
-		token = strtok(NULL, "\t: \n");
-		cost = atoi(token);
-		return 1;
-	} else if (!strcmp("Frames", token)) {
-		token = strtok(NULL, "\t: \n");
-		frames = atoi(token);
+		distortion->x = stoi(t("\t: \n"));
+		distortion->y = stoi(t());
+		return true;
+	} else if (t.current() == "AttractorType") {
+		if(!distortion) return true;
+		distortion->type = stoi(t("\t: \n"));
+		distortion->radius = stoi(t());
+		return true;
+	} else if (t.current() == "EventHorizon") {
+		distortion->eventHorizon = stoi(t("\t: \n"));
+		return true;
+	} else if (t.current() == "Attracts") {
+		distortion->ID = stoi(t("\t: \n"));
+		distortion->effectCode = stoi(t());
+		return true;
+	} else if (t.current() == "Next") {
+		tempNext = t("\t: \n");
+		return true;
+	} else if (t.current() == "Attempt") {
+		attemptStart = stoi(t("\t: \n-")); 
+		attemptEnd = stoi(t()); 
+		tempAttempt = t();
+		return true;
+	} else if (t.current() == "Connect") {
+		int x = stoi(t("\t: \n"));
+		tempOnConnect[x] = t();
+		return true;
+	} else if (t.current() == "Blocks") {
+		blockState.i = stoi(t("\t: \n"));
+		return true;
+	} else if (t.current() == "Check") {
+		allowed.i = stoi(t("\t: \n"));
+		return true;
+	} else if (t.current() == "Cost") {
+		cost = stoi(t("\t: \n"));
+		return true;
+	} else if (t.current() == "Frames") {
+		frames = stoi(t("\t: \n"));
 		int startup, countFrames = -1;
 		if(hits > 0) {
-			totalStartup = std::vector<int> (hits);
-			active = std::vector<int> (hits);
+			totalStartup = vector<int> (hits);
+			active = vector<int> (hits);
 		}
-
 		for(int i = 0; i < hits; i++){
-			token = strtok(NULL, "\t: \n");
-			startup = atoi(token);
+			startup = stoi(t());
 			countFrames += startup;
 			totalStartup[i] = countFrames;
-			token = strtok(NULL, "\t: \n");
-			active[i] = atoi(token);
+			active[i] = stoi(t());
 			countFrames += active[i];
 		}
-		return 1;
-	} else if (!strcmp("State", token)) {
+		return true;
+	} else if (t.current() == "State") {
 		for(int i = 0; i < hits+1; i++){
-			token = strtok(NULL, "\t: \n");
-			state[i].i = atoi(token);
+			state[i].i = stoi(t("\t: \n"));
 		}
-		return 1;
-	} else if (!strcmp("HitAllows", token)) {
+		return true;
+	} else if (t.current() == "HitAllows") {
 		for(int i = 0; i < hits; i++){
-			token = strtok(NULL, "\t: \n");
-			stats[i].hitState.i = atoi(token);
+			stats[i].hitState.i = stoi(t("\t: \n"));
 		}
-		return 1;
-	} else if (!strcmp("Damage", token)) {
+		return true;
+	} else if (t.current() == "Damage") {
 		for(int i = 0; i < hits; i++){
-			token = strtok(NULL, "\t: \n");
-			if(savedBuffer[0] == '+')
-				CHStats[i].damage = atoi(token);
-			else stats[i].damage = atoi(token);
+			if(buffer[0] == '+')
+				CHStats[i].damage = stoi(t("\t: \n"));
+			else stats[i].damage = stoi(t("\t: \n"));
 		}
-		return 1;
-	} else if (!strcmp("Connects", token)) {
+		return true;
+	} else if (t.current() == "Connects") {
 		for(int i = 0; i < hits; i++){
-			token = strtok(NULL, "\t: \n");
-			if(savedBuffer[0] == '+')
-				CHStats[i].connect = atoi(token);
-			else stats[i].connect = atoi(token);
+			if(buffer[0] == '+')
+				CHStats[i].connect = stoi(t("\t: \n"));
+			else stats[i].connect = stoi(t("\t: \n"));
 		}
-		return 1;
-	} else if (!strcmp("Chip", token)) {
+		return true;
+	} else if (t.current() == "Chip") {
 		for(int i = 0; i < hits; i++){
-			token = strtok(NULL, "\t: \n");
-			stats[i].chip = atoi(token);
+			stats[i].chip = stoi(t( "\t: \n"));
 		}
-		return 1;
-	} else if (!strcmp("Prorate", token)) {
+		return true;
+	} else if (t.current() == "Prorate") {
 		for(int i = 0; i < hits; i++){
-			token = strtok(NULL, "\t: \n");
-			if(savedBuffer[0] == '+')
-				CHStats[i].prorate = atof(token);
-			else stats[i].prorate = atof(token);
+			if(buffer[0] == '+')
+				CHStats[i].prorate = stof(t("\t: \n"));
+			else stats[i].prorate = stof(t("\t: \n"));
 		}
-		return 1;
-	} else if (!strcmp("Push", token)) {
+		return true;
+	} else if (t.current() == "Push") {
 		for(int i = 0; i < hits; i++){
-			token = strtok(NULL, "\t: \n");
-			if(savedBuffer[0] == '+') 
-				CHStats[i].push = atoi(token);
-			else stats[i].push = atoi(token);
+			if(buffer[0] == '+') 
+				CHStats[i].push = stoi(t("\t: \n"));
+			else stats[i].push = stoi(t("\t: \n"));
 		}
-		return 1;
-	} else if (!strcmp("Lift", token)) {
+		return true;
+	} else if (t.current() == "Lift") {
 		for(int i = 0; i < hits; i++){
-			token = strtok(NULL, "\t: \n");
-			if(savedBuffer[0] == '+')
-				CHStats[i].lift = atoi(token);
-			else stats[i].lift = atoi(token);
+			if(buffer[0] == '+')
+				CHStats[i].lift = stoi(t("\t: \n"));
+			else stats[i].lift = stoi(t("\t: \n"));
 		}
-		return 1;
-	} else if (!strcmp("Float", token)) {
+		return true;
+	} else if (t.current() == "Float") {
 		for(int i = 0; i < hits; i++){
-			token = strtok(NULL, "\t: \n");
-			if(savedBuffer[0] == '+')
-				CHStats[i].hover = atoi(token);
-			else stats[i].hover = atoi(token);
+			if(buffer[0] == '+')
+				CHStats[i].hover = stoi(t("\t: \n"));
+			else stats[i].hover = stoi(t("\t: \n"));
 		}
-		return 1;
-	} else if (!strcmp("Blowback", token)) {
+		return true;
+	} else if (t.current() == "Blowback") {
 		for(int i = 0; i < hits; i++){
-			token = strtok(NULL, "\t: \n");
-			if(savedBuffer[0] == '+')
-				CHStats[i].blowback = atoi(token);
-			else stats[i].blowback = atoi(token);
+			if(buffer[0] == '+')
+				CHStats[i].blowback = stoi(t("\t: \n"));
+			else stats[i].blowback = stoi(t("\t: \n"));
 		}
-		return 1;
-	} else if (!strcmp("Stun", token)) {
+		return true;
+	} else if (t.current() == "Stun") {
 		for(int i = 0; i < hits; i++){
-			token = strtok(NULL, "\t: \n");
-			if(savedBuffer[0] == '+')
-				CHStats[i].stun = atoi(token);
+			if(buffer[0] == '+')
+				CHStats[i].stun = stoi(t("\t: \n"));
 			else {
-				stats[i].stun = atoi(token);
+				stats[i].stun = stoi(t("\t: \n"));
 				CHStats[i].stun = (stats[i].stun - 5) / 2;
 			}
 		}
-		return 1;
-	} else if (!strcmp("Pause", token)) {
+		return true;
+	} else if (t.current() == "Pause") {
 		for(int i = 0; i < hits; i++){
-			token = strtok(NULL, "\t: \n");
-			if(savedBuffer[0] == '+')
-				CHStats[i].pause = atoi(token);
+			if(buffer[0] == '+')
+				CHStats[i].pause = stoi(t("\t: \n"));
 			else {
-				stats[i].pause = atoi(token);
+				stats[i].pause = stoi(t("\t: \n"));
 			}
 		}
-		return 1;
-	} else if (!strcmp("Untech", token)) {
+		return true;
+	} else if (t.current() == "Untech") {
 		for(int i = 0; i < hits; i++){
-			token = strtok(NULL, "\t: \n");
-			if(savedBuffer[0] == '+')
-				CHStats[i].untech = atoi(token);
+			if(buffer[0] == '+')
+				CHStats[i].untech = stoi(t("\t: \n"));
 			else{
-				stats[i].untech = atoi(token);
+				stats[i].untech = stoi(t("\t: \n"));
 				CHStats[i].untech = 10;
 			}
 		}
-		return 1;
-	} else if (!strcmp("Blockable", token)) {
+		return true;
+	} else if (t.current() == "Blockable") {
 		for(int i = 0; i < hits; i++){
-			token = strtok(NULL, "\t: \n");
-			stats[i].blockMask.i = atoi(token);
+			stats[i].blockMask.i = stoi(t("\t: \n"));
 		}
-		return 1;
-	} else if (!strcmp("Gain", token)) {
+		return true;
+	} else if (t.current() == "Gain") {
 		for(int i = 0; i < hits+1; i++){
-			token = strtok(NULL, "\t: \n");
-			gain[i] = atoi(token);
+			gain[i] = stoi(t("\t: \n"));
 		}
-		return 1;
-	} else if (!strcmp("Autoguard", token)) {
-		token = strtok(NULL, "\t: \n-");
-		guardStart = atoi(token); 
-
-		token = strtok(NULL, "\t: \n-");
-		guardLength = atoi(token); 
+		return true;
+	} else if (t.current() == "Autoguard") {
+		guardStart = stoi(t("\t: \n-"));
+		guardLength = stoi(t());
 		guardLength = guardLength - guardStart;
-		return 1;
-	} else if (!strcmp("BearStun", token)) {
-		token = strtok(NULL, "\t: \n-");
-		stunMin = atoi(token); 
-
-		token = strtok(NULL, "\t: \n-");
-		stunMax = atoi(token); 
-		return 1;
-	} else if (!strcmp("GuardType", token)) {
-		token = strtok(NULL, "\t: \n");
-		guardType = atoi(token);
-		return 1;
-	} else if (!strcmp("Follow", token)) {
-		token = strtok(NULL, "\t: \n-");
-		followStart = atoi(token); 
-
-		token = strtok(NULL, "\t: \n-");
-		followEnd = atoi(token); 
-
-		token = strtok(NULL, "\t: \n");
-		followXRate = atoi(token);
-
-		token = strtok(NULL, "\t: \n");
-		followYRate = atoi(token);
-		return 1;
-	} else if (!strcmp("SuperFreeze", token)){
-		token = strtok(NULL, "\t: \n-");
-		freezeFrame = atoi(token); 
-
-		token = strtok(NULL, "\t: \n-");
-		freezeLength = atoi(token); 
+		return true;
+	} else if (t.current() == "BearStun") { //RARRRRRR
+		stunMin = stoi(t("\t: \n-"));
+		stunMax = stoi(t());
+		return true;
+	} else if (t.current() == "GuardType") {
+		guardType = stoi(t("\t: \n"));
+		return true;
+	} else if (t.current() == "Follow") {
+		followStart = stoi(t("\t: \n-"));
+		followEnd = stoi(t()); 
+		followXRate = stoi(t());
+		followYRate = stoi(t());
+		return true;
+	} else if (t.current() == "SuperFreeze"){
+		freezeFrame = stoi(t("\t: \n-")); 
+		freezeLength = stoi(t()); 
 		freezeLength = freezeLength - freezeFrame;
-		return 1;
-	} else if (!strcmp("Armor", token)) {
-		token = strtok(NULL, "\t: \n-");
-		armorStart = atoi(token); 
-
-		token = strtok(NULL, "\t: \n-");
-		armorLength = atoi(token); 
+		return true;
+	} else if (t.current() == "Armor") {
+		armorStart = stoi(t("\t: \n-")); 
+		armorLength = stoi(t()); 
 		armorLength = armorLength - armorStart;
-		return 1;
-	} else if (!strcmp("MaxArmor", token)) {
-		token = strtok(NULL, "\t: \n-");
-		armorHits = atoi(token); 
-		return 1;
-	} else if(!strcmp("SpawnPosition", token)){
-		token = strtok(NULL, "\t: \n");
-		spawnPosX = atoi(token);
-
-		token = strtok(NULL, "\t: \n");
-		spawnPosY = atoi(token);
-		return 1;
-	} else if(!strcmp("Track", token)){
-		token = strtok(NULL, "\t: \n");
-		for(unsigned int i = 0; i < strlen(token) + 1; i++){
-			switch(token[i]){
-			case 'x': 
+		return true;
+	} else if (t.current() == "MaxArmor") {
+		armorHits = stoi(t("\t: \n-")); 
+		return true;
+	} else if(t.current() == "SpawnPosition"){
+		spawnPosX = stoi(t("\t: \n"));
+		spawnPosY = stoi(t());
+		return true;
+	} else if(t.current() == "Track"){
+		for(char c : t("\t: \n")){
+			switch(c){
+			case 'x':
 				spawnTrackX = true;
 				break;
 			case 'y':
@@ -576,35 +495,35 @@ bool action::setParameter(char * buffer)
 				break;
 			}
 		}
-		return 1;
-	} else if(!strcmp("SpawnsOn", token)){
-		token = strtok(NULL, "\t: \n");
-		spawnFrame = atoi(token);
-		return 1;
-	} else if(!strcmp("Lifespan", token)){
-		token = strtok(NULL, "\t: \n");
-		lifespan = atoi(token);
-		return 1;
-	} else if(!strcmp("Allegiance", token)){
-		token = strtok(NULL, "\t: \n");
-		allegiance = atoi(token);
-		return 1;
-	} else if(!strcmp("Payload", token)){
-		token = strtok(NULL, "\t: \n");
-		tempPayload = new char[strlen(token)+1];
-		strcpy(tempPayload, token);
-		return 1;
+		return true;
+	} else if(t.current() == "SpawnsOn"){
+		spawnFrame = stoi(t("\t: \n"));
+		return true;
+	} else if(t.current() == "Lifespan"){
+		lifespan = stoi(t("\t: \n"));
+		return true;
+	} else if(t.current() == "Allegiance"){
+		allegiance = stoi(t("\t: \n"));
+		return true;
+	} else if(t.current() == "Payload"){
+		tempPayload = t("\t: \n");
+		return true;
+	} else if(t.current() == "Particle"){
+		tempParticle = t("\t: \n");
+		particleSpawn = stoi(t("\t: \n"));
+		particleX = stoi(t());
+		particleY = stoi(t());
+		return true;
 	} else return 0;
 }
 
-void action::parseProperties(char * buffer, bool counter)
+void action::parseProperties(string buffer, bool counter)
 {
-	char * token = strtok(buffer, " \t\n:");
-	token = strtok(NULL, "\n");
-	/*Debug*/
 	int ch = 0;
-	for(unsigned int i = 0; i < strlen(token); i++){
-		switch(token[i]){
+	unsigned int i = 0;
+	while(buffer[i++] != ':'); i++;
+	for(; i < buffer.size(); i++){
+		switch(buffer[i]){
 		case '^':
 			if(counter) CHStats[ch].launch = 1;
 			else stats[ch].launch = 1;
@@ -699,7 +618,7 @@ bool action::window(int f)
 	return 1;
 }
 
-bool action::activate(std::vector<int> inputs, int pattern, int t, int f, std::vector<int> meter, SDL_Rect &p)
+bool action::activate(vector<int> inputs, int pattern, int t, int f, vector<int> meter, SDL_Rect &p)
 {
 	for(unsigned int i = 0; i < inputs.size(); i++){
 		if(pattern & (1 << i)){
@@ -712,15 +631,23 @@ bool action::activate(std::vector<int> inputs, int pattern, int t, int f, std::v
 	return check(p, meter);
 }
 
-bool action::check(SDL_Rect &p, std::vector<int> meter)
+bool action::check(SDL_Rect &p, vector<int> meter)
 {
-	if(cost > meter[1]) return 0;
+	if(cost && cost > meter[1]){ 
+		return 0;
+	}
 	if(xRequisite > 0 && p.w > xRequisite) return 0;
 	if(yRequisite > 0 && p.h > yRequisite) return 0;
 	return 1;
 }
 
-void action::pollRects(int f, int cFlag, SDL_Rect &c, std::vector<SDL_Rect> &r, std::vector<SDL_Rect> &b)
+bool special::check(SDL_Rect &p, vector<int> meter)
+{
+	if(cost > meter[1]) return 0;
+	else return action::check(p, meter);
+}
+
+void action::pollRects(int f, int cFlag, SDL_Rect &c, vector<SDL_Rect> &r, vector<SDL_Rect> &b)
 {
 	if(modifier && basis) basis->pollRects(currentFrame, connectFlag, c, r, b);
 	else {
@@ -750,10 +677,10 @@ void action::pollRects(int f, int cFlag, SDL_Rect &c, std::vector<SDL_Rect> &r, 
 	}
 }
 
-std::vector<SDL_Rect> action::pollDelta(int f)
+vector<SDL_Rect> action::pollDelta(int f)
 {
 	if(modifier && basis){ 
-		std::vector<SDL_Rect> ret = basis->pollDelta(currentFrame);
+		vector<SDL_Rect> ret = basis->pollDelta(currentFrame);
 		for(SDL_Rect i:delta[f]) ret.push_back(i);
 		return ret;
 	} else return delta[f];
@@ -814,10 +741,10 @@ bool action::cancel(action *& x, int& c, int &h)
 {
 	cancelField r;
 	r.i = 0;
-	if(x == NULL) return 1;
-	if(c > x->hits || h > x->hits) return 0;
+	if(x == nullptr) return 1;
+	if(h < 0 || c < 0 || c > x->hits || h > x->hits) return 0;
 	if(x->modifier && x->basis){
-		if(x->basis == NULL){ 
+		if(x->basis == nullptr){ 
 			return 1;
 		}
 		r.i = x->basis->state[x->connectFlag].i;
@@ -843,7 +770,7 @@ bool action::cancel(action *& x, int& c, int &h)
 	return 0;
 }
 
-void action::step(std::vector<int>& meter, status &current)
+void action::step(vector<int>& meter, status &current)
 {
 	if(!current.frame && !meter[4]){
 		if(meter[1] + gain[0] < 300) meter[1] += gain[0];
@@ -854,7 +781,7 @@ void action::step(std::vector<int>& meter, status &current)
 		currentFrame++;
 		if(basis && currentFrame >= basis->frames){
 			if(basis->next) basis = basis->next;
-			else basis = NULL;
+			else basis = nullptr;
 			currentFrame = 0;
 			connectFlag = 0;
 			hitFlag = 0;
@@ -871,19 +798,19 @@ int action::calcCurrentHit(int frame)
 	return b;
 }
 
-action * action::connect(std::vector<int>& meter, int &c, int f)
+action * action::connect(vector<int>& meter, int &c, int f)
 {
 	if(modifier && basis) return basis->connect(meter, connectFlag, currentFrame);
-	else if (hits == 0) return NULL;
+	else if (hits == 0) return nullptr;
 	else {
 		c = calcCurrentHit(f)+1;
 		if(!meter[4]){
 			if(meter[1] + gain[c] < 300) meter[1] += gain[c];
 			else meter[1] = 300;
 		}
-		if(onConnect[c-1] != NULL){
+		if(onConnect[c-1] != nullptr){
 			return onConnect[c-1];
-		} else return NULL;
+		} else return nullptr;
 	}
 }
 
@@ -901,13 +828,13 @@ void action::playSound(int channel)
 	Mix_PlayChannel(channel, soundClip, 0);
 }
 
-void action::execute(action * last, std::vector<int> & meter, int &f, int &c, int &h)
+void action::execute(action * last, vector<int> & meter, int &f, int &c, int &h)
 {
 	armorCounter = 0;
 	meter[1] -= cost;
 	meter[4] += cost;
 	if(modifier){
-		if(last == NULL) basis = NULL;
+		if(last == nullptr) basis = nullptr;
 		basis = last;
 		currentFrame = f;
 		connectFlag = c;
@@ -923,28 +850,23 @@ void action::feed(action * c, int code, int i)
 	switch(code){
 	case 0:
 		next = c;
-		if(tempNext) delete [] tempNext;
 		break;
 	case 2:
 		onConnect[i] = c;
-		if(tempOnConnect[i]) delete [] tempOnConnect[i];
 		break;
 	case 3:
 		attempt = c;
-		if(tempAttempt) delete [] tempAttempt;
 		break;
 	case 5:
 		riposte = c;
-		if(tempRiposte) delete [] tempRiposte;
 		break;
 	case 6:
 		onHold = c;
-		if(tempOnHold) delete [] tempOnHold;
 		break;
 	}
 }
 
-char * action::request(int code, int i)
+string action::request(int code, int i)
 {
 	switch(code){
 	case 0:
@@ -960,8 +882,24 @@ char * action::request(int code, int i)
 	case 6:
 		return tempOnHold;
 	default:
-		return NULL;
+		return "";
 	}
+}
+
+bool action::operator!=(const string &o)
+{
+	return fileName.compare(o) ? true : false;
+}
+
+bool action::operator==(const string &o)
+{
+	return fileName.compare(o) ? false : true;
+}
+
+bool action::canGuard(int f)
+{
+	if(f >= guardStart && f <= guardStart + guardLength && blockState.i & 7) return true;
+	else return false;
 }
 
 int action::takeHit(hStat & s, int b, status &current)
@@ -970,8 +908,8 @@ int action::takeHit(hStat & s, int b, status &current)
 	else{
 		if(!stunMin || s.stun >= stunMin){
 			if(!stunMax || s.stun <= stunMax){
-				if(s.blockMask.i & blockState.i && current.frame >= guardStart && current.frame <= guardStart + guardLength){
-					if(riposte != NULL){ 
+				if(s.blockMask.i & blockState.i && canGuard(current.frame)){
+					if(riposte != nullptr){
 						if(!s.isProjectile || countersProjectile) return -5;
 					}
 					return guardType;

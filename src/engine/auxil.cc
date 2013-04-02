@@ -1,30 +1,24 @@
-/*Some SDL-related utility functions written by Ashley Fisher, c. 2012, for project "picoclash".
- *Used in project "GUFG" with her permission.
- */
-
-#include <math.h>
+/*Copyright Somnambulant Studios 2012*/
+#include "auxil.h"
+#include "gl-compat.h"
+#include "sdl-compat.h"
+#include "tokenizer.h"
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
-#include "sdl-compat.h"
-#include <string>
-#include <iostream>
 #include <cmath>
-#include "auxil.h"
+#include <iostream>
+#include <math.h>
+#include <string>
 #include <vector>
-#include "gl-compat.h"
 
-using namespace std;
-
-// intitializes the screen and returns it (returns null if something went wrong)
 SDL_Surface* aux::init_screen(int width, int height, int bpp) {
-	//Initialize all SDL subsystems
 	if (SDL_Init(SDL_INIT_EVERYTHING) == -1) {
-		return NULL;
+		return nullptr;
 	}
 
 	SDL_Surface* screen = SDL_SetVideoMode(width, height, bpp, SDL_SWSURFACE);
 
-	SDL_WM_SetCaption("Someday soon I'll be a game!", NULL);
+	SDL_WM_SetCaption("Someday soon I'll be a game!", nullptr);
 
 	return screen;
 }
@@ -196,14 +190,14 @@ SDL_Surface* aux::scale2x(SDL_Surface* source) {
 }
 
 // loads an image from a file name and returns it as a surface
-SDL_Surface* aux::load_image(std::string filename) {
-	SDL_Surface* loadedImage    = NULL;
-	SDL_Surface* optimizedImage = NULL;
+SDL_Surface* aux::load_image(string filename) {
+	SDL_Surface* loadedImage    = nullptr;
+	SDL_Surface* optimizedImage = nullptr;
 
 	loadedImage = IMG_Load(filename.c_str());
 
 	// if nothing went wrong on load
-	if (loadedImage != NULL) {
+	if (loadedImage != nullptr) {
 		//Create an optimized image
 		optimizedImage = SDL_DisplayFormatAlpha(loadedImage);
 
@@ -220,7 +214,7 @@ void aux::apply_surface(int x, int y, SDL_Surface* source, SDL_Surface* destinat
 	offset.x = x;
 	offset.y = y;
 
-	SDL_BlitSurface(source, NULL, destination, &offset);
+	SDL_BlitSurface(source, nullptr, destination, &offset);
 }
 
 bool aux::checkCollision(SDL_Rect a, SDL_Rect b)
@@ -231,21 +225,21 @@ bool aux::checkCollision(SDL_Rect a, SDL_Rect b)
 	return 1;
 }
 
-std::vector<SDL_Rect> aux::defineRectArray(char * definition)
+vector<SDL_Rect> aux::defineRectArray(string definition)
 {
-	std::vector<SDL_Rect> ret;
-	std::vector<char *> coordinate;
-	char * token;
-	coordinate.push_back(strtok(definition, ", \n\t"));
-	while(token = strtok(NULL, ", \n\t"))
-		coordinate.push_back(token);
+	vector<SDL_Rect> ret;
+	vector<string> coordinate;
+        tokenizer t(definition, " \n\t");
+        coordinate.push_back(t());
+	while(t().size())
+		coordinate.push_back(t.current());
 
 	for(unsigned int i = 0; i < coordinate.size(); i+=4){
 		SDL_Rect t;
-		t.x = atoi(coordinate[i]);
-		t.y = atoi(coordinate[i + 1]);
-		t.w = atoi(coordinate[i + 2]);
-		t.h = atoi(coordinate[i + 3]);
+		t.x = stoi(coordinate[i]);
+		t.y = stoi(coordinate[i + 1]);
+		t.w = stoi(coordinate[i + 2]);
+		t.h = stoi(coordinate[i + 3]);
 		ret.push_back(t);
 	}
 	return ret;
@@ -253,7 +247,7 @@ std::vector<SDL_Rect> aux::defineRectArray(char * definition)
 
 GLuint aux::surface_to_texture(SDL_Surface * source)
 {
-	if(source == NULL) return -1;
+	if(source == nullptr) return -1;
 	GLint nColors;
 	GLenum texFormat;
 	GLuint texture;
@@ -267,7 +261,7 @@ GLuint aux::surface_to_texture(SDL_Surface * source)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	
-	glTexImage2D(GL_TEXTURE_2D, 0, nColors, source->w, source->h, 0, texFormat, GUFG_TEXTURE_MODE, source->pixels);
+	glTexImage2D(GL_TEXTURE_2D, 0, nColors, source->w, source->h, 0, texFormat, ___gufg_tex_mode, source->pixels);
 	return texture;
 }
 
@@ -291,4 +285,38 @@ void vect::unitNormal(float Ax, float Ay, float Az, float Bx, float By, float Bz
 	x = i / len;
 	y = j / len;
 	z = k / len;
-};
+}
+
+status::status()
+{
+	deltaX = 0;
+	deltaY = 0;
+	lCorner = 0;
+	rCorner = 0;
+	frame = 0;
+	connect = 0;
+	counter = 0;
+	hit = 0;
+	move = nullptr;
+	bufferedMove = nullptr;
+	reversal = nullptr;
+	freeze = 0;
+	aerial = false;
+	dead = false;
+}
+
+status::status(const status & o) 
+{
+	this->posX = o.posX; this->posY = o.posY;
+	this->facing = o.facing;
+	this->deltaX = o.deltaX; this->deltaY = o.deltaY; 
+	this->frame = o.frame;
+	this->freeze = o.freeze;
+	this->aerial = o.aerial;
+	this->rCorner = o.rCorner; this->lCorner = o.lCorner;
+	this->move = o.move; this->bufferedMove = o.bufferedMove; this->reversal = o.reversal;
+	this->connect = o.connect; this->hit = o.hit; this->counter = o.counter;
+	this->dead = o.dead;
+	this->throwInvuln = o.throwInvuln;
+	this->reversalFlag = o.reversalFlag;
+}

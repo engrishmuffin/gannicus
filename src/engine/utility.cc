@@ -1,10 +1,11 @@
 #include "action.h"
-utility::utility(const char * n)
+
+utility::utility(string dir, string file)
 {
-	build(n);
+	build(dir, file);
 }
 
-bool utility::activate(std::vector<int> inputs, int pattern, int t, int f, std::vector<int> meter, SDL_Rect &p)
+bool utility::activate(vector<int> inputs, int pattern, int t, int f, vector<int> meter, SDL_Rect &p)
 {
 	for(unsigned int i = 0; i < inputs.size(); i++){
 		if(pattern & (1 << i)){
@@ -17,12 +18,12 @@ bool utility::activate(std::vector<int> inputs, int pattern, int t, int f, std::
 	return check(p, meter);
 }
 
-looping::looping(const char * n)
+looping::looping(string dir, string file)
 {
-	build(n);
+	build(dir, file);
 }
 
-void looping::step(std::vector<int>& meter, status &current)
+void looping::step(vector<int>& meter, status &current)
 {
 	action::step(meter, current);
 	if(current.frame && !meter[4]){

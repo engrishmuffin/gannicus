@@ -1,22 +1,25 @@
 #include "analytics.h"
-#include <iostream>
-#include <fstream>
-#include <stdio.h>
 #include <ctime>
+#include <fstream>
+#include <iostream>
+
+using std::ifstream;
+using std::ofstream;
+
 void script::init(int players)
 {
 	for(int i = 0; i < players; i++){
 		selection.push_back(-1);
-		std::vector<frame> tvec;
+		vector<frame> tvec;
 		command.push_back(tvec);
 	}
 }
 
-void script::init(std::vector<int> s)
+void script::init(vector<int> s)
 {
 	for(unsigned int i = 0; i < s.size(); i++){
 		selection.push_back(s[i]);
-		std::vector<frame> tvec;
+		vector<frame> tvec;
 		command.push_back(tvec);
 	}
 }
@@ -54,14 +57,14 @@ void script::push(int p, frame t)
 	command[p].push_back(t);
 }
 
-script::script(char* filename)
+script::script(string filename)
 {
 	load(filename);
 }
 
-void script::load(char* filename)
+void script::load(string filename)
 {
-	std::ifstream read;
+	ifstream read;
 	read.open(filename);
 	if(read.fail()){
 		init(1); return;
@@ -73,7 +76,7 @@ void script::load(char* filename)
 		selection.push_back(s);
 	}
 	for(int i = 0; i < players; i++){
-		std::vector<frame> t;
+		vector<frame> t;
 		command.push_back(t);
 	}
 	while(!read.eof()){
@@ -87,19 +90,17 @@ void script::load(char* filename)
 
 void script::write()
 {
-	write(NULL);
+	write("");
 }
 
-void script::write(char * name)
+void script::write(string name)
 {
-	std::ofstream scribe;
-	if(name) scribe.open(name);
+	ofstream scribe;
+	if(name.size()) scribe.open(name);
 	else{
-		char buffer [200];
 		time_t now = time(0);
-		tm* localTime = localtime(&now);
-		sprintf(buffer, ".data/replays/%s", asctime(localTime));
-		scribe.open(buffer);
+		tm* lT = localtime(&now);
+		scribe.open(string(".data/replays/"+string(asctime(lT))));
 	}
 	if(command[0].size() == 0){
 		scribe.close();
@@ -125,7 +126,7 @@ script::~script(){}
 
 chart::chart(int size)
 {
-	std::vector<int> row;
+	vector<int> row;
 	for(int i = 0; i < size + 1; i++){
 		for(int j = 0; j < size + 1; j++){
 			row.push_back(0);
@@ -146,7 +147,7 @@ void chart::recordWin(int a, int b)
 
 void chart::init()
 {
-	std::ifstream read;
+	ifstream read;
 	unsigned int check;
 	bool fresh = false;
 	read.open(".data/.charts.csv");
@@ -166,7 +167,7 @@ void chart::init()
 
 void chart::write()
 {
-	std::ofstream wr;
+	ofstream wr;
 	wr.open(".data/.charts.csv");
 	wr << wins.size() << '\n' << " ";
 	for(unsigned int i = 0; i < wins.size(); i++){

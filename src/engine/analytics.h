@@ -1,10 +1,15 @@
 #include "player.h"
-#ifndef ANALYTICS
-#define ANALYTICS
+
+#ifndef ___analytics
+#define ___analytics
+
+using std::string;
+using std::vector;
+
 class chart{
 public:
 	chart(int);
-	std::vector<std::vector<int> > wins;
+	vector<vector<int> > wins;
 	void recordWin(int, int);
 	float matchup(int, int);
 	void write();
@@ -30,24 +35,24 @@ typedef union {
 
 struct frame {
 	inputs n;
-	std::vector<bool> axis;
-	std::vector<int> buttons;
+	vector<bool> axis;
+	vector<int> buttons;
 };
 
 class script {
 public:
 	script() {}
-	script(char*);
+	script(string);
 	void init(int);
-	void init(std::vector<int>);
+	void init(vector<int>);
 	void push(int i, frame);
 	void push(frame);
-	std::vector<std::vector<frame> > command;
-	std::vector<int> selection;
+	vector<vector<frame> > command;
+	vector<int> selection;
 	bool test();
 	bool genEvent(int, int, frame&);
-	virtual void load(char*);
-	virtual void write(char*);
+	virtual void load(string);
+	virtual void write(string);
 	virtual void write();
 	virtual ~script();
 };

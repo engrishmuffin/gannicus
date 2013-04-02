@@ -1,24 +1,21 @@
-/*Interface class for GUFG.
- *This will run all the main game functions within GUFG.
- *No kidding.
- *Written by Alex Kelly in 2012.
- *Mangled by H Forrest Alexander in the autumn of that same year.
- *I think there's a license somewhere.
- */
-
+/*Copyright Somnambulant Studios 2012*/
 #include "interface.h"
-#include <SDL/SDL_opengl.h>
 #include <algorithm>
 #include <assert.h>
-#include <cstring>
-#include <ctime>
 #include <fstream>
 #include <iostream>
 #include <math.h>
+
+using std::cout;
+using std::ifstream;
+using std::ofstream;
+using std::max;
+using std::min;
+
 interface::interface()
 {
-	numChars = 1;
-	stats = new chart(numChars);
+	stats = nullptr;
+	initCharacters();
 	killTimer = false;
 	shortcut = true;
 	continuous = false;
@@ -26,17 +23,17 @@ interface::interface()
 	scripting = false;
 	pauseEnabled = false;
 	single = false;
-	std::ifstream read;
+	ifstream read;
 
 	/*Initialize some pseudo-constants*/
 	screenWidth = 1600; /*screen{Width,Height} describe the size of the window holding the game.*/
 	screenHeight = 900;
-	screen = NULL;
+	screen = nullptr;
 	bg.w = 3200; /*The screen gives a partial view of the background, which is the area available for character movement.*/
 	bg.h = 1800;
 	floor = 50; /*Value of the floor. This is the maximum distance downward that characters can travel.*/
 	wall = 50; /*The size of the offset at which characters start to scroll the background, and get stuck.*/
-	menuMusic = NULL;
+	menuMusic = nullptr;
 
 	select[0] = 0;
 	select[1] = 0;
@@ -56,19 +53,19 @@ interface::interface()
 	numRounds = 2;
 
 	initContainers(2, 6);
-	oldReplay = NULL;
+	oldReplay = nullptr;
 	replayIterator = 0;
-	replay = NULL;
+	replay = nullptr;
 }
 
-void interface::createPlayers(char* rep)
+void interface::createPlayers(string rep)
 {
 	oldReplay = new script(rep);
 	createPlayers();
 	if(oldReplay->selection.size() != 2){
 		printf("Invalid Replay\n");
 		delete oldReplay;
-		oldReplay = NULL;
+		oldReplay = nullptr;
 	} else {
 		single = true;
 		analytics = false;
@@ -92,6 +89,7 @@ void interface::createPlayers()
 		selection.push_back(1+i);
 		menu[i] = 0;
 		counterHit[i] = 0;
+		blockFail[i] = 0;
 		configMenu[i] = 0;
 		things.push_back(P[i]);
 		P[i]->boxen = false;
@@ -102,7 +100,6 @@ void interface::createPlayers()
 void interface::loadMatchBackground()
 {
 	char buffer[100];
-	if(selection[0] == selection[1]) P[1]->secondInstance = true;
 
 	sprintf(buffer, "content/stages/%i/bg.png", selection[0]);
 	background = aux::load_texture(buffer);
@@ -166,7 +163,7 @@ bool gameInstance::screenInit()
 	w = screenWidth*sf; h = screenHeight*sf;
 	if(screen){
 		SDL_FreeSurface(screen);
-		screen = NULL;
+		screen = nullptr;
 	}
 	bool ret = window::screenInit();
 	glDisable(GL_DEPTH_TEST);
@@ -197,7 +194,7 @@ void gameInstance::initialConfig(int ID)
 			glColor4f(0.1f, 0.1f, 0.1f, 1.0f);
 			drawGlyph(pident, 0, screenWidth, 300, 80, 1);
 			drawGlyph("Please enter a", 0, screenWidth, 400, 80, 1);
-			sprintf(buffer, "command for %s", p[ID]->inputName[i]);
+			sprintf(buffer, "command for %s", p[ID]->inputName[i].c_str());
 			drawGlyph(buffer, 0, screenWidth, 500, 80, 1);
 			SDL_GL_SwapBuffers();
 			glDisable( GL_TEXTURE_2D );
@@ -215,7 +212,6 @@ void interface::matchInit()
 	rMenu = 0;
 	for(player* i:P){
 		i->rounds = 0;
-		i->secondInstance = 0;
 	}
 	pMenu = 0;
 	if(!select[0] || !select[1]){
@@ -249,6 +245,7 @@ void interface::roundInit()
 		damage[i] = 0;
 		illegit[i] = 0;
 		counterHit[i] = 0;
+		blockFail[i] = 0;
 	}
 
 	grav = -6;
@@ -262,6 +259,7 @@ void interface::roundInit()
 /*Pretty simple timer modifier*/
 void interface::runTimer()
 {
+	if(freeze > 0) freeze--;
 	if(P[0]->rounds == 0 && P[1]->rounds == 0 && timer == 101 * 60){
 		Mix_VolumeMusic(100);
 		Mix_PlayMusic(matchMusic,-1);
@@ -269,7 +267,7 @@ void interface::runTimer()
 	int plus;
 	for(unsigned int i = 0; i < P.size(); i++){
 		if(select[i] == true){
-			if(things[i]->current.move != NULL){
+			if(things[i]->current.move != nullptr){
 				plus = (things[i]->current.move->arbitraryPoll(31, things[i]->current.frame));
 				if(plus != 0){
 					timer += plus;
@@ -321,20 +319,20 @@ void interface::runTimer()
 					if(analytics && replay){
 						replay->write();
 						delete replay;
-						replay = NULL;
+						replay = nullptr;
 					}
 					for(player *i:P){
 						if(i->record){
 							char buffer[200];
-							sprintf(buffer, "%i-%s.sh", i->ID, i->pick()->name);
+							sprintf(buffer, "%i-%s.sh", i->ID, i->pick()->name.c_str());
 							i->record->write(buffer);
 							delete i->record;
-							i->record = NULL;
+							i->record = nullptr;
 						}
 					}
 					if(oldReplay){
 						delete oldReplay;
-						oldReplay= NULL;
+						oldReplay= nullptr;
 					}
 					if(single) gameover = true;
 					else{
@@ -356,10 +354,10 @@ void interface::runTimer()
 
 void gameInstance::print()
 {
-	std::cout << "\x1b[A" << "\x1b[A";
+	cout << "\x1b[A" << "\x1b[A";
 	for(int i = 0; i < 2; i++){
-		for(int j = 0; j < 80; j++) std::cout << " ";
-		std::cout << ('\n');
+		for(int j = 0; j < 80; j++) cout << " ";
+		cout << ('\n');
 	}
 	for(player* i:P) i->print();
 }
@@ -376,6 +374,7 @@ void interface::resolve()
 		resolveThrows();
 		doSuperFreeze();
 		for(instance *i:things) i->updateRects();
+		resolveCollision();
 		resolvePhysics();
 		resolveCamera();
 		resolveCollision();
@@ -384,16 +383,33 @@ void interface::resolve()
 	}
 }
 
+void interface::initCharacters()
+{
+	ifstream nch;
+	numChars = 0;
+	char buffer[200];
+	nch.open("src/charlist.h");
+	do{
+		nch.getline(buffer, 200);
+		if(buffer[0] == '/' && buffer[1] == '/') numChars++;
+	} while(!nch.eof());
+	nch.close();
+	if(stats) delete stats;
+	stats = new chart(numChars);
+}
+
 void interface::resolveCombos()
 {
 	for(unsigned int i = 0; i < P.size(); i++){
 		if(!roundEnd){
-			switch (P[i]->pick()->comboState(things[i]->current.move)){ 
-			case -2: 
+			switch (P[i]->pick()->comboState(things[i]->current.move)){
+			case -2:
 				illegit[(i+1)%2] = 1;
 				counterHit[(i+1)%2] = 0;
+				blockFail[i] = 0;
 				break;
 			case 0:
+				if(killTimer) P[i]->meter[0] = 600;
 				combo[(i+1)%2] = 0;
 				damage[(i+1)%2] = 0;
 				prorate[(i+1)%2] = 1.0;
@@ -401,6 +417,7 @@ void interface::resolveCombos()
 				P[i]->elasticY = 0;
 				illegit[(i+1)%2] = 0;
 				counterHit[(i+1)%2] = 0;
+				blockFail[i] = 0;
 				break;
 			}
 		}
@@ -560,6 +577,7 @@ void interface::resolveSummons()
 			if(temp->arbitraryPoll(50, things[i]->current.frame)){
 				larva = things[i]->pick()->spawn(temp);
 				if(larva){
+					if(things[i]->sprite) larva->sprite = true;
 					switch (temp->arbitraryPoll(56, things[i]->current.frame)){
 					case 0:
 						larva->ID = 0;
@@ -586,6 +604,9 @@ void interface::resolveSummons()
 						y = things[(things[i]->ID)-1]->current.posY;
 					x += temp->arbitraryPoll(54, things[i]->current.frame)*f;
 					y += temp->arbitraryPoll(55, things[i]->current.frame);
+					if(x > bg.w + 100) x = bg.w + 100;
+					if(y > bg.h - 50) y = bg.h - 50;
+					if(x < -100) x = -100;
 					larva->current.facing = f;
 					larva->setPosition(x, y);
 					things.push_back(larva);
@@ -598,10 +619,10 @@ void interface::resolveSummons()
 
 void interface::summonAttractors()
 {
-	attractor * tvec = NULL, * avec = NULL;
+	attractor * tvec = nullptr, * avec = nullptr;
 	for(unsigned int i = 0; i < things.size(); i++){
 		if(things[i]->current.move && things[i]->current.frame == things[i]->current.move->distortSpawn) tvec = things[i]->current.move->distortion;
-		if(tvec != NULL){ 
+		if(tvec != nullptr){ 
 			avec = new attractor;
 			avec->x = tvec->x;
 			avec->y = tvec->y;
@@ -626,8 +647,8 @@ void interface::summonAttractors()
 				break;
 			}
 			globals.push_back(avec);
-			avec = NULL;
-			tvec = NULL;
+			avec = nullptr;
+			tvec = nullptr;
 		}
 	}
 }
@@ -658,7 +679,7 @@ void gameInstance::genInput()
 		replayIterator++;
 		if(replayIterator > oldReplay->command[0].size()){
 			delete oldReplay;
-			oldReplay = NULL;
+			oldReplay = nullptr;
 			replayIterator = 0;
 		}
 	} else {
@@ -666,7 +687,7 @@ void gameInstance::genInput()
 			for(unsigned int i = 0; i < P.size(); i++){
 				if(P[i]->currentMacro){
 					if(!P[i]->currentMacro->genEvent(0, P[i]->iterator, currentFrame[i])){
-						P[i]->currentMacro = NULL;
+						P[i]->currentMacro = nullptr;
 					} else {
 						if(P[i]->current.facing == -1){
 							bool s = currentFrame[i].axis[2];
@@ -702,13 +723,11 @@ void interface::processInput(SDL_Event &event)
 
 void interface::readInput()
 {
-	std::vector<SDL_Event> events;
+	vector<SDL_Event> events;
 	SDL_Event event;
-	for(int i = 0; i < 35; i++){
-		if(SDL_PollEvent(&event)){
-			events.push_back(event);
-			processInput(event);
-		}
+	while(SDL_PollEvent(&event)){
+		events.push_back(event);
+		processInput(event);
 	}
 	if(select[0] && select[1]){
 		if(scripting){
@@ -775,8 +794,9 @@ void gameInstance::processInput(SDL_Event &event)
 void interface::cSelectMenu()
 {
 	/*The plan is that this is eventually a menu, preferably pretty visual, in which players can select characters.*/
+	for(player *i:P) i->secondInstance = 0;
 	if(!initd){ 
-		std::ofstream write;
+		ofstream write;
 		write.open(".config/resolution.conf");
 		write << sf << '\n';
 		write.close();
@@ -820,18 +840,29 @@ void interface::cSelectMenu()
 	}
 
 	if(select[0] && select[1]){
-		//std::cout << "2 6\n" << selection[0] << " " << selection[1] << '\n';
-		P[0]->characterSelect(selection[0]);
-		P[1]->characterSelect(selection[1]);
+		//cout << "2 6\n" << selection[0] << " " << selection[1] << '\n';
+		if(selection[0] == selection[1]) P[1]->secondInstance = true;
+		for(unsigned int i = 0; i < P.size(); i++){
+			P[i]->characterSelect(selection[i]);
+		}
+		loadAssets();
 		if(analytics){
 			replay = new script;
 			replay->init(selection);
 		}
 
-		loadMatchBackground();
 		Mix_HaltMusic();
 
 		roundInit();
+	}
+}
+
+void interface::loadAssets()
+{
+	unsigned int b = SDL_WasInit(SDL_INIT_VIDEO);
+	if(b != 0){
+		for(player *i:P) i->loadAssets();
+		loadMatchBackground();
 	}
 }
 
@@ -977,6 +1008,7 @@ void interface::pauseMenu()
 					for(unsigned int i = 0; i < P.size(); i++){
 						delete P[i]->pick();
 						select[i] = 0;
+						initCharacters();
 						things[i]->meter.clear();
 					}
 					Mix_HaltMusic();
@@ -1046,7 +1078,7 @@ interface::~interface()
 {
 	if(select[0]) delete P[0]->pick();
 	if(select[1]) delete P[1]->pick();
-	if(menuMusic != NULL) Mix_FreeMusic(menuMusic);
+	if(menuMusic != nullptr) Mix_FreeMusic(menuMusic);
 	delete stats;
 	SDL_FreeSurface(screen);
 	SDL_Quit();
@@ -1093,13 +1125,55 @@ void gameInstance::unitCollision(instance *a, instance *b)
 
 void interface::resolveCollision()
 {
+	vector<SDL_Rect> temp;
+	vector<int> dx;
 	for(player *i:P){
 		i->enforceFloor(floor);
-		i->checkCorners(bg.x + wall, bg.x + screenWidth - wall);
+		temp.push_back(i->collision);
+		dx.push_back(i->current.deltaX);
+		temp.back().x -= dx.back();
 	}
 
-	if (aux::checkCollision(P[0]->collision, P[1]->collision))
-		unitCollision(P[0], P[1]);
+	unsigned int localMaximum = min(temp[0].w, temp[1].w) / 5 - 1;
+	unsigned int j[2] = {0, 0};
+	while(j[0] < abs(dx[0]) || j[1] < abs(dx[1])){
+		if(aux::checkCollision(temp[0], temp[1])){
+			unsigned int k[2] = {j[0], j[1]};
+			while(dx[0] || dx[1]){
+				for(unsigned int i = 0; i < P.size(); i++){
+					if(dx[i]){
+						P[i]->current.posX += temp[i].x - P[i]->collision.x;
+						P[i]->updateRects();
+						dx[i] -= (dx[i] > 0) ? j[i] : -j[i];
+						j[i] = 0;
+					}
+				}
+				for(player *i:P) i->checkCorners(bg.x + wall, bg.x + screenWidth - wall);
+				unitCollision(P[0], P[1]);
+				for(unsigned int i = 0; i < P.size(); i++){
+					if(localMaximum < abs(dx[i]) - j[i]){
+						j[i] += localMaximum;
+						temp[i].x += (dx[i] > 0) ? localMaximum : -localMaximum;
+					} else {
+						j[i] = abs(dx[i]);
+						temp[i].x += (dx[i] > 0) ? (j[i] - k[i]) : -(j[i] - k[i]);
+					}
+				}
+			}
+		} else {
+			for(unsigned int i = 0; i < P.size(); i++){
+				if(j[i] < abs(dx[i])) {
+					if(dx[i] < 0){
+						temp[i].x--;
+					} else if(dx[i] > 0){
+						temp[i].x++;
+					}
+					j[i]++;
+				}
+			}
+		}
+	}
+
 	prox.w = abs(things[0]->current.posX - things[1]->current.posX);
 	prox.h = abs(things[0]->current.posY - things[1]->current.posY);
 
@@ -1148,12 +1222,13 @@ void interface::resolveThrows()
 
 void interface::resolveHits()
 {
-	std::vector<hStat> s(things.size());
-	std::vector<int> hit(things.size());
-	std::vector<bool> connect(things.size());
-	std::vector<bool> taken(things.size());
-	std::vector<int> hitBy(things.size());
+	vector<hStat> s(things.size());
+	vector<int> hit(things.size());
+	vector<bool> connect(things.size());
+	vector<bool> taken(things.size());
+	vector<int> hitBy(things.size());
 	int push[2];
+	for(player *i:P) i->checkCorners(bg.x + wall, bg.x + screenWidth - wall);
 	for(unsigned int i = 0; i < things.size(); i++){
 		taken[i] = 0;
 		hit[i] = 0;
@@ -1166,16 +1241,16 @@ void interface::resolveHits()
 		}
 	}
 	for(unsigned int i = 0; i < things.size(); i++){
-		for(int m = (int)things.size()-1; m >= 0; m--){
-			if(m != (int)i && !taken[m] && !connect[i]){
-				for(unsigned int j = 0; j < things[i]->hitbox.size(); j++){
-					for(unsigned int k = 0; k < things[m]->hitreg.size(); k++){
-						if(aux::checkCollision(things[i]->hitbox[j], things[m]->hitreg[k])){
-							if(things[i]->acceptTarget(things[m])){
+		for(int m = things.size()-1; m >= 0; m--){
+			for(unsigned int j = 0; j < things[i]->hitbox.size(); j++){
+				for(unsigned int k = 0; k < things[m]->hitreg.size(); k++){
+					if(aux::checkCollision(things[i]->hitbox[j], things[m]->hitreg[k])){
+						if(things[i]->acceptTarget(things[m])){
+							if(m != (int)i && !taken[m] && !connect[i]){
 								connect[i] = 1;
 								things[i]->current.counter = things[m]->CHState();
 								if(things[i]->current.counter > 0) counterHit[things[i]->ID-1] = s[i].stun + (s[i].pause > 0) ? s[i].pause : (s[i].stun/4 + 10);
-								things[i]->pick()->pollStats(s[i], things[i]->current);
+								things[i]->pollStats(s[i]);
 								if(i < P.size()) push[i] = s[i].push;
 								k = things[m]->hitreg.size();
 								j = things[i]->hitbox.size();
@@ -1190,13 +1265,22 @@ void interface::resolveHits()
 		}
 	}
 
+
 	for(unsigned int i = 0; i < things.size(); i++){ 
 		if(taken[i]){
 			int health = things[things[i]->ID-1]->meter[0];
 			bool actuallyDoesDamage = (s[hitBy[i]].damage != 0);
 			s[hitBy[i]].damage *= prorate[things[hitBy[i]]->ID-1];
 			if(actuallyDoesDamage && s[hitBy[i]].damage == 0) s[hitBy[i]].damage = 1;
+			action * b = things[i]->current.move;
 			hit[hitBy[i]] = things[i]->takeHit(combo[things[hitBy[i]]->ID-1], s[hitBy[i]], prox);
+			if(hit[hitBy[i]] == 1){
+				if(b->canGuard(P[i]->current.frame)){
+					blockFail[i] = s[hitBy[i]].blockMask.i;
+					if(!blockFail[i]) blockFail[i] = 8;
+					else if(P[i]->current.aerial && !(blockFail[i] & 4)) blockFail[i] = 12;
+				}
+			}
 			if(i < P.size()){
 				if(things[i]->particleType == -2){
 					hStat ths;
@@ -1289,17 +1373,23 @@ void interface::doSuperFreeze()
 {
 	int go[2] = {0, 0};
 	for(unsigned int i = 0; i < P.size(); i++){
-		if(!things[i]->current.move->arbitraryPoll(33, 0) || freeze <= 0)
+		if(!things[i]->current.move->arbitraryPoll(33, 0) || freeze <= 0){
 			go[i] = things[i]->current.move->arbitraryPoll(2, things[i]->current.frame);
-		if(go[i] > 0){ 
+		}
+	}
+
+	for(unsigned int i = 0; i < P.size(); i++){
+		if(go[i] > 0){
 			P[(i+1)%2]->checkBlocking();
-			things[(i+1)%2]->current.freeze += go[i];
+			things[(i+1)%2]->current.freeze += go[i] - go[(i+1)%2];
 			if(things[i]->current.move->arbitraryPoll(32, 0)){
 				for(unsigned int j = 2; j < things.size(); j++) things[j]->current.freeze += go[i];
 			}
 		}
 	}
-	if(go[0] > 0 || go[1] > 0)
-		freeze = std::max(go[0], go[1]);
+
+	if(go[0] > 0 || go[1] > 0){
+		freeze = max(go[0], go[1]);
+	}
 }
 
