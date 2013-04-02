@@ -374,6 +374,7 @@ void interface::resolve()
 		resolveThrows();
 		doSuperFreeze();
 		for(instance *i:things) i->updateRects();
+		resolveCollision();
 		resolvePhysics();
 		resolveCamera();
 		resolveCollision();
@@ -576,6 +577,7 @@ void interface::resolveSummons()
 			if(temp->arbitraryPoll(50, things[i]->current.frame)){
 				larva = things[i]->pick()->spawn(temp);
 				if(larva){
+					if(things[i]->sprite) larva->sprite = true;
 					switch (temp->arbitraryPoll(56, things[i]->current.frame)){
 					case 0:
 						larva->ID = 0;

@@ -955,7 +955,7 @@ int player::takeHit(int combo, hStat & s, SDL_Rect &p)
 	updateRects();
 	if(s.ghostHit) return 0;
 	else if(particleType == 1) return particleType;
-	else { 
+	else {
 		return -1;
 	}
 }

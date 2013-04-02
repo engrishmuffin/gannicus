@@ -453,7 +453,7 @@ void instance::draw()
 {
 	bool sCheck = spriteCheck();
 	status * n;
-	if(sCheck) n = current.freeze && current.counter ? &save : &current;
+	if(sCheck && save.facing) n = current.freeze && current.counter ? &save : &current;
 	else n = &current;
 	int realPosY = n->posY;
 	int realPosX = n->posX;
@@ -511,7 +511,8 @@ void instance::draw()
 				glPopMatrix();
 			glPopMatrix();
 		} else drawBoxen();
-	} else save = current;
+	}
+	if(n == &current) save = current;
 }
 
 void player::drawHitParticle()
@@ -544,6 +545,7 @@ void player::drawHitParticle()
 
 void avatar::draw(action *& cMove, int f)
 {
+	printf("%s\n", name.c_str());
 	cMove->draw(f);
 }
 
