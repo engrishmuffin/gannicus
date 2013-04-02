@@ -9,7 +9,7 @@ fi
 	echo $M
 for x in $(cat src/charlist.h | grep $M | cut -d ' ' -f 3); do
 	cd content/characters/$x;
-	for z in *{,/*}.mv; do
+	for z in *{,/*}'.mv'; do
 		cd ../../..
 		mkdir -p dump/$x;
 		./bmpout content/characters/$x/$z;

@@ -1,4 +1,4 @@
-/*Copyright Somnambulent Studios 2012-2013*/
+/*Copyright Somnambulant Studios 2012-2013*/
 #include "auxil.h"
 #include "gl-compat.h"
 #include "interface.h"
@@ -211,7 +211,26 @@ void interface::drawGame()
 	if(freeze > 0){
 		glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
 		glRectf(0.0f, 0.0f, (GLfloat)screenWidth, (GLfloat)screenHeight);
-		freeze--;
+	}
+}
+
+void interface::drawHint(int i)
+{
+	if(blockFail[i]){
+		if(blockFail[i] & 1){
+			glColor4f(0.0, 1.0, 0.0, 0.7);
+			drawGlyph("low", 100+1000*i, 400, 300, 55, 2*i);
+		} else if(blockFail[i] & 2){
+			glColor4f(1.0, 0.6, 0.6, 0.7);
+			drawGlyph("high", 100+1000*i, 400, 300, 55, 2*i);
+		} else if(blockFail[i] & 4){
+			if(blockFail[i] & 8) glColor4f(1.0, 0.0, 0.0, 0.7);
+			else glColor4f(0.0, 0.0, 1.0, 0.7);
+			drawGlyph("air", 100+1000*i, 400, 300, 55, 2*i);
+		} else if(blockFail[i] & 8){
+			glColor4f(1.0, 0.0, 0.0, 0.7);
+			drawGlyph("unblock", 100+1000*i, 300, 500, 55, 2*i);
+		}
 	}
 }
 
@@ -230,14 +249,15 @@ void interface::drawHUD()
 	for(unsigned int i = 0; i < P.size(); i++){
 		if(P[i]->name.size()) drawGlyph(P[i]->name, 100+800*i, 600, 30, 40, 0+2*i);
 		else drawGlyph(things[i]->pick()->name, 100+800*i, 600, 30, 40, 0+2*i);
+		drawHint(i);
 		if(counterHit[i] > 0){
 			glColor4f(1.0, 1.0, 0.5, 0.7);
-			drawGlyph("Counter", 100+1000*i, 400, 200, 55, 0+2*i);
-			glColor4f(1.0, 1.0, 1.0, 1.0);
+			drawGlyph("Counter", 100+1000*i, 400, 200, 55, 2*i);
 		}
+		glColor4f(1.0, 1.0, 1.0, 1.0);
 		if(P[i]->record){
 			glColor4f(0.5, 1.0, 1.0, 0.7);
-			drawGlyph("Recording", 100+1000*i, 600, 200, 55, 0+2*i);
+			drawGlyph("Recording", 100+1000*i, 600, 200, 55, 2*i);
 			glColor4f(1.0, 1.0, 1.0, 1.0);
 		}
 		/*
@@ -431,15 +451,18 @@ void instance::drawBoxen()
 
 void instance::draw()
 {
-	int realPosY = current.posY;
-	int realPosX = current.posX;
 	bool sCheck = spriteCheck();
+	status * n;
+	if(sCheck) n = current.freeze ? &save : &current;
+	else n = &current;
+	int realPosY = n->posY;
+	int realPosX = n->posX;
 	glEnable(GL_TEXTURE_2D);
 
 	if(sprite && sCheck){
-		if(current.move->offX != 0) realPosX += current.move->offX*current.facing;
+		if(n->move->offX != 0) realPosX += n->move->offX*n->facing;
 		else{
-			if(current.facing == 1){
+			if(n->facing == 1){
 				if(collision.x < realPosX) realPosX = collision.x;
 				for(unsigned int i = 0; i < hitreg.size(); i++){
 					if(hitreg[i].x < realPosX) realPosX = hitreg[i].x;
@@ -457,7 +480,7 @@ void instance::draw()
 				}
 			}
 		}
-		if(current.move->offY != 0) realPosY += current.move->offY;
+		if(n->move->offY != 0) realPosY += n->move->offY;
 		else{
 			if(collision.y < realPosY) realPosY = collision.y;
 			for(unsigned int i = 0; i < hitreg.size(); i++){
@@ -472,17 +495,23 @@ void instance::draw()
 		glPushMatrix();
 			glTranslatef(realPosX, -realPosY, 0);
 			glPushMatrix();
-				glScalef((float)current.facing, 1.0, 1.0);
-				pick()->draw(current.move, current.frame);
+				glScalef((float)n->facing, 1.0, 1.0);
+				pick()->draw(n->move, n->frame);
 			glPopMatrix();
 		glPopMatrix();
 	}
 	glDisable(GL_TEXTURE_2D);
 	if(!sCheck || boxen){
-		if(!current.move || current.frame > current.move->frames)
-			pick()->neutral->drawBoxen(0);
-		else drawBoxen();
-	}
+		if(!n->move || n->frame > n->move->frames){
+			glPushMatrix();
+				glTranslatef(realPosX, -realPosY, 0);
+				glPushMatrix();
+					glScalef((float)n->facing, 1.0, 1.0);
+					pick()->neutral->drawBoxen(0);
+				glPopMatrix();
+			glPopMatrix();
+		} else drawBoxen();
+	} else save = current;
 }
 
 void player::drawHitParticle()

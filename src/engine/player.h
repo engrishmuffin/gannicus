@@ -1,7 +1,6 @@
-/*Copyright Somnambulent Studios 2012-2013*/
+/*Copyright Somnambulant Studios 2012-2013*/
 #include "../charlist.h"
 #include "controller.h"
-#include <string>
 
 #ifndef ___player
 #define ___player
@@ -50,6 +49,7 @@ public:
 	void print();
 
 	status current;
+	status save;
 
 	vector<int> meter;
 	int particleType;

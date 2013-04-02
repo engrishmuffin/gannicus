@@ -41,7 +41,7 @@ void instance::pollStats(hStat &s)
 {
 	pick()->pollStats(s, current);
 	if(current.rCorner || current.lCorner){
-		s.push *= 3;
+		s.push *= 2;
 	}
 }
 
@@ -55,13 +55,13 @@ void instance::init()
 	current.connect = 0;
 	current.counter = 0;
 	current.hit = 0;
-	counter = 0;
 	current.move = nullptr;
 	current.bufferedMove = nullptr;
 	current.reversal = nullptr;
 	current.freeze = 0;
 	current.aerial = false;
 	current.dead = false;
+	counter = 0;
 	for(int i = 0; i < 30; i++) inputBuffer[i] = 5;
 }
 
@@ -330,7 +330,22 @@ void player::characterSelect(int i)
 		v = new yellow;
 		break;
 	default:
-		v = new character("White");
+		ifstream nch;
+		vector<string> chr (i+1);
+		chr[0] = "White";
+		nch.open("src/charlist.h");
+		int j = 0;
+		while(j < i){
+			char k;
+			do nch >> k;
+			while(k != '/');
+			do nch >> k;
+			while(k != '-');
+			j++;
+			nch >> chr[j];
+		}
+		nch.close();
+		v = new character(chr[i]);
 		break;
 	}
 	iterator = 0;
@@ -880,6 +895,7 @@ int player::takeHit(int combo, hStat & s, SDL_Rect &p)
 {
 	SDL_Rect v = {0, 0, 1, 0};
 	action * temp = nullptr;
+	current.reversal = nullptr;
 	if(s.damage > 0){
 		if(combo >= s.damage) s.damage = 1;
 		else s.damage -= combo;
@@ -990,7 +1006,6 @@ void player::getThrown(action *toss, int x, int y)
 	dummy.stun = 1;
 	dummy.ghostHit = 1;
 	setPosition(toss->arbitraryPoll(27, current.frame)*xSign + abs(x), toss->arbitraryPoll(26, current.frame) + y);
-	pick()->neutralize(current, current.move, meter);
 	pick()->takeHit(current, dummy, 0, particleType, meter);
 	updateRects();
 }

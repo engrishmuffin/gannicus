@@ -27,7 +27,7 @@ void projectile::pollStats(hStat & s, status &current)
 {
 	s.isProjectile = true;
 	current.move->pollStats(s, current.frame, current.counter);
-	if(s.pause == -1)
+	if(s.pause == -1 && !s.ghostHit)
 		s.pause = 4;
 }
 

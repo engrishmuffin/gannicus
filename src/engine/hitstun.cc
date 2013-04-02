@@ -14,6 +14,11 @@ void hitstun::step(vector<int>& meter, status &current)
 	}
 }
 
+bool hitstun::canGuard(int f)
+{
+	return (blockState.i & 7) ? true : false;
+}
+
 int hitstun::takeHit(hStat& s, int b, status& current)
 {
 	if(!s.stun) return 1;

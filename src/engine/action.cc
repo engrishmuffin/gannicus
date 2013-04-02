@@ -37,6 +37,10 @@ void action::zero()
 	tempPayload.clear();
 	tempRiposte.clear();
 	tempOnHold.clear();
+	tempParticle.clear();
+	particleX = 0;
+	particleY = 0;
+	particleSpawn = -1;
 	offX = 0;
 	offY = 0;
 	linkable = 0;
@@ -95,7 +99,7 @@ void action::zero()
 	followYRate = 0;
 }
 
-void action::generate(const char* directory, const char* name)
+void action::generate(string directory, string name)
 {
 	payload = new projectile(directory, name);
 	if(lifespan) payload->lifespan = lifespan;
@@ -148,13 +152,11 @@ void action::build(string dir, string n)
 	zero();
 	fileName = n;
 	ifstream read;
-	char fname[1024];
 	char buffer[1024];
 	char savedBuffer[1024];
 	buffer[0] = '\0';
 
-	sprintf(fname, "content/characters/%s/%s.mv", dir.c_str(), fileName.c_str());
-	read.open(fname);
+	read.open("content/characters/"+dir+"/"+fileName+".mv");
 	if(read.fail()){
 		//printf("Move %s/%s not found. Skipping\n", dir.c_str(), fileName.c_str());
 		null = true;
@@ -217,8 +219,7 @@ void action::loadMisc(string dir)
 		}
 		SDL_FreeSurface(temp);
 	}
-	sprintf(fname, "content/characters/%s/%s.ogg", dir.c_str(), fileName.c_str());
-	soundClip = Mix_LoadWAV(fname);
+	soundClip = Mix_LoadWAV(string("content/characters/"+dir+"/"+fileName+".ogg").c_str());
 }
 
 bool action::setParameter(string buffer)
@@ -507,6 +508,12 @@ bool action::setParameter(string buffer)
 	} else if(t.current() == "Payload"){
 		tempPayload = t("\t: \n");
 		return true;
+	} else if(t.current() == "Particle"){
+		tempParticle = t("\t: \n");
+		particleSpawn = stoi(t("\t: \n"));
+		particleX = stoi(t());
+		particleY = stoi(t());
+		return true;
 	} else return 0;
 }
 
@@ -735,7 +742,7 @@ bool action::cancel(action *& x, int& c, int &h)
 	cancelField r;
 	r.i = 0;
 	if(x == nullptr) return 1;
-	if(c > x->hits || h > x->hits) return 0;
+	if(h < 0 || c < 0 || c > x->hits || h > x->hits) return 0;
 	if(x->modifier && x->basis){
 		if(x->basis == nullptr){ 
 			return 1;
@@ -879,14 +886,30 @@ string action::request(int code, int i)
 	}
 }
 
+bool action::operator!=(const string &o)
+{
+	return fileName.compare(o) ? true : false;
+}
+
+bool action::operator==(const string &o)
+{
+	return fileName.compare(o) ? false : true;
+}
+
+bool action::canGuard(int f)
+{
+	if(f >= guardStart && f <= guardStart + guardLength && blockState.i & 7) return true;
+	else return false;
+}
+
 int action::takeHit(hStat & s, int b, status &current)
 {
 	if(modifier && basis) return basis->takeHit(s, b, current);
 	else{
 		if(!stunMin || s.stun >= stunMin){
 			if(!stunMax || s.stun <= stunMax){
-				if(s.blockMask.i & blockState.i && current.frame >= guardStart && current.frame <= guardStart + guardLength){
-					if(riposte != nullptr){ 
+				if(s.blockMask.i & blockState.i && canGuard(current.frame)){
+					if(riposte != nullptr){
 						if(!s.isProjectile || countersProjectile) return -5;
 					}
 					return guardType;

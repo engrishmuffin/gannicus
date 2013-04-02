@@ -1,5 +1,5 @@
 /*Copyright Ashley Fisher 2012
- *Modified with permission by Somnambulent Studios, 2012-2013*/
+ *Modified with permission by Somnambulant Studios, 2012-2013*/
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
 #include <string>
@@ -49,7 +49,10 @@ public:
 	void unitNormal(float, float, float, float, float, float, float, float, float);
 };
 
-struct status{
+class status{
+public:
+	status();
+	status(const status&);
 	int posX, posY;
 	int facing;
 	int deltaX, deltaY; 

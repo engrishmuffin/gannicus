@@ -14,16 +14,14 @@ linux = base.Clone()
 linux.Append(LIBS=['SDL',
                    'SDLmain',
                    'SDL_image',
-<<<<<<< HEAD
                    'SDL_mixer'])
-=======
-                   'SDL_mixer',
-                   'SOIL'])
->>>>>>> forrest/alpha
 gcc = linux.Clone()
 gcc.Replace(CXX='g++')
 gcc.Append(LIBS=['GL', 'GLU', 'glut'])
+<<<<<<< HEAD
 
+=======
+>>>>>>> alpha-e
 
 clang = linux.Clone()
 clang.Replace(CXX='clang++')
@@ -37,13 +35,17 @@ std_inside.Append(LIBS=['GL', 'GLU', 'm', 'rt', 'pthread'],
                  CXXFLAGS=['-nostdinc++'])
 std_inside.Prepend(CPPPATH=[libcxxpath])
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> alpha-e
 mac = base.Clone()
 mac.Replace(CXX='clang++')
 mac.Prepend(CPPPATH=['/usr/local/include/c++'],
             DYLD_LIBRARY_PATH=['/usr/local/lib'])
 mac.Append(CXXFLAGS=['-D___MAC_OSX'],
+          LD="clang++",
           LDFLAGS=['-L/usr/local/lib'],
           LIBS=['c++', 'm'],
           FRAMEWORKS=['OpenGL',
@@ -53,16 +55,16 @@ mac.Append(CXXFLAGS=['-D___MAC_OSX'],
                       'Cocoa'])
 
 mac_std_inside = mac.Clone()
-<<<<<<< HEAD
 mac_std_inside.Replace(LIBS=['m', 'pthread'], LDFLAGS=[])
-=======
-mac_std_inside.Replace(LIBS=['m', 'r', 'pthread'], LDFLAGS=[])
->>>>>>> forrest/alpha
 mac_std_inside.Append(CXXFLAGS=['-nostdinc++'], CPPPATH=[libcxxpath])
 
 def AddExtras(k):
   if k in ['.osx', '.sosx']:
+<<<<<<< HEAD
     return ['SDLMain.m']
+=======
+    return ['extern/SDLMain.m']
+>>>>>>> alpha-e
   if k in ['.s', '.sosx']:
     return ['extern/libcxx/src/'+cpp+'.cpp' for cpp in \
              ['chrono',
@@ -86,12 +88,8 @@ def AddExtras(k):
 for k, env in {'':gcc, '.gcc':gcc,
                '.cl':clang,
                '.osx':mac,
-<<<<<<< HEAD
                '.s':std_inside,
                '.sosx':mac_std_inside
-=======
-               '.s':std_inside
->>>>>>> forrest/alpha
                }.items():
   b=[env.Object(name+k+'.o', name) for name in backend+AddExtras(k)]
   env.Program('../gufg'+k, b + env.Object(gufg+k+'.o', gufg))

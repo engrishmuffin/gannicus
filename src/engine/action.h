@@ -1,10 +1,8 @@
-/*Copyright Somnambulent Studios 2012-2013*/
+/*Copyright Somnambulant Studios 2012-2013*/
 #include "auxil.h"
 #include "masks.h"
 #include "sdl-compat.h"
 #include "tokenizer.h"
-#include <SDL/SDL.h>
-#include <vector>
 
 #ifndef ___action
 #define ___action
@@ -47,6 +45,8 @@ public:
 	action(string, string);
 	char typeKey;
 	virtual ~action();
+	bool operator!=(const string&);
+	bool operator==(const string&);
 	bool spriteCheck(int);
 	virtual void build(string, string);
 	virtual void loadMisc(string);
@@ -57,7 +57,7 @@ public:
 	virtual void execute(action *, vector<int>&, int&, int&, int&);
 	virtual void playSound(int);
 	virtual bool activate(vector<int>, int, int, int, vector<int>, SDL_Rect&); //Check to see if the action is possible right now.
-	virtual void generate(const char*, const char*);
+	virtual void generate(string, string);
 	virtual bool check(SDL_Rect&, vector<int>); //Check to see if the action is possible right now.
 
 	virtual action * blockSuccess(int, bool);
@@ -73,7 +73,8 @@ public:
 	virtual action * land(int &f, int &h, int &c) { return this; }
 	virtual action * connect(vector<int>&, int&, int);
 	virtual instance * spawn();
-	virtual int takeHit(hStat&, int, status&); 
+	virtual int takeHit(hStat&, int, status&);
+	virtual bool canGuard(int);
 
 	virtual void feed(action *, int, int);
 	virtual string request(int, int);
@@ -178,9 +179,11 @@ public:
 	//Projectile stuff;
 	avatar * payload;
 	string tempPayload;
+	string tempParticle;
+	int particleSpawn;
+	int particleX, particleY;
 	int spawnFrame;
-	int spawnPosX;
-	int spawnPosY;
+	int spawnPosX, spawnPosY;
 	int lifespan;
 	int allegiance;
 	bool spawnTrackX:1;
@@ -193,6 +196,7 @@ public:
 	hitstun() {}
 	virtual void step(vector<int>&, status&);
 	virtual int takeHit(hStat&, int, status&); 
+	virtual bool canGuard(int);
 	hitstun(string, string);
 };
 

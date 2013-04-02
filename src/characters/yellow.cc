@@ -43,7 +43,7 @@ void yellow::step(status &current, std::vector<int>& meter)
 action * yellow::createMove(std::string key)
 {
 	tokenizer t(key, " \t-@?_%&$!\n");
-        string token = t.current();
+	string token = t();
 	action * m;
 	switch(key[0]){
 	case '$':
@@ -138,7 +138,7 @@ bool flashSummon::check(SDL_Rect& p, std::vector<int> meter)
 
 int flashSummon::arbitraryPoll(int q, int f)
 {
-	if(uFlag && q == 2) return 0;
+	if(uFlag == 1 && q == 2) return 0;
 	else return action::arbitraryPoll(q,f);
 }
 

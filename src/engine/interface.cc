@@ -1,10 +1,7 @@
 /*Copyright Somnambulant Studios 2012*/
 #include "interface.h"
-#include <SDL/SDL_opengl.h>
 #include <algorithm>
 #include <assert.h>
-#include <cstring>
-#include <ctime>
 #include <fstream>
 #include <iostream>
 #include <math.h>
@@ -17,8 +14,8 @@ using std::min;
 
 interface::interface()
 {
-	numChars = 2;
-	stats = new chart(numChars);
+	stats = nullptr;
+	initCharacters();
 	killTimer = false;
 	shortcut = true;
 	continuous = false;
@@ -92,6 +89,7 @@ void interface::createPlayers()
 		selection.push_back(1+i);
 		menu[i] = 0;
 		counterHit[i] = 0;
+		blockFail[i] = 0;
 		configMenu[i] = 0;
 		things.push_back(P[i]);
 		P[i]->boxen = false;
@@ -102,7 +100,6 @@ void interface::createPlayers()
 void interface::loadMatchBackground()
 {
 	char buffer[100];
-	if(selection[0] == selection[1]) P[1]->secondInstance = true;
 
 	sprintf(buffer, "content/stages/%i/bg.png", selection[0]);
 	background = aux::load_texture(buffer);
@@ -215,7 +212,6 @@ void interface::matchInit()
 	rMenu = 0;
 	for(player* i:P){
 		i->rounds = 0;
-		i->secondInstance = 0;
 	}
 	pMenu = 0;
 	if(!select[0] || !select[1]){
@@ -249,6 +245,7 @@ void interface::roundInit()
 		damage[i] = 0;
 		illegit[i] = 0;
 		counterHit[i] = 0;
+		blockFail[i] = 0;
 	}
 
 	grav = -6;
@@ -262,6 +259,7 @@ void interface::roundInit()
 /*Pretty simple timer modifier*/
 void interface::runTimer()
 {
+	if(freeze > 0) freeze--;
 	if(P[0]->rounds == 0 && P[1]->rounds == 0 && timer == 101 * 60){
 		Mix_VolumeMusic(100);
 		Mix_PlayMusic(matchMusic,-1);
@@ -384,16 +382,33 @@ void interface::resolve()
 	}
 }
 
+void interface::initCharacters()
+{
+	ifstream nch;
+	numChars = 0;
+	char buffer[200];
+	nch.open("src/charlist.h");
+	do{
+		nch.getline(buffer, 200);
+		if(buffer[0] == '/' && buffer[1] == '/') numChars++;
+	} while(!nch.eof());
+	nch.close();
+	if(stats) delete stats;
+	stats = new chart(numChars);
+}
+
 void interface::resolveCombos()
 {
 	for(unsigned int i = 0; i < P.size(); i++){
 		if(!roundEnd){
-			switch (P[i]->pick()->comboState(things[i]->current.move)){ 
-			case -2: 
+			switch (P[i]->pick()->comboState(things[i]->current.move)){
+			case -2:
 				illegit[(i+1)%2] = 1;
 				counterHit[(i+1)%2] = 0;
+				blockFail[i] = 0;
 				break;
 			case 0:
+				if(killTimer) P[i]->meter[0] = 600;
 				combo[(i+1)%2] = 0;
 				damage[(i+1)%2] = 0;
 				prorate[(i+1)%2] = 1.0;
@@ -401,6 +416,7 @@ void interface::resolveCombos()
 				P[i]->elasticY = 0;
 				illegit[(i+1)%2] = 0;
 				counterHit[(i+1)%2] = 0;
+				blockFail[i] = 0;
 				break;
 			}
 		}
@@ -776,6 +792,7 @@ void gameInstance::processInput(SDL_Event &event)
 void interface::cSelectMenu()
 {
 	/*The plan is that this is eventually a menu, preferably pretty visual, in which players can select characters.*/
+	for(player *i:P) i->secondInstance = 0;
 	if(!initd){ 
 		ofstream write;
 		write.open(".config/resolution.conf");
@@ -822,6 +839,7 @@ void interface::cSelectMenu()
 
 	if(select[0] && select[1]){
 		//cout << "2 6\n" << selection[0] << " " << selection[1] << '\n';
+		if(selection[0] == selection[1]) P[1]->secondInstance = true;
 		for(unsigned int i = 0; i < P.size(); i++){
 			P[i]->characterSelect(selection[i]);
 		}
@@ -988,6 +1006,7 @@ void interface::pauseMenu()
 					for(unsigned int i = 0; i < P.size(); i++){
 						delete P[i]->pick();
 						select[i] = 0;
+						initCharacters();
 						things[i]->meter.clear();
 					}
 					Mix_HaltMusic();
@@ -1251,7 +1270,15 @@ void interface::resolveHits()
 			bool actuallyDoesDamage = (s[hitBy[i]].damage != 0);
 			s[hitBy[i]].damage *= prorate[things[hitBy[i]]->ID-1];
 			if(actuallyDoesDamage && s[hitBy[i]].damage == 0) s[hitBy[i]].damage = 1;
+			action * b = things[i]->current.move;
 			hit[hitBy[i]] = things[i]->takeHit(combo[things[hitBy[i]]->ID-1], s[hitBy[i]], prox);
+			if(hit[hitBy[i]] == 1){
+				if(b->canGuard(P[i]->current.frame)){
+					blockFail[i] = s[hitBy[i]].blockMask.i;
+					if(!blockFail[i]) blockFail[i] = 8;
+					else if(P[i]->current.aerial && !(blockFail[i] & 4)) blockFail[i] = 12;
+				}
+			}
 			if(i < P.size()){
 				if(things[i]->particleType == -2){
 					hStat ths;
@@ -1344,17 +1371,23 @@ void interface::doSuperFreeze()
 {
 	int go[2] = {0, 0};
 	for(unsigned int i = 0; i < P.size(); i++){
-		if(!things[i]->current.move->arbitraryPoll(33, 0) || freeze <= 0)
+		if(!things[i]->current.move->arbitraryPoll(33, 0) || freeze <= 0){
 			go[i] = things[i]->current.move->arbitraryPoll(2, things[i]->current.frame);
-		if(go[i] > 0){ 
+		}
+	}
+
+	for(unsigned int i = 0; i < P.size(); i++){
+		if(go[i] > 0){
 			P[(i+1)%2]->checkBlocking();
-			things[(i+1)%2]->current.freeze += go[i];
+			things[(i+1)%2]->current.freeze += go[i] - go[(i+1)%2];
 			if(things[i]->current.move->arbitraryPoll(32, 0)){
 				for(unsigned int j = 2; j < things.size(); j++) things[j]->current.freeze += go[i];
 			}
 		}
 	}
-	if(go[0] > 0 || go[1] > 0)
+
+	if(go[0] > 0 || go[1] > 0){
 		freeze = max(go[0], go[1]);
+	}
 }
 

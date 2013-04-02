@@ -1,12 +1,5 @@
-/*Copyright Somnambulent Studios 2012-2013*/
+/*Copyright Somnambulant Studios 2012-2013*/
 #include "action.h"
-#include <SDL/SDL.h>
-#include <cstring>
-#include <fstream>
-#include <iostream>
-//#include <stdio.h>
-#include <string>
-#include <vector>
 
 #ifndef ___move_trie
 #define ___move_trie

@@ -1,4 +1,4 @@
-/*Copyright Somnambulent Studios 2012*/
+/*Copyright Somnambulant Studios 2012*/
 #include "auxil.h"
 #include "gl-compat.h"
 #include "sdl-compat.h"
@@ -10,7 +10,6 @@
 #include <math.h>
 #include <string>
 #include <vector>
-
 
 SDL_Surface* aux::init_screen(int width, int height, int bpp) {
 	if (SDL_Init(SDL_INIT_EVERYTHING) == -1) {
@@ -286,4 +285,38 @@ void vect::unitNormal(float Ax, float Ay, float Az, float Bx, float By, float Bz
 	x = i / len;
 	y = j / len;
 	z = k / len;
-};
+}
+
+status::status()
+{
+	deltaX = 0;
+	deltaY = 0;
+	lCorner = 0;
+	rCorner = 0;
+	frame = 0;
+	connect = 0;
+	counter = 0;
+	hit = 0;
+	move = nullptr;
+	bufferedMove = nullptr;
+	reversal = nullptr;
+	freeze = 0;
+	aerial = false;
+	dead = false;
+}
+
+status::status(const status & o) 
+{
+	this->posX = o.posX; this->posY = o.posY;
+	this->facing = o.facing;
+	this->deltaX = o.deltaX; this->deltaY = o.deltaY; 
+	this->frame = o.frame;
+	this->freeze = o.freeze;
+	this->aerial = o.aerial;
+	this->rCorner = o.rCorner; this->lCorner = o.lCorner;
+	this->move = o.move; this->bufferedMove = o.bufferedMove; this->reversal = o.reversal;
+	this->connect = o.connect; this->hit = o.hit; this->counter = o.counter;
+	this->dead = o.dead;
+	this->throwInvuln = o.throwInvuln;
+	this->reversalFlag = o.reversalFlag;
+}

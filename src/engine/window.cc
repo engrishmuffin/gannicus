@@ -1,5 +1,6 @@
 #include "window.h"
 #include "gl-compat.h"
+#include <SDL/SDL_opengl.h>
 
 window::window()
 {

@@ -35,7 +35,8 @@ mac = base.Clone()
 mac.Replace(CXX='clang++')
 mac.Prepend(CPPPATH=['/usr/local/include/c++'],
             DYLD_LIBRARY_PATH=['/usr/local/lib'])
-mac.Append(CXXFLAGS=['-D___MAC_OSX'],
+mac.Append(CXXFLAGS=['-D___mac_osx'],
+
           LD="clang++",
           LDFLAGS=['-L/usr/local/lib'],
           LIBS=['c++', 'm'],

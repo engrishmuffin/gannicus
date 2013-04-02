@@ -1,6 +1,4 @@
 #include "analytics.h"
-#include "controller.h"
-#include <SDL/SDL.h>
 
 #ifndef ___harness
 #define ___harness

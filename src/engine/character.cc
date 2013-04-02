@@ -16,7 +16,7 @@ character::character()
 	//build("genericCharacter", "genericCharacter");
 }
 
-character::character(const char * name)
+character::character(string name)
 {
 	head = new actionTrie;
 	airHead = new actionTrie;
@@ -45,7 +45,7 @@ void avatar::prepHooks(status &current, action *& cMove, int inputBuffer[30], ve
 {
 	action * t = nullptr;
 	if(current.move && current.reversal){
-		if(current.move->state[current.hit].i & current.reversal->allowed.i){
+		if(current.move->state[(current.connect >= 0) ? current.connect : 0].i & current.reversal->allowed.i){
 			if(current.reversal->check(p, meter)){
 				if(!dryrun) current.reversal->execute(neutral, meter, current.frame, current.connect, current.hit);
 				cMove = current.reversal;
@@ -157,11 +157,11 @@ int character::comboState(action * c)
 
 action * avatar::dealWithMove(string input)
 {
-	if(input[0] == '#' || input[0] == '\0') return nullptr;
+	if(input[0] == '#') return nullptr;
 	bool replace = false;
 	action * m = createMove(input);
 	for(unsigned int i = 0; i < moveList.size(); i++){
-		if(!moveList[i]->fileName.compare(m->fileName) && moveList[i]->typeKey == m->typeKey){
+		if(*moveList[i] == m->fileName && moveList[i]->typeKey == m->typeKey){
 			if(m->null){
 				moveList[i]->allowed.i = 0;
 				//cout << "Disabling ";
@@ -192,14 +192,13 @@ action * avatar::dealWithMove(string input)
 	return m;
 }
 
-void avatar::build(const char* directory, const char* file)
+void avatar::build(string directory, string file)
 {
 	char buffer[101];
 	bool commentFlag;
 	ifstream read;
-	sprintf(buffer, "content/characters/%s/%s.ch", directory, file);
+	read.open("content/characters/"+directory+"/"+file+".ch");
 
-	read.open(buffer);
 	if(read.fail()){ 
 		cout << directory << "/" << file << " Character definition not found\n";
 		return;
@@ -278,7 +277,7 @@ action * avatar::mandateMove(string key)
 	return m;
 }
 
-void character::build(const char *directory, const char *file)
+void character::build(string directory, string file)
 {
 	getName(directory, file);
 
@@ -298,7 +297,7 @@ void character::build(const char *directory, const char *file)
 
 	crouch = mandateMove("@NL");
 
-	airNeutral = mandateMove("@jN");
+	airNeutral = mandateMove("@jNS");
 	airNeutral->feed(neutral, 1, 0);
 
 	reel = mandateMove(",HS");
@@ -357,8 +356,8 @@ void avatar::processMove(action * m)
 
 action * avatar::createMove(string key)
 {
-	tokenizer t(key, " \t=`~/\\>-&,?@%$_!^\n");
-        string token = t();
+	tokenizer t(key, " \t=`~/>-&,?@%$+_!^\n");
+	string token = t();
 	action * m;
 	switch(key[0]){
 	case '%':
@@ -421,10 +420,12 @@ void avatar::connect(status &current, vector<int>& meter)
 int character::checkBlocking(status &current, int input[])
 {
 	int st;
+	if(current.hit < 0) current.hit = 0;
+	if(current.connect < 0) current.connect = 0;
 	bool success = false;
 	int ret = -1;
 	st = -(current.counter);
-	if(st <= 0) st = 1;
+	if(st <= 0) st = 0;
 	switch(input[0]){
 	case 3:
 	case 6:

@@ -1,6 +1,5 @@
-/*Copyright Somnambulent Studios 2012-2013*/
+/*Copyright Somnambulant Studios 2012-2013*/
 #include "trie.h"
-#include <SDL/SDL.h>
 
 #ifndef ___character
 #define ___character
@@ -21,7 +20,7 @@ public:
 	virtual action * createMove(string);
 	virtual action * dealWithMove(string);
 	virtual action * mandateMove(string);
-	virtual void build(const char*, const char*);
+	virtual void build(string, string);
 	virtual void processMove(action * m);
 	virtual void sortMove(action *, string);
 	virtual void prepHooks(status&, action *&, int[], vector<int>, SDL_Rect &, bool, vector<int>&);
@@ -52,12 +51,12 @@ public:
 class character : virtual public avatar{
 public:
 	bool dFlag:1;
-	character(const char*);
+	character(string);
 	actionTrie * airHead;
 	character();
 	virtual ~character();
 
-	virtual void build(const char*, const char*);
+	virtual void build(string, string);
 	virtual int comboState(action *);
 	virtual void neutralize(status&, action*&, vector<int>&);
 	virtual void drawMeters(int, int, vector<int>);

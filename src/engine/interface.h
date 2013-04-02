@@ -1,15 +1,8 @@
-/*Copyright Somnambulent Studios 2012-2013*/
-#include "analytics.h"
+/*Copyright Somnambulant Studios 2012-2013*/
 #include "harness.h"
-#include "sdl-compat.h"
 #include "window.h"
-#include <SDL/SDL.h>
-#include <string>
-#include <vector>
-
 #ifndef ___interface
 #define ___interface
-
 using std::string;
 using std::vector;
 
@@ -46,6 +39,7 @@ public:
 	~interface();
 	void readInput();
 	void loadMisc();
+	void initCharacters();
 	virtual void loadAssets();
 	void processInput(SDL_Event&);
 	void createPlayers();
@@ -64,7 +58,9 @@ public:
 	void resolveSummons();
 	void summonAttractors();
 	void draw();
+	void drawHitParticles();
 	void drawHUD();
+	void drawHint(int);
 	void drawGame();
 	void drawCSelect();
 	void drawMainMenu(int);
@@ -92,6 +88,7 @@ public:
 	int menu[2];
 	int configMenu[2];
 	int counterHit[2];
+	int blockFail[2];
 	int rMenu;
 	int pMenu;
 	SDL_Rect bg;
