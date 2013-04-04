@@ -455,45 +455,48 @@ void instance::draw()
 	status * n;
 	if(sCheck && save.facing) n = current.freeze && current.counter ? &save : &current;
 	else n = &current;
-	int realPosY = n->posY;
-	int realPosX = n->posX;
-	glEnable(GL_TEXTURE_2D);
 
-	if(sprite && sCheck){
-		if(n->move->offX != 0) realPosX += n->move->offX*n->facing;
+	if(n == &current){
+		n->drawX = n->posX;
+		n->drawY = n->posY;
+
+		if(n->move->offX != 0) n->drawX += n->move->offX*n->facing;
 		else{
 			if(n->facing == 1){
-				if(collision.x < realPosX) realPosX = collision.x;
+				if(collision.x < n->drawX) n->drawX = collision.x;
 				for(unsigned int i = 0; i < hitreg.size(); i++){
-					if(hitreg[i].x < realPosX) realPosX = hitreg[i].x;
+					if(hitreg[i].x < n->drawX) n->drawX = hitreg[i].x;
 				}
 				for(unsigned int i = 0; i < hitbox.size(); i++){
-					if(hitbox[i].x < realPosX) realPosX = hitbox[i].x;
+					if(hitbox[i].x < n->drawX) n->drawX = hitbox[i].x;
 				}
 			} else {
-				if(collision.x + collision.w > realPosX) realPosX = collision.x + collision.w;
+				if(collision.x + collision.w > n->drawX) n->drawX = collision.x + collision.w;
 				for(unsigned int i = 0; i < hitreg.size(); i++){
-					if(hitreg[i].x + hitreg[i].w > realPosX) realPosX = hitreg[i].x + hitreg[i].w;
+					if(hitreg[i].x + hitreg[i].w > n->drawX) n->drawX = hitreg[i].x + hitreg[i].w;
 				}
 				for(unsigned int i = 0; i < hitbox.size(); i++){
-					if(hitbox[i].x + hitbox[i].w > realPosX) realPosX = hitbox[i].x + hitbox[i].w;
+					if(hitbox[i].x + hitbox[i].w > n->drawX) n->drawX = hitbox[i].x + hitbox[i].w;
 				}
 			}
 		}
-		if(n->move->offY != 0) realPosY += n->move->offY;
+		if(n->move->offY != 0) n->drawY += n->move->offY;
 		else{
-			if(collision.y < realPosY) realPosY = collision.y;
+			if(collision.y < n->drawY) n->drawY = collision.y;
 			for(unsigned int i = 0; i < hitreg.size(); i++){
-				if(hitreg[i].y < realPosY) realPosY = hitreg[i].y;
+				if(hitreg[i].y < n->drawY) n->drawY = hitreg[i].y;
 			}
 			for(unsigned int i = 0; i < hitbox.size(); i++){
-				if(hitbox[i].y < realPosY) realPosY = hitbox[i].y;
+				if(hitbox[i].y < n->drawY) n->drawY = hitbox[i].y;
 			}
 		}
+	}
+	glEnable(GL_TEXTURE_2D);
+	if(sprite && sCheck){
 		if(secondInstance)
 			glColor4f(0.75f, 0.5f, 0.85f, 1.0f);
 		glPushMatrix();
-			glTranslatef(realPosX, -realPosY, 0);
+			glTranslatef(n->drawX, -n->drawY, 0);
 			glPushMatrix();
 				glScalef((float)n->facing, 1.0, 1.0);
 				pick()->draw(n->move, n->frame);
@@ -504,7 +507,7 @@ void instance::draw()
 	if(!sCheck || boxen){
 		if(!n->move || n->frame > n->move->frames){
 			glPushMatrix();
-				glTranslatef(realPosX, -realPosY, 0);
+				glTranslatef(current.drawX, -current.drawY, 0);
 				glPushMatrix();
 					glScalef((float)n->facing, 1.0, 1.0);
 					pick()->neutral->drawBoxen(0);
@@ -545,7 +548,6 @@ void player::drawHitParticle()
 
 void avatar::draw(action *& cMove, int f)
 {
-	printf("%s\n", name.c_str());
 	cMove->draw(f);
 }
 
@@ -644,42 +646,42 @@ bool action::spriteCheck(int f)
 
 void interface::writeImage(string movename, int frame, action * move)
 {
-	int realPosY = 0;
-	int realPosX = 0;
+	int Y = 0;
+	int X = 0;
 	SDL_Surface * image = nullptr;
 	int maxY = move->collision[frame].y + move->collision[frame].h,
 	    maxX = move->collision[frame].x + move->collision[frame].w;
 	for(unsigned int i = 0; i < move->hitreg[frame].size(); i++){
-		if(move->hitreg[frame][i].y < realPosY)
-			realPosY = move->hitreg[frame][i].y;
-		if(move->hitreg[frame][i].x < realPosX)
-			realPosX = move->hitreg[frame][i].x;
+		if(move->hitreg[frame][i].y < Y)
+			Y = move->hitreg[frame][i].y;
+		if(move->hitreg[frame][i].x < X)
+			X = move->hitreg[frame][i].x;
 		if(move->hitreg[frame][i].x + move->hitreg[frame][i].w > maxX)
 			maxX = move->hitreg[frame][i].x + move->hitreg[frame][i].w;
 		if(move->hitreg[frame][i].y + move->hitreg[frame][i].h > maxY)
 			maxY = move->hitreg[frame][i].y + move->hitreg[frame][i].h;
 	}
 	for(unsigned int i = 0; i < move->hitbox[frame].size(); i++){
-		if(move->hitbox[frame][i].y < realPosY) 
-			realPosY = move->hitbox[frame][i].y;
-		if(move->hitbox[frame][i].x < realPosX) 
-			realPosX = move->hitbox[frame][i].x;
+		if(move->hitbox[frame][i].y < Y) 
+			Y = move->hitbox[frame][i].y;
+		if(move->hitbox[frame][i].x < X) 
+			X = move->hitbox[frame][i].x;
 		if(move->hitbox[frame][i].x + move->hitbox[frame][i].w > maxX)
 			maxX = move->hitbox[frame][i].x + move->hitbox[frame][i].w;
 		if(move->hitbox[frame][i].y + move->hitbox[frame][i].h > maxY)
 			maxY = move->hitbox[frame][i].y + move->hitbox[frame][i].h;
 	}
-	int w = maxX + realPosX;
-	int h = maxY + realPosY;
+	int w = maxX + X;
+	int h = maxY + Y;
 	int x = 0;
 	int y = 0;
-	if(realPosY < 0){ 
-		h -= realPosY;
-		y = -realPosY;
+	if(Y < 0){ 
+		h -= Y;
+		y = -Y;
 	}
-	if(realPosX < 0){
-		w -= realPosX;
-		x = -realPosX;
+	if(X < 0){
+		w -= X;
+		x = -X;
 	}
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 	Uint32 rmask = 0xff000000;

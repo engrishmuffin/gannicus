@@ -308,6 +308,7 @@ status::status()
 status::status(const status & o) 
 {
 	this->posX = o.posX; this->posY = o.posY;
+	this->drawX = o.drawX; this->drawY = o.drawY;
 	this->facing = o.facing;
 	this->deltaX = o.deltaX; this->deltaY = o.deltaY; 
 	this->frame = o.frame;

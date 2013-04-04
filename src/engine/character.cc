@@ -45,7 +45,7 @@ void avatar::prepHooks(status &current, action *& cMove, int inputBuffer[30], ve
 {
 	action * t = nullptr;
 	if(current.move && current.reversal){
-		if(current.move->state[(current.connect >= 0) ? current.connect : 0].i & current.reversal->allowed.i){
+		if(current.move->state[(current.connect > 0) ? current.connect : 0].i & current.reversal->allowed.i){
 			if(current.reversal->check(p, meter)){
 				if(!dryrun) current.reversal->execute(neutral, meter, current.frame, current.connect, current.hit);
 				cMove = current.reversal;
@@ -79,7 +79,7 @@ void avatar::prepHooks(status &current, action *& cMove, int inputBuffer[30], ve
 			neutralize(current, r, meter);
 			current.reversalFlag = l;
 			if (!current.reversal){
-				if((current.frame + 10 > cMove->frames && current.frame > 5 && cMove != r) || (current.counter + current.freeze < -10 && current.counter < 0) || cMove->linkable) {
+				if((current.frame + 10 > cMove->frames && current.frame > 5 && cMove != r) || (current.counter + current.freeze < -10 && current.counter > 0) || cMove->linkable) {
 					int l = 0, m = 0;
 					current.reversal = hook(inputBuffer, 0, -1, meter, buttons, r, p, l, m, current.aerial);
 					if(current.reversal){

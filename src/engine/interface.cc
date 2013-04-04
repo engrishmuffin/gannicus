@@ -538,9 +538,21 @@ void interface::cleanup()
 				}
 			}
 			for(unsigned int i = 0; i < globals.size(); i++){
-				if(globals[i]->length <= 0)
-					globals.erase(globals.begin()+i);
-				else globals[i]->length--;
+				if(globals[i]->origin){
+					if(globals[i]->origin->current.move != globals[i]->check ||
+					   globals[i]->origin->current.frame == globals[i]->check->distortSpawn){
+						if(globals[i]->length < 0){ 
+							globals[i]->origin = nullptr;
+							globals[i]->length = -globals[i]->length;
+						} else { 
+							globals.erase(globals.begin()+i);
+						}
+					}
+				} else {
+					if (!globals[i]->length) {
+						globals.erase(globals.begin()+i);
+					} else globals[i]->length--;
+				}
 			}
 			resolveSummons();
 			summonAttractors();
@@ -577,7 +589,8 @@ void interface::resolveSummons()
 			if(temp->arbitraryPoll(50, things[i]->current.frame)){
 				larva = things[i]->pick()->spawn(temp);
 				if(larva){
-					if(things[i]->sprite) larva->sprite = true;
+					larva->boxen = things[i]->boxen;
+					larva->sprite = things[i]->sprite;
 					switch (temp->arbitraryPoll(56, things[i]->current.frame)){
 					case 0:
 						larva->ID = 0;
@@ -586,7 +599,7 @@ void interface::resolveSummons()
 						larva->ID = things[i]->ID;
 						break;
 					case 2:
-					larva->ID = (things[i]->ID)%2+1;
+						larva->ID = (things[i]->ID)%2+1;
 						break;
 					}
 					if(temp->arbitraryPoll(51, things[i]->current.frame)){
@@ -622,12 +635,19 @@ void interface::summonAttractors()
 	attractor * tvec = nullptr, * avec = nullptr;
 	for(unsigned int i = 0; i < things.size(); i++){
 		if(things[i]->current.move && things[i]->current.frame == things[i]->current.move->distortSpawn) tvec = things[i]->current.move->distortion;
-		if(tvec != nullptr){ 
+		if(tvec != nullptr){
 			avec = new attractor;
 			avec->x = tvec->x;
 			avec->y = tvec->y;
 			avec->type = tvec->type;
 			avec->length = tvec->length;
+			if(avec->length > 0){
+				avec->origin = nullptr;
+				avec->check = nullptr;
+			} else {
+				avec->origin = things[i];
+				avec->check = things[i]->current.move;
+			}
 			avec->radius = tvec->radius;
 			avec->effectCode = tvec->effectCode;
 			avec->eventHorizon = tvec->eventHorizon;
@@ -773,8 +793,7 @@ void gameInstance::processInput(SDL_Event &event)
 	case SDL_KEYDOWN:
 		switch (event.key.keysym.sym) {
 		case SDLK_F10:
-			if(scalingFactor == 1.0) sf = 0.5;
-			else sf = 1.0;
+			sf = (scalingFactor == 1.0) ? 0.5 : 1.0;
 			initd = false;
 			break;
 		case SDLK_F11:
@@ -881,10 +900,7 @@ void interface::mainMenu(int ID)
 		if(currentFrame[ID].buttons[i] == 1 && !counter[ID]){
 			switch(menu[ID]){
 			case 1:
-				if(analytics)
-					analytics = false;
-				else
-					analytics = true;
+				analytics = !analytics;
 				break;
 			case 2:
 				configMenu[ID] = 7;
@@ -893,10 +909,7 @@ void interface::mainMenu(int ID)
 				menu[ID] = 0;
 				break;
 			case 4:
-				if(shortcut)
-					shortcut = false;
-				else
-					shortcut = true;
+				shortcut = !shortcut;
 				break;
 			case 5:
 				if(scripting)
@@ -1273,15 +1286,16 @@ void interface::resolveHits()
 			s[hitBy[i]].damage *= prorate[things[hitBy[i]]->ID-1];
 			if(actuallyDoesDamage && s[hitBy[i]].damage == 0) s[hitBy[i]].damage = 1;
 			action * b = things[i]->current.move;
+			bool wasair = things[i]->current.aerial;
 			hit[hitBy[i]] = things[i]->takeHit(combo[things[hitBy[i]]->ID-1], s[hitBy[i]], prox);
-			if(hit[hitBy[i]] == 1){
-				if(b->canGuard(P[i]->current.frame)){
-					blockFail[i] = s[hitBy[i]].blockMask.i;
-					if(!blockFail[i]) blockFail[i] = 8;
-					else if(P[i]->current.aerial && !(blockFail[i] & 4)) blockFail[i] = 12;
-				}
-			}
 			if(i < P.size()){
+				if(hit[hitBy[i]] == 1){
+					if(b->canGuard(P[i]->current.frame)){
+						blockFail[i] = s[hitBy[i]].blockMask.i;
+						if(!blockFail[i]) blockFail[i] = 8;
+						else if(wasair && !(blockFail[i] & 4)) blockFail[i] = 12;
+					}
+				}
 				if(things[i]->particleType == -2){
 					hStat ths;
 					ths.damage = s[hitBy[i]].chip ? s[hitBy[i]].chip : 1;
@@ -1341,8 +1355,7 @@ void interface::resolveHits()
 					if(P[(i+1)%2]->current.rCorner || P[(i+1)%2]->current.lCorner) residual.x -= combo[i];
 					if(P[(i+1)%2]->stick) residual.x -= s[i].push/2 + combo[i];
 					residual.x -= 2;
-				}
-				else {
+				} else {
 					if(combo[i] > 1) residual.x = -3*(abs(combo[i]-1));
 					if(things[(i+1)%2]->particleType == -2) residual.x -= push[i];
 					else if(P[(i+1)%2]->current.rCorner || P[(i+1)%2]->current.lCorner){
