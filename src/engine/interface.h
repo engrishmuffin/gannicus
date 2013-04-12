@@ -6,31 +6,28 @@
 using std::string;
 using std::vector;
 
-class gameInstance : public window, public arcadeHarness{
+class gameInstance : public window, public arcadeHarness, public HUD{
 public:
 	virtual void resolve() = 0;
-	int drawGlyph(string, int, int, int, int, int);
-	virtual void loadMisc();
 	virtual bool screenInit();
 	virtual bool screenInit(int, int);
 	virtual void processInput(SDL_Event&);
 	virtual void initialConfig(int);
 	virtual void unitCollision(instance*, instance*);
 	virtual void genInput();
+	virtual int drawGlyph(string, int, int, int, int, int);
 	script *oldReplay;
 	unsigned int replayIterator;
 	virtual void print();
 
-	vector<instance*> things;
 	vector<player*> P;
 
 	int screenHeight, screenWidth, floor, wall;
-	int freeze;
+	float prorate[2];
 	bool pauseEnabled:1;
 	bool scripting:1;
 	float scalingFactor, sf;
 	bool initd:1;
-	GLuint glyph[91];
 };
 
 class interface : public gameInstance{
@@ -58,6 +55,7 @@ public:
 	void resolveSummons();
 	void summonAttractors();
 	void draw();
+	void drawLoadingScreen();
 	void drawHitParticles();
 	void drawHUD();
 	void drawHint(int);
@@ -83,12 +81,10 @@ public:
 	void writeMatchupChart();
 	void writeImage(string, int, action*);
 
-	bool select[2];
+	vector<bool> select;
 	vector<int> selection;
 	int menu[2];
 	int configMenu[2];
-	int counterHit[2];
-	int blockFail[2];
 	int rMenu;
 	int pMenu;
 	SDL_Rect bg;
@@ -98,10 +94,6 @@ public:
 	bool continuous:1;
 	bool single:1;
 	bool analytics:1;
-	int combo[2];
-	int damage[2];
-	bool illegit[2];
-	float prorate[2];
 	chart *stats;
 	int numRounds;
 	int grav;

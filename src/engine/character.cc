@@ -50,7 +50,10 @@ void avatar::prepHooks(status &current, action *& cMove, int inputBuffer[30], ve
 				if(!dryrun) current.reversal->execute(neutral, meter, current.frame, current.connect, current.hit);
 				cMove = current.reversal;
 				current.reversalFlag = true;
-				if(!dryrun) current.reversal = nullptr;
+				if(!dryrun){ 
+					current.reversal = nullptr;
+					current.reversalTimer = 0;
+				}
 			}
 		}
 	}
@@ -78,14 +81,17 @@ void avatar::prepHooks(status &current, action *& cMove, int inputBuffer[30], ve
 			bool l = current.reversalFlag;
 			neutralize(current, r, meter);
 			current.reversalFlag = l;
-			if (!current.reversal){
-				if((current.frame + 10 > cMove->frames && current.frame > 5 && cMove != r) || (current.counter + current.freeze < -10 && current.counter > 0) || cMove->linkable) {
-					int l = 0, m = 0;
-					current.reversal = hook(inputBuffer, 0, -1, meter, buttons, r, p, l, m, current.aerial);
-					if(current.reversal){
-						if(current.reversal->state[0].b.neutral) 
-							current.reversal = nullptr;
-					}
+			if (!current.reversal && (current.move->linkable || current.frame > 4 || current.counter < 0)){
+				int l = 0, m = 0;
+				current.reversal = hook(inputBuffer, 0, -1, meter, buttons, r, p, l, m, current.aerial);
+				if(current.reversal){
+					if(current.reversal->state[0].b.neutral) 
+						current.reversal = nullptr;
+				}
+				if(cMove->linkable) {
+					current.reversalTimer = -1;
+				} else {
+					current.reversalTimer = 11;
 				}
 			}
 		}
@@ -377,7 +383,8 @@ action * avatar::createMove(string key)
 		else m = new looping(name, token);
 		break;
 	case '^':
-		m = new releaseCheck(name, token);
+		if(key[1] == 'j') m = new airReleaseCheck(name, token);
+		else m = new releaseCheck(name, token);
 		break;
 	case '?':
 		m = new mash(name, token);
@@ -509,7 +516,7 @@ int character::takeHit(status &current, hStat & s, int blockType, int &hitType, 
 		die->execute(current.move, meter, current.frame, current.connect, current.hit);
 		current.move = die;
 		current.aerial = true;
-	} else if (hitType == 1){
+	} else if(hitType == 1) {
 		if(s.launch) current.aerial = true;
 		if(s.stun != 0){
 			current.frame = 0;
@@ -517,7 +524,7 @@ int character::takeHit(status &current, hStat & s, int blockType, int &hitType, 
 				current.counter = -(s.stun+s.untech);
 				current.move = untech;
 				resetAirOptions(meter);
-			} else if(current.move->crouch){
+			} else if(current.move->crouch) {
 				current.counter = -(s.stun + s.stun/5);
 				current.move = crouchReel;
 			} else {

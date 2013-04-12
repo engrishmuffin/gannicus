@@ -175,6 +175,18 @@ void interface::drawConfigMenu(int ID)
 	glColor4f(1.0, 1.0, 1.0, 1.0f);
 }
 
+void interface::drawLoadingScreen()
+{
+	glPushMatrix();
+		glScalef(scalingFactor, scalingFactor, 0.0f);
+		glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
+		glRectf(0.0f, 0.0f, (GLfloat)screenWidth, (GLfloat)screenHeight);
+		glEnable(GL_TEXTURE_2D);
+		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		drawGlyph("Salt and bone", 0, screenWidth, (screenHeight - 64)/2, 64, 1);
+	glPopMatrix();
+}
+
 void interface::drawGame()
 {
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);

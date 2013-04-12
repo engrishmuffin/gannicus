@@ -650,6 +650,11 @@ void instance::step()
 			current.hit = 0;
 		}
 	}
+	if(current.reversalTimer)
+		current.reversalTimer--;
+	else {
+		current.reversal = nullptr;
+	}
 }
 
 void instance::neutralize()

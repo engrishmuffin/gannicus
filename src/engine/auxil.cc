@@ -10,7 +10,6 @@
 #include <math.h>
 #include <string>
 #include <vector>
-
 SDL_Surface* aux::init_screen(int width, int height, int bpp) {
 	if (SDL_Init(SDL_INIT_EVERYTHING) == -1) {
 		return nullptr;
@@ -297,6 +296,7 @@ status::status()
 	connect = 0;
 	counter = 0;
 	hit = 0;
+	reversalTimer = 0;
 	move = nullptr;
 	bufferedMove = nullptr;
 	reversal = nullptr;
@@ -313,6 +313,7 @@ status::status(const status & o)
 	this->deltaX = o.deltaX; this->deltaY = o.deltaY; 
 	this->frame = o.frame;
 	this->freeze = o.freeze;
+	this->reversalTimer = 0;
 	this->aerial = o.aerial;
 	this->rCorner = o.rCorner; this->lCorner = o.lCorner;
 	this->move = o.move; this->bufferedMove = o.bufferedMove; this->reversal = o.reversal;

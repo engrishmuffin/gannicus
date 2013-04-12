@@ -64,6 +64,7 @@ public:
 	bool aerial;
 	bool rCorner, lCorner;
 	action *move, *bufferedMove, *reversal;
+	int reversalTimer;
 	int connect, hit, counter;
 	int drawX, drawY;
 	bool dead:1;

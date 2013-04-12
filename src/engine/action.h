@@ -312,4 +312,10 @@ public:
 	releaseCheck(string d, string f) { build(d,f); }
 	virtual bool activate(vector<int>, int, int, int, vector<int>, SDL_Rect&); //Check to see if the action is possible right now.
 };
+
+class airReleaseCheck : public airMove, public releaseCheck {
+public:
+	airReleaseCheck() {}
+	airReleaseCheck(string d, string f) { build(d,f); }
+};
 #endif

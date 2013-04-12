@@ -35,9 +35,6 @@ interface::interface()
 	wall = 50; /*The size of the offset at which characters start to scroll the background, and get stuck.*/
 	menuMusic = nullptr;
 
-	select[0] = 0;
-	select[1] = 0;
-
 	read.open(".config/resolution.conf");
 	if(read.fail()){ 
 		scalingFactor = 0.5;
@@ -85,8 +82,13 @@ void interface::createPlayers()
 	for(int i = 0; i < 2; i++){
 		P.push_back(new player(i+1));
 		p.push_back(P[i]);
-		select[i] = 0;
+		select.push_back(false);
 		selection.push_back(1+i);
+		combo.push_back(0);
+		damage.push_back(0);
+		blockFail.push_back(0);
+		counterHit.push_back(0);
+		illegit.push_back(false);
 		menu[i] = 0;
 		counterHit[i] = 0;
 		blockFail[i] = 0;
@@ -123,18 +125,18 @@ void interface::startGame()
 }
 
 /*This function loads a few miscellaneous things the game will need in all cases*/
-void gameInstance::loadMisc()
+void HUD::loadMisc()
 {
 	char buffer[200];
 	for(int i = 0; i < 91; i++){
 		sprintf(buffer, "content/glyphs/%i.png", i);
-		glyph[i] = aux::load_texture(buffer);
+		glyph.push_back(aux::load_texture(buffer));
 	}
 }
 
 void interface::loadMisc()
 {
-	gameInstance::loadMisc();
+	HUD::loadMisc();
 	char buffer[200];
 	selectScreen = aux::load_texture("content/menu/Select.png");
 	menuMusic = Mix_LoadMUS("content/sound/Menu.ogg");
@@ -430,6 +432,8 @@ void interface::resolveCamera()
 	 *appropriately, attempting to adjust to approximately be looking at the point in the middle of the two characters.
 	 */
 	int dx = things[1]->dragBG(bg.x + wall, bg.x + screenWidth - wall) + things[0]->dragBG(bg.x + wall, bg.x + screenWidth - wall);
+	int dy = 900;
+
 	/*If a character leaves the camera boundaries, follow them immediately*/
 	if(!dx){
 		dx = -(((bg.x + screenWidth/2) - things[0]->current.posX) + ((bg.x + screenWidth/2) - things[1]->current.posX));
@@ -439,6 +443,13 @@ void interface::resolveCamera()
 		 */
 	}
 	dragBG(dx);
+	for(unsigned int i = 0; i < P.size(); i++){
+		if(dy < things[i]->current.posY + things[i]->collision.h){
+			dy = things[i]->current.posY + things[i]->collision.h;
+			if(dy > bg.h) dy = bg.h;
+		}
+	}
+	bg.y = dy - bg.h;
 }
 
 void interface::resolveInputs()
@@ -483,7 +494,7 @@ void interface::resolveInputs()
 	for(unsigned int i = 0; i < P.size(); i++){
 		if(analytics)
 			replay->push(i, currentFrame[i]);
-		if(P[i]->record) 
+		if(P[i]->record)
 			P[i]->record->push(currentFrame[i]);
 	}
 }
@@ -546,11 +557,13 @@ void interface::cleanup()
 							globals[i]->length = -globals[i]->length;
 						} else { 
 							globals.erase(globals.begin()+i);
+							i--;
 						}
 					}
 				} else {
 					if (!globals[i]->length) {
 						globals.erase(globals.begin()+i);
+						i--;
 					} else globals[i]->length--;
 				}
 			}
@@ -560,6 +573,7 @@ void interface::cleanup()
 			runTimer();
 		}
 	}
+
 	for(unsigned int i = 0; i < P.size(); i++){
 		if(currentFrame[i].n.raw.Start && counter[i] <= 0){
 			if(pauseEnabled && !roundEnd){
@@ -568,6 +582,7 @@ void interface::cleanup()
 			}
 		}
 	}
+
 	for(unsigned int i = 0; i < P.size(); i++){
 		for(unsigned int j = 0; j < currentFrame[i].buttons.size(); j++){
 			if(currentFrame[i].buttons[j] != 0) currentFrame[i].buttons[j]++;
@@ -861,6 +876,10 @@ void interface::cSelectMenu()
 	if(select[0] && select[1]){
 		//cout << "2 6\n" << selection[0] << " " << selection[1] << '\n';
 		if(selection[0] == selection[1]) P[1]->secondInstance = true;
+		glClear(GL_COLOR_BUFFER_BIT);
+		glDisable(GL_TEXTURE_2D);
+		drawLoadingScreen();
+		SDL_GL_SwapBuffers();
 		for(unsigned int i = 0; i < P.size(); i++){
 			P[i]->characterSelect(selection[i]);
 		}
@@ -986,17 +1005,9 @@ void interface::keyConfig(int ID)
 
 void interface::dragBG(int dx)
 {
-	int dy = 900;
 	bg.x += dx;
 	if(bg.x < 0) bg.x = 0;
 	else if(bg.x > bg.w - screenWidth) bg.x = bg.w - screenWidth;
-	for(unsigned int i = 0; i < P.size(); i++){
-		if(dy < things[i]->current.posY + things[i]->collision.h){
-			dy = things[i]->current.posY + things[i]->collision.h;
-			if(dy > bg.h) dy = bg.h;
-		}
-	}
-	bg.y = dy - bg.h;
 }
 
 void interface::pauseMenu()
@@ -1366,7 +1377,7 @@ void interface::resolveHits()
 				}
 				residual.x *= things[i]->current.facing;
 			}
-			things[i]->momentum.push_back(residual);
+			if(!s[i].ghostHit) things[i]->momentum.push_back(residual);
 		}
 	}
 	if(connect[0] || connect[1]){

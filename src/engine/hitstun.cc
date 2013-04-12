@@ -31,12 +31,12 @@ int hitstun::takeHit(hStat& s, int b, status& current)
 			return -2;
 		case -1:
 			current.frame = 0;
-			current.counter = -(s.stun - 1  - s.stun/5);
+			current.counter = -(s.stun - 1 - s.stun/5);
 			s.push = (s.push*4)/5;
 			return -1;
 		case 0:
 			current.frame = 0;
-			current.counter = -(s.stun - max(1, s.stun/14));
+			current.counter = -(s.stun - max(1, s.stun/11));
 			return 0;
 		}
 	}

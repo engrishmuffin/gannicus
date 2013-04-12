@@ -56,4 +56,17 @@ public:
 	virtual void write();
 	virtual ~script();
 };
+
+class HUD {
+public:
+	virtual void loadMisc();
+	int freeze;
+	vector<GLuint> glyph;
+	vector<instance *> things;
+	vector<int> combo;
+	vector<int> damage;
+	vector<bool> illegit;
+	vector<int> counterHit;
+	vector<int> blockFail;
+};
 #endif
