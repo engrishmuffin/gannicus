@@ -23,7 +23,7 @@ public:
 	virtual void build(string, string);
 	virtual void processMove(action * m);
 	virtual void sortMove(action *, string);
-	virtual void prepHooks(status&, action *&, int[], vector<int>, SDL_Rect &, bool, vector<int>&);
+	virtual void prepHooks(status&, int[], vector<int>, SDL_Rect &, bool, vector<int>&);
 	virtual action * hook(int[], int, int, vector<int>, vector<int>, action *, SDL_Rect&, int&, int&, bool);
 	virtual bool death(action *&, int, int) { return 0; }
 	virtual int takeHit(status&, hStat&, int, int&, vector<int>&) { return 0; }
@@ -31,6 +31,7 @@ public:
 	virtual void loadAssets();
 	virtual void connect(status&, vector<int>&);
 	virtual void pollStats(hStat&, status&);
+	virtual void pollRects(status&, SDL_Rect&, vector<SDL_Rect>&, vector<SDL_Rect>&);
 	virtual void step(status&, vector<int>&);
 	virtual int acceptTarget(action*, int);
 	virtual instance * spawn(action*);
@@ -64,7 +65,7 @@ public:
 	virtual int checkBlocking(status&, int[]);
 	virtual void block(status&, int, bool);
 	virtual void resetAirOptions(vector<int>&);
-	virtual void land(action *&, int &, int &, int &, vector<int>&);
+	virtual void land(status&, vector<int>&);
 	virtual void sortMove(action *, string);
 	virtual int takeHit(status&, hStat&, int, int&, vector<int>&);
 	virtual action * hook(int[], int, int, vector<int>, vector<int>, action *, SDL_Rect&, int&, int&, bool);

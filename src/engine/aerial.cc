@@ -3,17 +3,16 @@
 #include <fstream>
 #include <iostream>
 #include <math.h>
-
 airMove::airMove(string dir, string file)
 {
 	build(dir, file);
 }
 
-action * airMove::land(int &f, int &c, int &h)
+action * airMove::land(status &current)
 {
-	f = 0;
-	c = 0;
-	h = 0;
+	current.frame = 0;
+	current.connect = 0;
+	current.hit = 0;
 	return landing;
 }
 

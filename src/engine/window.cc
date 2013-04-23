@@ -17,7 +17,7 @@ bool window::screenInit()
 	}
 	/*WM stuff*/
 	SDL_WM_SetCaption("downtop", "downtop");
-	if((screen = SDL_SetVideoMode(w, h, 32, SDL_OPENGL)) == nullptr)
+	if((screen = SDL_SetVideoMode(w, h, 32, SDL_OPENGL | (displayMode ? (displayMode == 2 ? SDL_NOFRAME : SDL_FULLSCREEN) : false))) == nullptr)
 		return false;
 	SDL_ShowCursor(SDL_DISABLE);
 

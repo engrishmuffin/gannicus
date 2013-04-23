@@ -381,7 +381,7 @@ void player::readScripts()
 void instance::updateRects()
 {
 	if(current.move != nullptr) {
-		current.move->pollRects(current.frame, current.connect, collision, hitreg, hitbox);
+		pick()->pollRects(current, collision, hitreg, hitbox);
 		for(unsigned int i = 0; i < hitbox.size(); i++){
 			if(current.facing == -1) hitbox[i].x = current.posX - hitbox[i].x - hitbox[i].w;
 			else hitbox[i].x += current.posX;
@@ -577,9 +577,11 @@ void player::checkCorners(int left, int right)
 			if(current.deltaX > 0) current.deltaX = -current.deltaX; 
 			elasticX = false;
 		}
-		if(collision.x + collision.w >= 3150){ 
+		if(collision.x + collision.w >= 3150){
 			if(current.facing == -1) current.rCorner = 1;
-			else(current.posX--);
+			else {
+				current.posX--;
+			}
 			if (stick) {
 				if(current.move == pick()->untech || current.move == pick()->die){
 					current.deltaX = 0;
@@ -600,7 +602,7 @@ void player::land()
 	for(unsigned int i = 0; i < momentum.size(); i++){
 		if(momentum[i].y > 0) momentum.erase(momentum.begin()+i);
 	}
-	pick()->land(current.move, current.frame, current.connect, current.hit, meter);
+	pick()->land(current, meter);
 	current.reversal = nullptr;
 	current.aerial = false;
 }
@@ -637,11 +639,11 @@ void instance::step()
 	if(!current.freeze) counter++;
 	pick()->step(current, meter);
 	if(current.move && current.frame >= current.move->frames){
-		if(current.move->modifier && current.move->basis){ 
-			current.frame = current.move->currentFrame;
-			current.connect = current.move->connectFlag;
-			current.hit = current.move->hitFlag;
-			current.move = current.move->basis;
+		if(current.move->modifier && current.move->basis.move){ 
+			current.frame = current.move->basis.frame;
+			current.connect = current.move->basis.connect;
+			current.hit = current.move->basis.hit;
+			current.move = current.move->basis.move;
 		} else {
 			if(current.move->next) current.move = current.move->next;
 			else pick()->neutralize(current, current.move, meter);
@@ -727,24 +729,21 @@ void instance::pushInput(unsigned int i)
 
 void instance::getMove(vector<int> buttons, SDL_Rect &p, bool& dryrun)
 {
-	action * dummyMove, *save;
 	if(!current.move) neutralize();
-	dummyMove = current.move;
-	save = current.move;
+	status e = current;
 	int n = current.frame;
-	pick()->prepHooks(current, dummyMove, inputBuffer, buttons, p, dryrun, meter);
-	if(dummyMove){
-		if(dummyMove->throwinvuln == 1 && current.throwInvuln <= 0) current.throwInvuln = 1;
-		if(dummyMove->throwinvuln == 2) current.throwInvuln = 6;
+	pick()->prepHooks(current, inputBuffer, buttons, p, dryrun, meter);
+	if(current.move){
+		if(current.move->throwinvuln == 1 && current.throwInvuln <= 0) current.throwInvuln = 1;
+		if(current.move->throwinvuln == 2) current.throwInvuln = 6;
 	}
 	if(dryrun){
 		if(current.reversalFlag){
-			if(current.frame != n || dummyMove != save) dryrun = 0;
+			if(current.frame != n || current.move != e.move) dryrun = 0;
 		}
-		current.move = save;
+		current.move = e.move;
 	} else {
-		current.move = dummyMove;
-		if(current.frame != n || dummyMove != save) current.move->playSound(ID);
+		if(current.frame != n || current.move != e.move) current.move->playSound(ID);
 	}
 }
 
@@ -1004,6 +1003,7 @@ void instance::setPosition(int x, int y)
 void player::getThrown(action *toss, int x, int y)
 {
 	int xSign = x / abs(x);
+	updateRects();
 	momentum.clear();
 	current.deltaX = 0;
 	current.deltaY = 0;
@@ -1012,7 +1012,6 @@ void player::getThrown(action *toss, int x, int y)
 	dummy.ghostHit = 1;
 	setPosition(toss->arbitraryPoll(27, current.frame)*xSign + abs(x), toss->arbitraryPoll(26, current.frame) + y);
 	pick()->takeHit(current, dummy, 0, particleType, meter);
-	updateRects();
 }
 
 instance::~instance()

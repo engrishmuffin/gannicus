@@ -10,6 +10,7 @@ public:
 	virtual bool screenInit();
 	virtual void setLighting();
 	SDL_Surface * screen;
+	int displayMode;
 	int h, w;
 };
 #endif

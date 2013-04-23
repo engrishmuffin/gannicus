@@ -45,8 +45,6 @@ public:
 	action(string, string);
 	char typeKey;
 	virtual ~action();
-	bool operator!=(const string&);
-	bool operator==(const string&);
 	bool spriteCheck(int);
 	virtual void build(string, string);
 	virtual void loadMisc(string);
@@ -68,9 +66,9 @@ public:
 	virtual vector<SDL_Rect> pollDelta(int);
 	virtual int displace(int, int&, int);
 	virtual void pollStats(hStat&, int, bool);
-	virtual bool cancel(action*&, int&, int&); //Cancel allowed activate. Essentially: is action Lvalue allowed given the current state of action Rvalue?
+	virtual bool cancel(action*, int, int); //Cancel allowed activate. Essentially: is action Lvalue allowed given the current state of action Rvalue?
 	virtual void step(vector<int>&, status&);
-	virtual action * land(int &f, int &h, int &c) { return this; }
+	virtual action * land(status&) { return this; }
 	virtual action * connect(vector<int>&, int&, int);
 	virtual instance * spawn();
 	virtual int takeHit(hStat&, int, status&);
@@ -149,8 +147,7 @@ public:
 	action * attempt;
 	action * riposte;
 
-	action * basis;
-	int connectFlag, currentFrame, hitFlag;
+	status basis;
 	int holdFrame;
 	int holdCheck;
 
@@ -189,6 +186,10 @@ public:
 	bool spawnTrackX:1;
 	bool spawnTrackY:1;
 	bool spawnTrackFloor:1;
+
+	bool operator!=(const string&);
+	bool operator==(const string&);
+	bool operator>(const status&);
 };
 
 class hitstun : virtual public action {
@@ -234,7 +235,7 @@ class airMove : virtual public action {
 public:
 	airMove() {}
 	airMove(string, string);
-	virtual action * land(int&, int&, int&);
+	virtual action * land(status&);
 	string tempLanding;
 	virtual void zero();
 	virtual bool setParameter(string);

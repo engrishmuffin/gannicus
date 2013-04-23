@@ -16,6 +16,7 @@ interface::interface()
 {
 	stats = nullptr;
 	initCharacters();
+	displayMode = 0;
 	killTimer = false;
 	shortcut = true;
 	continuous = false;
@@ -39,7 +40,7 @@ interface::interface()
 	if(read.fail()){ 
 		scalingFactor = 0.5;
 	} else {
-		read >> scalingFactor;
+		read >> scalingFactor >> displayMode;
 		read.ignore(100, '\n');
 	}
 	read.close();
@@ -90,12 +91,10 @@ void interface::createPlayers()
 		counterHit.push_back(0);
 		illegit.push_back(false);
 		menu[i] = 0;
-		counterHit[i] = 0;
-		blockFail[i] = 0;
 		configMenu[i] = 0;
 		things.push_back(P[i]);
-		P[i]->boxen = false;
-		P[i]->sprite = true;
+		P[i]->boxen = true;
+		P[i]->sprite = false;
 	}
 }
 
@@ -535,9 +534,10 @@ void interface::cleanup()
 			things[i]->current.throwInvuln--;
 			P[i]->hover--;
 		}
-		for(instance *i:things){
-			if(i->current.posX > bg.w + 300 || i->current.posX < -300 || i->current.posY < -300 || i->current.posY > bg.h){
-				i->current.dead = true;
+		for(unsigned int i = 2; i < things.size(); i++){
+			if(things[i]->current.posX > bg.w + 300 || things[i]->current.posX < -300 || things[i]->current.posY < -300 || things[i]->current.posY > bg.h){
+				things[i]->pick()->die->execute(things[i]->current.move, things[i]->meter, things[i]->current.frame, things[i]->current.connect, things[i]->current.hit);
+				things[i]->current.move = things[i]->pick()->die;
 			}
 		}
 		if(!rMenu && select[0] && select[1]){
@@ -832,7 +832,7 @@ void interface::cSelectMenu()
 	if(!initd){ 
 		ofstream write;
 		write.open(".config/resolution.conf");
-		write << sf << '\n';
+		write << sf << ' ' << displayMode << '\n';
 		write.close();
 		scalingFactor = sf;
 		assert(screenInit() != false);
@@ -1114,8 +1114,8 @@ void gameInstance::unitCollision(instance *a, instance *b)
 	if(a->middle() > b->middle()){ right = a; left = b; }
 	else if(a->middle() < b->middle()){ right = b; left = a; }
 	else {
-		if(a->current.facing == 1 && b->current.facing == -1){ left = a; right = b; }
-		else if(b->current.facing == 1 && a->current.facing == -1){ left = b; right = a; }
+		if(a->current.facing == 1 && b->current.facing == -1 || a->current.lCorner || b->current.rCorner){ left = a; right = b; }
+		else if(b->current.facing == 1 && a->current.facing == -1 || a->current.rCorner || b->current.lCorner){ left = b; right = a; }
 	}
 
 	/*Collision between players. Unfortunately a lot of specialcasing necessary here.*/
@@ -1237,6 +1237,8 @@ void interface::resolveThrows()
 	} else {
 		for(unsigned int i = 0; i < P.size(); i++){
 			if(isThrown[i]){
+				P[i]->checkFacing(P[(i+1)%2]);
+				P[i]->updateRects();
 				P[i]->getThrown(things[(i+1)%2]->current.move, things[(i+1)%2]->current.posX*things[(i+1)%2]->current.facing, things[(i+1)%2]->current.posY);
 				P[i]->checkFacing(P[(i+1)%2]);
 			}

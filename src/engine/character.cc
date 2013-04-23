@@ -24,7 +24,6 @@ character::character(string name)
 }
 
 character::~character()
-	//Character destructor. Might not need this if we aren't working with any dynamic memory, but it might be worthwhile to have.
 {
 	if(!dFlag){
 		if(head) delete head;
@@ -41,40 +40,40 @@ character::~character()
 	}
 }
 
-void avatar::prepHooks(status &current, action *& cMove, int inputBuffer[30], vector<int> buttons, SDL_Rect &p, bool dryrun, vector<int> & meter)
+void avatar::prepHooks(status &current, int inputBuffer[30], vector<int> buttons, SDL_Rect &p, bool dryrun, vector<int> & meter)
 {
 	action * t = nullptr;
 	if(current.move && current.reversal){
-		if(current.move->state[(current.connect > 0) ? current.connect : 0].i & current.reversal->allowed.i){
+		if(*current.reversal > current){
 			if(current.reversal->check(p, meter)){
 				if(!dryrun) current.reversal->execute(neutral, meter, current.frame, current.connect, current.hit);
-				cMove = current.reversal;
+				current.move = current.reversal;
 				current.reversalFlag = true;
-				if(!dryrun){ 
+				if(!dryrun){
 					current.reversal = nullptr;
 					current.reversalTimer = 0;
 				}
 			}
 		}
 	}
-	else if(!current.move) neutralize(current, cMove, meter);
-	t = hook(inputBuffer, 0, -1, meter, buttons, cMove, p, current.connect, current.hit, current.aerial);
+	else if(!current.move) neutralize(current, current.move, meter);
+	t = hook(inputBuffer, 0, -1, meter, buttons, current.move, p, current.connect, current.hit, current.aerial);
 	if(t == nullptr){
-		if(cMove->window(current.frame)){
-			if(cMove->attempt->check(p, meter)){
-				t = cMove->attempt;
+		if(current.move->window(current.frame)){
+			if(current.move->attempt->check(p, meter)){
+				t = current.move->attempt;
 			}
 		}
-		else if(cMove->holdFrame == current.frame){
-			if(cMove->onHold->activate(buttons, cMove->holdCheck, 0, 0, meter, p)){
-				t = cMove->onHold;
+		else if(current.move->holdFrame == current.frame){
+			if(current.move->onHold->activate(buttons, current.move->holdCheck, 0, 0, meter, p)){
+				t = current.move->onHold;
 			}
 		}
 		if (current.bufferedMove != nullptr && current.freeze <= 0) {
 			if(!dryrun){ 
-				current.bufferedMove->execute(cMove, meter, current.frame, current.connect, current.hit);
+				current.bufferedMove->execute(current.move, meter, current.frame, current.connect, current.hit);
 			}
-			cMove = current.bufferedMove;
+			current.move = current.bufferedMove;
 			if(!dryrun) current.bufferedMove = nullptr;
 		} else {
 			action * r;
@@ -88,10 +87,12 @@ void avatar::prepHooks(status &current, action *& cMove, int inputBuffer[30], ve
 					if(current.reversal->state[0].b.neutral) 
 						current.reversal = nullptr;
 				}
-				if(cMove->linkable) {
+				if(current.move->linkable) {
 					current.reversalTimer = -1;
 				} else {
-					current.reversalTimer = 11;
+					bool b = false;
+					for(int i:buttons) if(i) b = true;
+					current.reversalTimer = 5 + b*6;
 				}
 			}
 		}
@@ -103,8 +104,8 @@ void avatar::prepHooks(status &current, action *& cMove, int inputBuffer[30], ve
 				if(!dryrun) current.bufferedMove = t;
 			}
 		} else {
-			if(!dryrun) t->execute(cMove, meter, current.frame, current.connect, current.hit);
-			cMove = t;
+			if(!dryrun) t->execute(current.move, meter, current.frame, current.connect, current.hit);
+			current.move = t;
 		}
 	}
 }
@@ -469,20 +470,25 @@ void character::block(status &current, int st, bool high)
 	current.connect = 0;
 	current.counter = -st;
 	if(current.aerial){
-		if(airBlock->cancel(current.move, current.connect, current.hit)) {
+		if(*airBlock > current) {
 			current.move = airBlock;
 		}
 	} else {
 		if(high){
-			if(standBlock->cancel(current.move, current.connect, current.hit)) {
+			if(*standBlock > current) {
 				current.move = standBlock;
 			}
 		} else {
-			if(crouchBlock->cancel(current.move, current.connect, current.hit)) {
+			if(*crouchBlock > current) {
 				current.move = crouchBlock;
 			}
 		}
 	}
+}
+
+void avatar::pollRects(status& current, SDL_Rect& collision, vector<SDL_Rect>& hitreg, vector<SDL_Rect>& hitbox)
+{
+	current.move->pollRects(current.frame, current.connect, collision, hitreg, hitbox);
 }
 
 void avatar::pollStats(hStat & s, status &current)
@@ -577,13 +583,13 @@ int avatar::acceptTarget(action * c, int f)
 	return 1;
 }
 
-void character::land(action *& cMove, int &frame, int &connectFlag, int &hitFlag, vector<int> & meter)
+void character::land(status& current, vector<int> & meter)
 {
-	if(cMove->allowed.b.block){
-		cMove = standBlock;
-	} else { 
-		cMove = cMove->land(frame, connectFlag, hitFlag);
-		if(!cMove) cMove = neutral;
+	if(current.move->allowed.b.block && current.counter < 0){
+		current.move = standBlock;
+	} else {
+		current.move = current.move->land(current);
+		if(!current.move) current.move = neutral;
 	}
 	resetAirOptions(meter);
 }

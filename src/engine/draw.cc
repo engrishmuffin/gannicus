@@ -230,8 +230,10 @@ void interface::drawHint(int i)
 {
 	if(blockFail[i]){
 		if(blockFail[i] & 1){
-			glColor4f(0.0, 1.0, 0.0, 0.7);
-			drawGlyph("low", 100+1000*i, 400, 300, 55, 2*i);
+			if(!(blockFail[i] & 2)){
+				glColor4f(0.0, 1.0, 0.0, 0.7);
+				drawGlyph("low", 100+1000*i, 400, 300, 55, 2*i);
+			}
 		} else if(blockFail[i] & 2){
 			glColor4f(1.0, 0.6, 0.6, 0.7);
 			drawGlyph("high", 100+1000*i, 400, 300, 55, 2*i);
@@ -616,7 +618,7 @@ int gameInstance::drawGlyph(string s, int x, int space, int y, int height, int j
 
 void action::draw(int f)
 {
-	if(modifier && basis) basis->draw(currentFrame);
+	if(modifier && basis.move) basis.move->draw(basis.frame);
 	if(sprite[f]){
 		glBindTexture(GL_TEXTURE_2D, sprite[f]);
 		glBegin(GL_QUADS);
@@ -648,7 +650,7 @@ bool avatar::spriteCheck(action *& cMove, int f)
 
 bool action::spriteCheck(int f)
 {
-	if(modifier && basis) basis->spriteCheck(currentFrame);
+	if(modifier && basis.move) basis.move->spriteCheck(basis.frame);
 	if(sprite.empty()) return 0;
 	else if(sprite[f] != 0) {
 		return 1;

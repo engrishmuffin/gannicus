@@ -80,7 +80,7 @@ void action::zero()
 	next = nullptr;
 	attempt = nullptr;
 	riposte = nullptr;
-	basis = nullptr;
+	basis.move = nullptr;
 	onHold = nullptr;
 	hittable = false;
 	modifier = false;
@@ -609,8 +609,8 @@ void action::parseProperties(string buffer, bool counter)
 
 bool action::window(int f)
 {
-	if(modifier && basis){
-		if(basis->window(currentFrame)) return 1;
+	if(modifier && basis.move){
+		if(basis.move->window(basis.frame)) return 1;
 	}
 	if(!attempt) return 0;
 	if(f < attemptStart) return 0;
@@ -649,7 +649,7 @@ bool special::check(SDL_Rect &p, vector<int> meter)
 
 void action::pollRects(int f, int cFlag, SDL_Rect &c, vector<SDL_Rect> &r, vector<SDL_Rect> &b)
 {
-	if(modifier && basis) basis->pollRects(currentFrame, connectFlag, c, r, b);
+	if(modifier && basis.move) basis.move->pollRects(basis.frame, basis.connect, c, r, b);
 	else {
 		if(f >= frames) f = frames-1;
 
@@ -679,8 +679,8 @@ void action::pollRects(int f, int cFlag, SDL_Rect &c, vector<SDL_Rect> &r, vecto
 
 vector<SDL_Rect> action::pollDelta(int f)
 {
-	if(modifier && basis){ 
-		vector<SDL_Rect> ret = basis->pollDelta(currentFrame);
+	if(modifier && basis.move){
+		vector<SDL_Rect> ret = basis.move->pollDelta(basis.frame);
 		for(SDL_Rect i:delta[f]) ret.push_back(i);
 		return ret;
 	} else return delta[f];
@@ -689,7 +689,7 @@ vector<SDL_Rect> action::pollDelta(int f)
 int action::displace(int x, int &y, int f)
 {
 	int dx = 0;
-	if(modifier && basis) dx += basis->displace(x, y, currentFrame);
+	if(modifier && basis.move) dx += basis.move->displace(x, y, basis.frame);
 	if(f == displaceFrame){
 		y += displaceY;
 		dx += displaceX;
@@ -699,7 +699,7 @@ int action::displace(int x, int &y, int f)
 
 void action::pollStats(hStat & s, int f, bool CH)
 {
-	if(modifier && basis) basis->pollStats(s, currentFrame, CH);
+	if(modifier && basis.move) basis.move->pollStats(s, basis.frame, CH);
 	else{
 		int c = calcCurrentHit(f);
 		s.damage = stats[c].damage + CHStats[c].damage * CH;
@@ -737,21 +737,21 @@ void action::pollStats(hStat & s, int f, bool CH)
 	}
 }
 
-bool action::cancel(action *& x, int& c, int &h)
+bool action::cancel(action * x, int c, int h)
 {
 	cancelField r;
 	r.i = 0;
 	if(x == nullptr) return 1;
 	if(h < 0 || c < 0 || c > x->hits || h > x->hits) return 0;
-	if(x->modifier && x->basis){
-		if(x->basis == nullptr){ 
+	if(x->modifier && x->basis.move){
+		if(x->basis.move == nullptr){ 
 			return 1;
 		}
-		r.i = x->basis->state[x->connectFlag].i;
-		if(x->hitFlag > 0 && x->hitFlag == x->connectFlag){ 
-			r.i = r.i + x->basis->stats[x->hitFlag - 1].hitState.i;
+		r.i = x->basis.move->state[x->basis.connect].i;
+		if(x->basis.hit > 0 && x->basis.hit == x->basis.connect){ 
+			r.i = r.i + x->basis.move->stats[x->basis.hit - 1].hitState.i;
 		}
-		x = basis;
+		x = basis.move;
 	} else {
 		r.i = x->state[c].i;
 		if(h > 0 && h == c){
@@ -770,6 +770,11 @@ bool action::cancel(action *& x, int& c, int &h)
 	return 0;
 }
 
+bool action::operator>(const status& o)
+{
+	return cancel(o.move, o.connect, o.hit);
+}
+
 void action::step(vector<int>& meter, status &current)
 {
 	if(!current.frame && !meter[4]){
@@ -777,14 +782,14 @@ void action::step(vector<int>& meter, status &current)
 		else meter[1] = 300;
 	}
 	current.frame++;
-	if(modifier && basis){
-		currentFrame++;
-		if(basis && currentFrame >= basis->frames){
-			if(basis->next) basis = basis->next;
-			else basis = nullptr;
-			currentFrame = 0;
-			connectFlag = 0;
-			hitFlag = 0;
+	if(modifier && basis.move){
+		basis.frame++;
+		if(basis.move && basis.frame >= basis.move->frames){
+			if(basis.move->next) basis.move = basis.move->next;
+			else basis.move = nullptr;
+			basis.frame = 0;
+			basis.connect = 0;
+			basis.hit = 0;
 		}
 	}
 }
@@ -800,7 +805,7 @@ int action::calcCurrentHit(int frame)
 
 action * action::connect(vector<int>& meter, int &c, int f)
 {
-	if(modifier && basis) return basis->connect(meter, connectFlag, currentFrame);
+	if(modifier && basis.move) return basis.move->connect(meter, basis.connect, basis.frame);
 	else if (hits == 0) return nullptr;
 	else {
 		c = calcCurrentHit(f)+1;
@@ -816,7 +821,7 @@ action * action::connect(vector<int>& meter, int &c, int f)
 
 action * action::blockSuccess(int n, bool p)
 {
-	if(modifier && basis) return basis->blockSuccess(n, p);
+	if(modifier && basis.move) return basis.move->blockSuccess(n, p);
 	if(riposte){
 		if(!p || countersProjectile) return riposte;
 	}
@@ -834,11 +839,11 @@ void action::execute(action * last, vector<int> & meter, int &f, int &c, int &h)
 	meter[1] -= cost;
 	meter[4] += cost;
 	if(modifier){
-		if(last == nullptr) basis = nullptr;
-		basis = last;
-		currentFrame = f;
-		connectFlag = c;
-		hitFlag = h;
+		if(last == nullptr) basis.move = nullptr;
+		basis.move = last;
+		basis.frame = f;
+		basis.connect = c;
+		basis.hit = h;
 	}
 	f = 0;
 	c = 0;
@@ -904,7 +909,7 @@ bool action::canGuard(int f)
 
 int action::takeHit(hStat & s, int b, status &current)
 {
-	if(modifier && basis) return basis->takeHit(s, b, current);
+	if(modifier && basis.move) return basis.move->takeHit(s, b, current);
 	else{
 		if(!stunMin || s.stun >= stunMin){
 			if(!stunMax || s.stun <= stunMax){
@@ -932,7 +937,7 @@ int action::takeHit(hStat & s, int b, status &current)
 
 bool action::CHState(int f)
 {
-	if(modifier && basis) return basis->CHState(currentFrame);
+	if(modifier && basis.move) return basis.move->CHState(basis.frame);
 	if(hits < 1) return false;
 	else if(f < totalStartup[hits-1] + active[hits-1]) return true;
 	else return fch;

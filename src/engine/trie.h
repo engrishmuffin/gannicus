@@ -10,7 +10,7 @@ public:
 	actionTrie(action*);
 	actionTrie(action*, int);
 	~actionTrie();
-	action * actionHook(int[40], int, int, vector<int>, vector<int>, action *, SDL_Rect&, int&, int&);
+	action * actionHook(int[40], int, int, vector<int>, vector<int>, action *, SDL_Rect, int, int);
 	actionTrie * child[10];
 	vector<action*> fish;
 	actionTrie * insert(int);

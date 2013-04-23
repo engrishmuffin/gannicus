@@ -80,7 +80,7 @@ actionTrie::~actionTrie()
 	}
 }
 
-action * actionTrie::actionHook(int inputBuffer[30], int i, int first, vector<int> meter, vector<int> buttons, action * c, SDL_Rect &prox, int &cFlag, int &hFlag)
+action * actionTrie::actionHook(int inputBuffer[30], int i, int first, vector<int> meter, vector<int> buttons, action * c, SDL_Rect prox, int cFlag, int hFlag)
 {
 	actionTrie * test = nullptr;
 	action * result = nullptr;
