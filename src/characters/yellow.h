@@ -4,22 +4,22 @@
 class yellow : public character {
 public:
 	yellow();
-	void resetAirOptions(std::vector<int>&);
-	action * createMove(std::string);
-	int takeHit(status&, hStat&, int, int&, std::vector<int>&);
-	void drawMeters(int, int, std::vector<int>);
-	void tick(std::vector<int>&);
-	void init(std::vector<int>&);
-	std::vector<int> generateMeter();
-	void step(status&, std::vector<int>&);
+	void resetAirOptions(vector<int>&);
+	action * createMove(string);
+	int takeHit(status&, hStat&, int, int&, vector<int>&);
+	void drawMeters(int, int, vector<int>);
+	void tick(vector<int>&);
+	void init(vector<int>&);
+	vector<int> generateMeter();
+	void step(status&, vector<int>&);
 };
 
 class flashStep : public airMove {
 public:
 	flashStep();
-	flashStep(std::string, std::string);
-	bool check(SDL_Rect&, std::vector<int>);
-	void execute(action *, std::vector<int>&, int&, int&, int&);
+	flashStep(string, string);
+	bool check(SDL_Rect&, vector<int>);
+	void execute(action *, status&, vector<int>&);
 private:
 	int flashMeterCost;
 };
@@ -27,13 +27,13 @@ private:
 class flashSummon : public special {
 public:
 	flashSummon();
-	flashSummon(std::string, std::string);
+	flashSummon(string, string);
 	int arbitraryPoll(int, int);
-	bool check(SDL_Rect&, std::vector<int>);
-	void execute(action *, std::vector<int>&, int&, int&, int&);
+	bool check(SDL_Rect&, vector<int>);
+	void execute(action *, status&, vector<int>&);
 	bool setParameter(string);
 	virtual void zero();
-	void step(std::vector<int>&, status&);
+	void step(vector<int>&, status&);
 private:
 	bool uFlag;
 	int flashMeterGain;

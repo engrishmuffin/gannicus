@@ -7,35 +7,35 @@ red::red()
 	backup = new instance;
 }
 
-std::vector<int> red::generateMeter()
+vector<int> red::generateMeter()
 {
-	std::vector<int> meter (7);
+	vector<int> meter (7);
 	return meter;
 }
 
-void red::tick(std::vector<int>& metre)
+void red::tick(vector<int>& meter)
 {
-	character::tick(metre);
-	if(metre[5] < 540) metre[5]++;
-	if(metre[5] < 0) metre[5] = 0;
+	character::tick(meter);
+	if(meter[5] < 540) meter[5]++;
+	if(meter[5] < 0) meter[5] = 0;
 }
 
-void red::step(status& current, std::vector<int>& metre)
+void red::step(status& current, vector<int>& meter)
 {
-	if(metre[6] > 0) metre[6]--;
+	if(meter[6] > 0) meter[6]--;
 	temporalBuffer.push_back(current);
 	if(temporalBuffer.size() > 120) temporalBuffer.erase(temporalBuffer.begin());
-	character::step(current, metre);
+	character::step(current, meter);
 }
 
-void red::init(std::vector<int>& metre)
+void red::init(vector<int>& meter)
 {
-	character::init(metre);
-	metre[5] = 540;
-	metre[6] = 0;
+	character::init(meter);
+	meter[5] = 540;
+	meter[6] = 0;
 }
 
-action * red::createMove(std::string key)
+action * red::createMove(string key)
 {
 	tokenizer t(key, " \t-@?_%$!\n");
         t();
@@ -53,23 +53,23 @@ action * red::createMove(std::string key)
 	return m;
 }
 
-redCancel::redCancel(std::string dir, std::string file) 
+redCancel::redCancel(string dir, string file) 
 {
 	build(dir, file); 
 }
 
-bool redCancel::check(SDL_Rect& p, std::vector<int> meter)
+bool redCancel::check(SDL_Rect& p, vector<int> meter)
 {
 	if(meter[6] > 0) return 0;
 	return action::check(p, meter);
 }
 
-void redCancel::execute(action * last, std::vector<int>& meter, int &f, int &c, int &h)
+void redCancel::execute(action * last, status &current, vector<int>& meter)
 {
 	meter[2] = 1;
 	meter[3] = 1;
 	meter[6] = 16;
-	action::execute(last, meter, f, c, h);
+	action::execute(last, current, meter);
 }
 
 int redCancel::arbitraryPoll(int q, int f)

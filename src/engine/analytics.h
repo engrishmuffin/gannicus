@@ -66,7 +66,9 @@ public:
 	vector<int> combo;
 	vector<int> damage;
 	vector<bool> illegit;
+	vector<int> punish;
 	vector<int> counterHit;
 	vector<int> blockFail;
+	vector<SDL_Rect> hitloc;
 };
 #endif

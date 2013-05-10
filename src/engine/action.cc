@@ -68,6 +68,7 @@ void action::zero()
 	dies = 0;
 	fch = 0;
 	track = false;
+	flip = -1;
 	armorCounter = 0;
 	distortSpawn = -1;
 	distortion = nullptr;
@@ -309,6 +310,9 @@ bool action::setParameter(string buffer)
 		return true;
 	} else if (t.current() == "Next") {
 		tempNext = t("\t: \n");
+		return true;
+	} else if (t.current() == "Flip") {
+		flip = stoi(t("\t: \n"));
 		return true;
 	} else if (t.current() == "Attempt") {
 		attemptStart = stoi(t("\t: \n-")); 
@@ -833,7 +837,7 @@ void action::playSound(int channel)
 	Mix_PlayChannel(channel, soundClip, 0);
 }
 
-void action::execute(action * last, vector<int> & meter, int &f, int &c, int &h)
+void action::execute(action * last, status &current, vector<int> & meter)
 {
 	armorCounter = 0;
 	meter[1] -= cost;
@@ -841,13 +845,13 @@ void action::execute(action * last, vector<int> & meter, int &f, int &c, int &h)
 	if(modifier){
 		if(last == nullptr) basis.move = nullptr;
 		basis.move = last;
-		basis.frame = f;
-		basis.connect = c;
-		basis.hit = h;
+		basis.frame = current.frame;
+		basis.connect = current.connect;
+		basis.hit = current.hit;
 	}
-	f = 0;
-	c = 0;
-	h = 0;
+	current.frame = 0;
+	current.connect = 0;
+	current.hit = 0;
 }
 
 void action::feed(action * c, int code, int i)

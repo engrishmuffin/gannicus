@@ -9,6 +9,7 @@ using std::vector;
 class gameInstance : public window, public arcadeHarness, public HUD{
 public:
 	virtual void resolve() = 0;
+	virtual void handleArgs(vector<string>) {}
 	virtual bool screenInit();
 	virtual bool screenInit(int, int);
 	virtual void processInput(SDL_Event&);
@@ -38,6 +39,7 @@ public:
 	void loadMisc();
 	void initCharacters();
 	virtual void loadAssets();
+	virtual void handleArgs(vector<string>);
 	void processInput(SDL_Event&);
 	void createPlayers();
 	void createPlayers(string);

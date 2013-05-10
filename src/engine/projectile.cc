@@ -60,20 +60,20 @@ bool projectile::turn(int &ID)
 int projectile::takeHit(status &current, hStat &s, int blockType, int &hitType, vector<int>& meter)
 {
 	if(s.killsProjectile || current.move->hittable){ 
-		die->execute(current.move, meter, current.frame, current.connect, current.hit);
+		die->execute(current.move, current, meter);
 		current.move = die;
 		return 1;
 	} else return 0;
 }
 
-bool projectile::death(action *& cMove, int f, int counter)
+bool projectile::death(action *& cMove, int f, int age)
 {
 	if(cMove == die){
 		if(f == cMove->frames - 1){
 			return true;
 		}
 	}
-	if(cMove != die && lifespan > 0 && counter > lifespan){
+	if(cMove != die && lifespan > 0 && age > lifespan){
 		cMove = die;
 	}
 	return false;

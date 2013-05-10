@@ -5,28 +5,29 @@ yellow::yellow(){
 	build("Yellow", "Yellow");
 }
 
-void yellow::resetAirOptions(std::vector<int>& meter)
+void yellow::resetAirOptions(vector<int>& meter)
 {
 	meter[2] = 1;
 	meter[3] = 2;
 }
 
-std::vector<int> yellow::generateMeter()
+vector<int> yellow::generateMeter()
 {
-	std::vector<int> meter (6);
+	vector<int> meter (6);
 	return meter;
 }
 
-void yellow::init(std::vector<int>& meter)
+void yellow::init(vector<int>& meter)
 {
 	character::init(meter);
 	meter[5] = 0;
 }
 
-void yellow::tick(std::vector<int>& meter)
+void yellow::tick(vector<int>& meter)
 {
 	character::tick(meter);
-	if(meter[5] > 0){ 
+	if(meter[5] > 0){
+		if(meter[4] < 2) meter[4] = 2;
 		meter[5]--;
 		if(meter[5] == 0){ 
 			meter[5] = -360;
@@ -34,13 +35,13 @@ void yellow::tick(std::vector<int>& meter)
 	}
 }
 
-void yellow::step(status &current, std::vector<int>& meter)
+void yellow::step(status &current, vector<int>& meter)
 {
 	if(meter[5] < 0) meter[5]++;
 	character::step(current, meter);
 }
 
-action * yellow::createMove(std::string key)
+action * yellow::createMove(string key)
 {
 	tokenizer t(key, " \t-@?_%&$!\n");
 	string token = t();
@@ -60,7 +61,7 @@ action * yellow::createMove(std::string key)
 	return m;
 }
 
-void yellow::drawMeters(int ID, int hidden, std::vector<int> meter)
+void yellow::drawMeters(int ID, int hidden, vector<int> meter)
 {
 	int color;
 	character::drawMeters(ID, hidden, meter);
@@ -83,7 +84,7 @@ void yellow::drawMeters(int ID, int hidden, std::vector<int> meter)
 	glRectf((GLfloat)(c1.x), (GLfloat)(c1.y), (GLfloat)(c1.x + c1.w), (GLfloat)(c1.y + c1.h));
 }
 
-int yellow::takeHit(status& current, hStat & s, int blockType, int &hitType, std::vector<int> & meter)
+int yellow::takeHit(status& current, hStat & s, int blockType, int &hitType, vector<int> & meter)
 {
 	int x = character::takeHit(current, s, blockType, hitType, meter);
 	if(hitType == 1 && meter[5] > 0) meter[5] = 0;
@@ -93,12 +94,12 @@ int yellow::takeHit(status& current, hStat & s, int blockType, int &hitType, std
 flashStep::flashStep() {}
 flashSummon::flashSummon() {}
 
-flashStep::flashStep(std::string dir, std::string file)
+flashStep::flashStep(string dir, string file)
 {
 	build(dir, file);
 }
 
-flashSummon::flashSummon(std::string dir, std::string file)
+flashSummon::flashSummon(string dir, string file)
 {
 	build(dir, file);
 }
@@ -119,13 +120,13 @@ bool flashSummon::setParameter(string buffer)
 	} else return action::setParameter(buffer);
 }
 
-bool flashStep::check(SDL_Rect& p, std::vector<int> meter)
+bool flashStep::check(SDL_Rect& p, vector<int> meter)
 {
 	if(meter[5] < 1) return 0;
 	else return action::check(p, meter);
 }
 
-bool flashSummon::check(SDL_Rect& p, std::vector<int> meter)
+bool flashSummon::check(SDL_Rect& p, vector<int> meter)
 {
 	if(meter[5] < 0) return 0;
 	if(meter[5] > 0) uFlag = 1;
@@ -142,26 +143,26 @@ int flashSummon::arbitraryPoll(int q, int f)
 	else return action::arbitraryPoll(q,f);
 }
 
-void flashSummon::execute(action * last, std::vector<int>& meter, int &f, int &c, int &h)
+void flashSummon::execute(action * last, status &current, vector<int>& meter)
 {
 	if(meter[5] > 0) uFlag = 1;
 	else uFlag = 0;
-	action::execute(last, meter, f, c, h);
+	action::execute(last, current, meter);
 	if(uFlag){
 		meter[1] += cost;
 		meter[4] -= cost;
 	}
 }
 
-void flashStep::execute(action * last, std::vector<int>& meter, int &f, int &c, int &h)
+void flashStep::execute(action * last, status &current, vector<int>& meter)
 {
 	meter[5] -= 10;
 	if(meter[5] > 540) meter[5] = 540;
 	else if(meter[5] < 0) meter[5] = -360;
-	action::execute(last, meter, f, c, h);
+	action::execute(last, current, meter);
 }
 
-void flashSummon::step(std::vector<int>& meter, status &current)
+void flashSummon::step(vector<int>& meter, status &current)
 {
 	if(uFlag){
 		if(current.frame == frames - 1) meter[5] = 0;

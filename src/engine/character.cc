@@ -46,7 +46,7 @@ void avatar::prepHooks(status &current, int inputBuffer[30], vector<int> buttons
 	if(current.move && current.reversal){
 		if(*current.reversal > current){
 			if(current.reversal->check(p, meter)){
-				if(!dryrun) current.reversal->execute(neutral, meter, current.frame, current.connect, current.hit);
+				if(!dryrun) current.reversal->execute(neutral, current, meter);
 				current.move = current.reversal;
 				current.reversalFlag = true;
 				if(!dryrun){
@@ -71,7 +71,7 @@ void avatar::prepHooks(status &current, int inputBuffer[30], vector<int> buttons
 		}
 		if (current.bufferedMove != nullptr && current.freeze <= 0) {
 			if(!dryrun){ 
-				current.bufferedMove->execute(current.move, meter, current.frame, current.connect, current.hit);
+				current.bufferedMove->execute(current.move, current, meter);
 			}
 			current.move = current.bufferedMove;
 			if(!dryrun) current.bufferedMove = nullptr;
@@ -104,7 +104,7 @@ void avatar::prepHooks(status &current, int inputBuffer[30], vector<int> buttons
 				if(!dryrun) current.bufferedMove = t;
 			}
 		} else {
-			if(!dryrun) t->execute(current.move, meter, current.frame, current.connect, current.hit);
+			if(!dryrun) t->execute(current.move, current, meter);
 			current.move = t;
 		}
 	}
@@ -519,7 +519,7 @@ int character::takeHit(status &current, hStat & s, int blockType, int &hitType, 
 	}
 	if(dead == true){
 		current.counter = -(s.stun+s.untech);
-		die->execute(current.move, meter, current.frame, current.connect, current.hit);
+		die->execute(current.move, current, meter);
 		current.move = die;
 		current.aerial = true;
 	} else if(hitType == 1) {

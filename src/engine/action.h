@@ -52,7 +52,7 @@ public:
 	//Okay so, hopefully the idea here is that we can init()
 	//the action we're cancelling out of in the usual case, and, well
 	//Do other stuff sometimes.
-	virtual void execute(action *, vector<int>&, int&, int&, int&);
+	virtual void execute(action *, status&, vector<int>&);
 	virtual void playSound(int);
 	virtual bool activate(vector<int>, int, int, int, vector<int>, SDL_Rect&); //Check to see if the action is possible right now.
 	virtual void generate(string, string);
@@ -95,6 +95,7 @@ public:
 	bool hidesMeter:1;
 	bool track:1;
 	bool countersProjectile:1;
+	int flip;
 	int armorStart, armorLength;
 	int armorHits, armorCounter;
 	int guardStart, guardLength, guardType, 
@@ -269,7 +270,7 @@ public:
 	airUtility() {}
 	airUtility(string, string);
 	virtual bool check(SDL_Rect&, vector<int>); //Check to see if the action is possible right now.
-	virtual void execute(action *, vector<int>&, int&, int&, int&);
+	virtual void execute(action *, status&, vector<int>&);
 };
 
 class airLooping : public airMove, public looping {

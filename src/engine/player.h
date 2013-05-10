@@ -22,7 +22,7 @@ public:
 	virtual void pollStats(hStat&);
 	virtual void neutralize();
 	virtual bool acceptTarget(instance*);
-	virtual bool CHState() { return 0; }
+	virtual int CHState() { return 0; }
 	virtual void init();
 	virtual void step();
 
@@ -54,7 +54,7 @@ public:
 	vector<int> meter;
 	int particleType;
 	int blockType;
-	int counter;
+	int age;
 	bool boxen:1;
 	bool sprite:1;
 protected:
@@ -82,7 +82,7 @@ public:
 	virtual void macroCheck(SDL_Event&);
 	virtual int takeHit(int, hStat&, SDL_Rect&);
 //	virtual void connect(int, hStat&);
-	virtual bool CHState();
+	virtual int CHState();
 
 	void setKey(int);
 	bool setKey(int, SDL_Event);

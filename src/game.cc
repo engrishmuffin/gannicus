@@ -1,8 +1,11 @@
 #include "engine/interface.h"
 #include <chrono>
+#include <iostream>
 
 using std::ratio;
 using std::vector;
+using std::string;
+using std::cout;
 using namespace std::chrono;
 
 template<typename Engine, size_t FPS, size_t Rounds>
@@ -51,9 +54,12 @@ void loop<Engine, FPS, Rounds>::run()
 	}
 }
 
-int main(int argc, char* argv[])
+int main(int argc, const char* argv[])
 {
+	vector <string> args;
+	for(int i = 0; i < argc; i++) args.push_back(argv[i]);
 	loop<interface, 60, 2> game;
+	game.game.handleArgs(args);
 	game.run();
 	return 0;
 }

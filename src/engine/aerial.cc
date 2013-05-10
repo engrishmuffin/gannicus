@@ -57,10 +57,10 @@ bool airUtility::check(SDL_Rect &p, vector<int> meter) //Check to see if the act
 	return action::check(p, meter);
 }
 
-void airUtility::execute(action * last, vector<int>& meter, int &f, int &c, int &h){
+void airUtility::execute(action * last, status &current, vector<int>& meter){
 	if(abs(delta[0][0].y) > abs(delta[0][0].x)) meter[2]--;
 	else if(abs(delta[0][0].y) < abs(delta[0][0].x)) meter[3]--;
-	action::execute(last, meter, f, c, h);
+	action::execute(last, current, meter);
 }
 
 airLooping::airLooping(string dir, string file)

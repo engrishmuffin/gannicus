@@ -56,6 +56,13 @@ interface::interface()
 	replay = nullptr;
 }
 
+void interface::handleArgs(vector<string> args)
+{
+	for(string i:args) {
+		if(i == "eleven") killTimer = true;
+	}
+}
+
 void interface::createPlayers(string rep)
 {
 	oldReplay = new script(rep);
@@ -89,12 +96,13 @@ void interface::createPlayers()
 		damage.push_back(0);
 		blockFail.push_back(0);
 		counterHit.push_back(0);
+		punish.push_back(0);
 		illegit.push_back(false);
 		menu[i] = 0;
 		configMenu[i] = 0;
 		things.push_back(P[i]);
-		P[i]->boxen = true;
-		P[i]->sprite = false;
+		P[i]->boxen = false;
+		P[i]->sprite = true;
 	}
 }
 
@@ -246,6 +254,7 @@ void interface::roundInit()
 		damage[i] = 0;
 		illegit[i] = 0;
 		counterHit[i] = 0;
+		punish[i] = 0;
 		blockFail[i] = 0;
 	}
 
@@ -407,6 +416,7 @@ void interface::resolveCombos()
 			case -2:
 				illegit[(i+1)%2] = 1;
 				counterHit[(i+1)%2] = 0;
+				punish[(i+1)%2] = 0;
 				blockFail[i] = 0;
 				break;
 			case 0:
@@ -418,6 +428,7 @@ void interface::resolveCombos()
 				P[i]->elasticY = 0;
 				illegit[(i+1)%2] = 0;
 				counterHit[(i+1)%2] = 0;
+				punish[(i+1)%2] = 0;
 				blockFail[i] = 0;
 				break;
 			}
@@ -528,15 +539,14 @@ void interface::resolvePhysics()
 
 void interface::cleanup()
 {
-	//if(select[0] && select[1]) print();
-	if(!pMenu){
+	if(select[0] && select[1] && !pMenu){
 		for(unsigned int i = 0; i < P.size(); i++) {
 			things[i]->current.throwInvuln--;
 			P[i]->hover--;
 		}
 		for(unsigned int i = 2; i < things.size(); i++){
 			if(things[i]->current.posX > bg.w + 300 || things[i]->current.posX < -300 || things[i]->current.posY < -300 || things[i]->current.posY > bg.h){
-				things[i]->pick()->die->execute(things[i]->current.move, things[i]->meter, things[i]->current.frame, things[i]->current.connect, things[i]->current.hit);
+				things[i]->pick()->die->execute(things[i]->current.move, things[i]->current, things[i]->meter);
 				things[i]->current.move = things[i]->pick()->die;
 			}
 		}
@@ -1110,12 +1120,19 @@ interface::~interface()
 
 void gameInstance::unitCollision(instance *a, instance *b)
 {
-	instance *right = b, *left = a;
-	if(a->middle() > b->middle()){ right = a; left = b; }
-	else if(a->middle() < b->middle()){ right = b; left = a; }
-	else {
-		if(a->current.facing == 1 && b->current.facing == -1 || a->current.lCorner || b->current.rCorner){ left = a; right = b; }
-		else if(b->current.facing == 1 && a->current.facing == -1 || a->current.rCorner || b->current.lCorner){ left = b; right = a; }
+	instance *right, *left;
+	if(a->middle() > b->middle()){
+		right = a; left = b;
+	} else if(a->middle() < b->middle()){
+		right = b; left = a;
+	} else {
+		if((a->current.facing == 1 && b->current.facing == -1) || a->current.lCorner || b->current.rCorner){
+			left = a; right = b;
+		} else if((b->current.facing == 1 && a->current.facing == -1) || a->current.rCorner || b->current.lCorner){
+			left = b; right = a;
+		} else {
+			left = a; right = b;
+		}
 	}
 
 	/*Collision between players. Unfortunately a lot of specialcasing necessary here.*/
@@ -1268,14 +1285,20 @@ void interface::resolveHits()
 	}
 	for(unsigned int i = 0; i < things.size(); i++){
 		for(int m = things.size()-1; m >= 0; m--){
-			for(unsigned int j = 0; j < things[i]->hitbox.size(); j++){
-				for(unsigned int k = 0; k < things[m]->hitreg.size(); k++){
-					if(aux::checkCollision(things[i]->hitbox[j], things[m]->hitreg[k])){
-						if(things[i]->acceptTarget(things[m])){
-							if(m != (int)i && !taken[m] && !connect[i]){
+			if(m != (int)i){
+				for(unsigned int j = 0; j < things[i]->hitbox.size(); j++){
+					for(unsigned int k = 0; k < things[m]->hitreg.size(); k++){
+						if(aux::checkCollision(things[i]->hitbox[j], things[m]->hitreg[k])){
+							if(!taken[m] && !connect[i] && things[i]->acceptTarget(things[m])){
 								connect[i] = 1;
 								things[i]->current.counter = things[m]->CHState();
-								if(things[i]->current.counter > 0) counterHit[things[i]->ID-1] = s[i].stun + (s[i].pause > 0) ? s[i].pause : (s[i].stun/4 + 10);
+								if(m < 2){
+									if(things[i]->current.counter > 0){
+										counterHit[things[i]->ID-1] = s[i].stun + (s[i].pause > 0) ? s[i].pause : (s[i].stun/4 + 10);
+									} else if(!(things[m]->current.move->state[things[m]->current.connect].i & 513) && !combo[things[i]->ID-1] && !things[m]->current.counter){
+										punish[things[i]->ID-1] = s[i].stun + (s[i].pause > 0) ? s[i].pause : (s[i].stun/4 + 10);
+									}
+								}
 								things[i]->pollStats(s[i]);
 								if(i < P.size()) push[i] = s[i].push;
 								k = things[m]->hitreg.size();
@@ -1291,12 +1314,13 @@ void interface::resolveHits()
 		}
 	}
 
-
 	for(unsigned int i = 0; i < things.size(); i++){ 
 		if(taken[i]){
 			int health = things[things[i]->ID-1]->meter[0];
 			bool actuallyDoesDamage = (s[hitBy[i]].damage != 0);
+//			cout << s[hitBy[i]].damage << " Prorated by ";
 			s[hitBy[i]].damage *= prorate[things[hitBy[i]]->ID-1];
+//			cout << prorate[things[hitBy[i]]->ID-1] << " -> " << s[hitBy[i]].damage << '\n';
 			if(actuallyDoesDamage && s[hitBy[i]].damage == 0) s[hitBy[i]].damage = 1;
 			action * b = things[i]->current.move;
 			bool wasair = things[i]->current.aerial;

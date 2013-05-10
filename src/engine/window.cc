@@ -26,7 +26,7 @@ bool window::screenInit()
 	glEnable (GL_BLEND);
 	glEnable (GL_POINT_SMOOTH);
 	glEnable (GL_LINE_SMOOTH);
-	glEnable (GL_POLYGON_SMOOTH);
+	//glEnable (GL_POLYGON_SMOOTH);
 	glEnable (GL_LIGHTING);
 	glEnable(GL_LIGHT0);
 	glEnable(GL_DEPTH_TEST);
@@ -48,8 +48,8 @@ bool window::screenInit()
 
 void window::setLighting()
 {
-	GLfloat lightColor0[] = {0.5f, 0.2f, 0.2f, 0.5f}; //Color (0.5, 0.5, 0.5)
-	GLfloat lightPos0[] = {5.0f, 0.0f, 9.0f, 1.0f}; //Positioned at (4, 0, 8)
+	GLfloat lightColor0[] = {0.5f, 0.2f, 0.2f, 0.5f}; 
+	GLfloat lightPos0[] = {5.0f, 0.0f, 9.0f, 1.0f}; 
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColor0);
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPos0);
 	GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };

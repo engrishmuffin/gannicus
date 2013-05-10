@@ -61,7 +61,7 @@ void instance::init()
 	current.freeze = 0;
 	current.aerial = false;
 	current.dead = false;
-	counter = 0;
+	age = 0;
 	for(int i = 0; i < 30; i++) inputBuffer[i] = 5;
 }
 
@@ -628,7 +628,7 @@ void instance::print()
 void instance::step()
 {
 	action * m = current.move;
-	if(pick()->death(current.move, current.frame, counter)) current.dead = true;
+	if(pick()->death(current.move, current.frame, age)) current.dead = true;
 	if(current.connect < 0) current.connect = 0;
 	if(m != current.move){
 		current.frame = 0;
@@ -636,7 +636,10 @@ void instance::step()
 		current.hit = 0;
 	}
 	if(current.posX > 3300 || current.posX < -100) current.dead = true;
-	if(!current.freeze) counter++;
+	if(!current.freeze){ 
+		if(current.move->flip == current.frame) flip();
+		age++;
+	}
 	pick()->step(current, meter);
 	if(current.move && current.frame >= current.move->frames){
 		if(current.move->modifier && current.move->basis.move){ 
@@ -684,8 +687,8 @@ void instance::checkFacing(instance * other)
 	if(other->current.posX < current.posX) comparison += collision.w % 2; 
 	else midpoint += collision.w % 2;
 
-	if (current.lCorner) current.facing = 1;
-	else if (current.rCorner) current.facing = -1;
+	if (current.lCorner || other->current.rCorner) current.facing = 1;
+	else if (current.rCorner || other->current.lCorner) current.facing = -1;
 	else if (midpoint < comparison){
 		if(current.facing == -1) flip();
 	} else if (midpoint > comparison){
@@ -705,7 +708,7 @@ int instance::passSignal(int sig)
 	switch (sig){
 	case 1:
 		action * a; 
-		a = pick()->moveSignal(counter);
+		a = pick()->moveSignal(age);
 		if(a != nullptr){
 			current.move = a;
 			current.frame = 0;
@@ -987,7 +990,7 @@ void instance::invertVectors(int operation)
 	}
 }
 
-bool player::CHState()
+int player::CHState()
 {
 	if(!hitbox.empty()) return true;
 	else return current.move->CHState(current.frame);
@@ -1011,7 +1014,9 @@ void player::getThrown(action *toss, int x, int y)
 	dummy.stun = 1;
 	dummy.ghostHit = 1;
 	setPosition(toss->arbitraryPoll(27, current.frame)*xSign + abs(x), toss->arbitraryPoll(26, current.frame) + y);
+	pick()->neutralize(current, current.move, meter);
 	pick()->takeHit(current, dummy, 0, particleType, meter);
+	current.counter = -5;
 }
 
 instance::~instance()
