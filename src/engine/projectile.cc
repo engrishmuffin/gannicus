@@ -31,12 +31,12 @@ void projectile::pollStats(hStat & s, status &current)
 		s.pause = 4;
 }
 
-void projectile::init(vector<int>& meter)
+void projectile::init(status& current)
 {
-	meter[0] = 600;
-	meter[1] = 0;
-	meter[2] = 1;
-	meter[3] = 1;
+	current.meter[0] = 600;
+	current.meter[1] = 0;
+	current.meter[2] = 1;
+	current.meter[3] = 1;
 }
 
 void projectile::processMove(action * m)

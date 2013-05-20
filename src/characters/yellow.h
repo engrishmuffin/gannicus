@@ -7,9 +7,9 @@ public:
 	void resetAirOptions(vector<int>&);
 	action * createMove(string);
 	int takeHit(status&, hStat&, int, int&, vector<int>&);
-	void drawMeters(int, int, vector<int>);
+	void drawMeters(int, int, status&);
 	void tick(vector<int>&);
-	void init(vector<int>&);
+	void init(status&);
 	vector<int> generateMeter();
 	void step(status&, vector<int>&);
 };

@@ -13,7 +13,7 @@ public:
 	avatar() {}
 	virtual void setParam(int, int) {}
 	virtual vector<int> generateMeter();
-	virtual void init(vector<int>&) = 0;
+	virtual void init(status&) = 0;
 	virtual action * moveSignal(int);
 	bool spriteCheck(action *&, int);
 	virtual void draw(action *&, int);
@@ -34,7 +34,7 @@ public:
 	virtual void pollRects(status&, SDL_Rect&, vector<SDL_Rect>&, vector<SDL_Rect>&);
 	virtual void step(status&, vector<int>&);
 	virtual int acceptTarget(action*, int);
-	virtual instance * spawn(action*);
+	virtual instance * spawn(status&);
 	virtual void tick(vector<int>&) {}
 	virtual void neutralize(status&, action*&, vector<int>&);
 	virtual bool turn(int&) { return 0; }
@@ -60,8 +60,8 @@ public:
 	virtual void build(string, string);
 	virtual int comboState(action *);
 	virtual void neutralize(status&, action*&, vector<int>&);
-	virtual void drawMeters(int, int, vector<int>);
-	virtual void init(vector<int> &);
+	virtual void drawMeters(int, int, status&);
+	virtual void init(status&);
 	virtual int checkBlocking(status&, int[]);
 	virtual void block(status&, int, bool);
 	virtual void resetAirOptions(vector<int>&);
@@ -96,6 +96,6 @@ public:
 
 	virtual void processMove(action * m);
 	virtual bool death(action *&, int, int);
-	virtual void init(vector<int>&);
+	virtual void init(status&);
 };
 #endif

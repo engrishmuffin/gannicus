@@ -8,7 +8,7 @@ public:
 	void tick(vector<int>&);
 	vector<int> generateMeter();
 	void step(status&, vector<int>&);
-	void init(vector<int>&);
+	void init(status&);
 	vector<status> temporalBuffer;
 	instance * backup;
 };

@@ -28,11 +28,11 @@ void red::step(status& current, vector<int>& meter)
 	character::step(current, meter);
 }
 
-void red::init(vector<int>& meter)
+void red::init(status& current)
 {
-	character::init(meter);
-	meter[5] = 540;
-	meter[6] = 0;
+	character::init(current);
+	current.meter[5] = 540;
+	current.meter[6] = 0;
 }
 
 action * red::createMove(string key)

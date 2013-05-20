@@ -307,7 +307,7 @@ void interface::drawHUD()
 			Mix_PlayChannel(3, announceFight, 0);
 	}
 	if(roundEnd && endTimer > 5 * 60 - 31){ 
-		if(things[0]->meter[0] > 0 && things[1]->meter[0] > 0){
+		if(things[0]->current.meter[0] > 0 && things[1]->current.meter[0] > 0){
 			drawGlyph("TIME OUT", 0, 1600, 300, 200, 1);
 			if(endTimer == 5 * 60 - 1)
 				Mix_PlayChannel(3, announceEnd[0], 0);
@@ -318,19 +318,19 @@ void interface::drawHUD()
 		}
 	}
 	if(endTimer > 3 * 60 + 29 && endTimer < 4 * 60){ 
-		if(things[0]->meter[0] > things[1]->meter[0]){ 
+		if(things[0]->current.meter[0] > things[1]->current.meter[0]){ 
 			sprintf(buffer, "%s", things[0]->pick()->name.c_str());
 			drawGlyph(buffer, 0, 1600, 300, 150, 1);
 			drawGlyph("Wins", 0, 1600, 450, 150, 1);
 			if(endTimer == 4 * 60 - 1)
 				Mix_PlayChannel(3, announceWinner[selection[0]], 0);
-		} else if(things[1]->meter[0] > things[0]->meter[0]){
+		} else if(things[1]->current.meter[0] > things[0]->current.meter[0]){
 			sprintf(buffer, "%s", things[1]->pick()->name.c_str());
 			drawGlyph(buffer, 0, 1600, 300, 150, 1);
 			drawGlyph("Wins", 0, 1600, 450, 150, 1);
 			if(endTimer == 4 * 60 - 1)
 				Mix_PlayChannel(3, announceWinner[selection[1]], 0);
-		} else if(things[0]->meter[0] <= 0){ 
+		} else if(things[0]->current.meter[0] <= 0){ 
 			sprintf(buffer, "Double KO");
 			drawGlyph(buffer, 0, 1600, 375, 150, 1);
 			if(endTimer == 4 * 60 - 1)
@@ -398,14 +398,14 @@ void player::drawMeters(int n)
 	if(current.move){
 		if(current.move->hidesMeter) h = current.move->cost;
 	}
-	pick()->drawMeters(ID, h, meter);
+	pick()->drawMeters(ID, h, current);
 	glFlush();
 }
 
-void character::drawMeters(int ID, int hidden, vector<int> meter)
+void character::drawMeters(int ID, int hidden, status &current)
 {
 	SDL_Rect m, h, g;
-	if(meter[0] >= 0) h.w = meter[0]; else h.w = 1; 
+	if(current.meter[0] >= 0) h.w = current.meter[0]; else h.w = 1; 
 
 	if(ID == 1) h.x = 100 + (600 - h.w); 
 	else h.x = 900;
@@ -413,8 +413,8 @@ void character::drawMeters(int ID, int hidden, vector<int> meter)
 	h.y = 10;
 
 	int R = 0, G = 255, B = 0;
-	if(meter[1] >= 0) m.w = (meter[1]+hidden)*2; else m.w = 0;
-	if(hidden) g.w = 0; else g.w = meter[4]*2;
+	if(current.meter[1] >= 0) m.w = (current.meter[1]+hidden)*2; else m.w = 0;
+	if(hidden) g.w = 0; else g.w = current.meter[4]*2;
 	if(ID == 1){ 
 		m.x = 100;
 		g.x = m.x + m.w;

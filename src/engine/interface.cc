@@ -420,7 +420,7 @@ void interface::resolveCombos()
 				blockFail[i] = 0;
 				break;
 			case 0:
-				if(killTimer) P[i]->meter[0] = 600;
+				if(killTimer) P[i]->current.meter[0] = 600;
 				combo[(i+1)%2] = 0;
 				damage[(i+1)%2] = 0;
 				prorate[(i+1)%2] = 1.0;
@@ -513,22 +513,21 @@ void interface::resolvePhysics()
 {
 	for(unsigned int i = 0; i < things.size(); i++){
 		if(!things[i]->current.freeze){
-			if(things[i]->current.move->stop & 4);
-			else { 
+			if(!(things[i]->current.move->stop & 4)){
 				things[i]->pullVolition();
 				if(things[i]->ID) things[i]->follow(things[(things[i]->ID)%2]);
 				things[i]->combineDelta();
 				things[i]->enforceGravity(grav, floor);
-			}
-			for(unsigned int j = 0; j < globals.size(); j++){
-				if(globals[j]->ID != things[i]->ID){
-					if(i < P.size()){
-						if(globals[j]->effectCode & 1){
-							things[i]->enforceAttractor(globals[j]);
-						}
-					} else {
-						if(globals[j]->effectCode & 2){
-							things[i]->enforceAttractor(globals[j]);
+				for(unsigned int j = 0; j < globals.size(); j++){
+					if(globals[j]->ID != things[i]->ID){
+						if(i < P.size()){
+							if(globals[j]->effectCode & 1){
+								things[i]->enforceAttractor(globals[j]);
+							}
+						} else {
+							if(globals[j]->effectCode & 2){
+								things[i]->enforceAttractor(globals[j]);
+							}
 						}
 					}
 				}
@@ -546,7 +545,7 @@ void interface::cleanup()
 		}
 		for(unsigned int i = 2; i < things.size(); i++){
 			if(things[i]->current.posX > bg.w + 300 || things[i]->current.posX < -300 || things[i]->current.posY < -300 || things[i]->current.posY > bg.h){
-				things[i]->pick()->die->execute(things[i]->current.move, things[i]->current, things[i]->meter);
+				things[i]->pick()->die->execute(things[i]->current.move, things[i]->current, things[i]->current.meter);
 				things[i]->current.move = things[i]->pick()->die;
 			}
 		}
@@ -605,18 +604,16 @@ void interface::cleanup()
 
 void interface::resolveSummons()
 {
-	action * temp;
 	instance * larva;
 	int x, y, f;
 	for(unsigned int i = 0; i < things.size(); i++){
 		if(things[i]->current.move){
-			temp = things[i]->current.move;
-			if(temp->arbitraryPoll(50, things[i]->current.frame)){
-				larva = things[i]->pick()->spawn(temp);
+			if(things[i]->current.move->arbitraryPoll(50, things[i]->current.frame)){
+				larva = things[i]->spawn();
 				if(larva){
 					larva->boxen = things[i]->boxen;
 					larva->sprite = things[i]->sprite;
-					switch (temp->arbitraryPoll(56, things[i]->current.frame)){
+					switch (things[i]->current.move->arbitraryPoll(56, things[i]->current.frame)){
 					case 0:
 						larva->ID = 0;
 						break;
@@ -627,21 +624,21 @@ void interface::resolveSummons()
 						larva->ID = (things[i]->ID)%2+1;
 						break;
 					}
-					if(temp->arbitraryPoll(51, things[i]->current.frame)){
+					if(things[i]->current.move->arbitraryPoll(51, things[i]->current.frame)){
 						x = things[(things[i]->ID)%2]->current.posX;
 						f = things[(things[i]->ID)%2]->current.facing;
 					} else {
 						x = things[(things[i]->ID)-1]->current.posX;
 						f = things[(things[i]->ID)-1]->current.facing;
 					}
-					if(temp->arbitraryPoll(52, things[i]->current.frame))
+					if(things[i]->current.move->arbitraryPoll(52, things[i]->current.frame))
 						y = things[(things[i]->ID)%2]->current.posY;
-					else if(temp->arbitraryPoll(53, things[i]->current.frame))
+					else if(things[i]->current.move->arbitraryPoll(53, things[i]->current.frame))
 						y = 0;
 					else
 						y = things[(things[i]->ID)-1]->current.posY;
-					x += temp->arbitraryPoll(54, things[i]->current.frame)*f;
-					y += temp->arbitraryPoll(55, things[i]->current.frame);
+					x += things[i]->current.move->arbitraryPoll(54, things[i]->current.frame)*f;
+					y += things[i]->current.move->arbitraryPoll(55, things[i]->current.frame);
 					if(x > bg.w + 100) x = bg.w + 100;
 					if(y > bg.h - 50) y = bg.h - 50;
 					if(x < -100) x = -100;
@@ -701,12 +698,12 @@ void interface::summonAttractors()
 /*Check if someone won*/
 void interface::checkWin()
 {
-	if(P[0]->meter[0] == 0 || P[1]->meter[0] == 0 || timer == 0){
+	if(P[0]->current.meter[0] == 0 || P[1]->current.meter[0] == 0 || timer == 0){
 		roundEnd = true;
-		if(P[0]->meter[0] > P[1]->meter[0]) {
+		if(P[0]->current.meter[0] > P[1]->current.meter[0]) {
 			P[0]->rounds++;
 		}
-		else if(P[1]->meter[0] > P[0]->meter[0]) {
+		else if(P[1]->current.meter[0] > P[0]->current.meter[0]) {
 			P[1]->rounds++;
 		}
 		else {
@@ -1043,7 +1040,7 @@ void interface::pauseMenu()
 						delete P[i]->pick();
 						select[i] = 0;
 						initCharacters();
-						things[i]->meter.clear();
+						things[i]->current.meter.clear();
 					}
 					Mix_HaltMusic();
 					Mix_FreeMusic(matchMusic);
@@ -1088,7 +1085,7 @@ void interface::rematchMenu()
 					for(unsigned int k = 0; k < P.size(); k++){
 						delete P[k]->pick();
 						select[k] = 0;
-						things[k]->meter.clear();
+						things[k]->current.meter.clear();
 					}
 					Mix_HaltMusic();
 					Mix_FreeMusic(matchMusic);
@@ -1316,7 +1313,7 @@ void interface::resolveHits()
 
 	for(unsigned int i = 0; i < things.size(); i++){ 
 		if(taken[i]){
-			int health = things[things[i]->ID-1]->meter[0];
+			int health = things[things[i]->ID-1]->current.meter[0];
 			bool actuallyDoesDamage = (s[hitBy[i]].damage != 0);
 //			cout << s[hitBy[i]].damage << " Prorated by ";
 			s[hitBy[i]].damage *= prorate[things[hitBy[i]]->ID-1];
@@ -1350,7 +1347,7 @@ void interface::resolveHits()
 			P[(i+1)%2]->enforceFloor(floor);
 			P[(i+1)%2]->checkCorners(bg.x + wall, bg.x + screenWidth - wall);
 			if(things[i]->current.facing * things[hitBy[i]]->current.facing == 1) things[i]->invertVectors(1);
-			if(i < P.size()) damage[(i+1)%2] += health - P[i]->meter[0];
+			if(i < P.size()) damage[(i+1)%2] += health - P[i]->current.meter[0];
 		}
 	}
 
@@ -1411,7 +1408,7 @@ void interface::resolveHits()
 	}
 
 	for(unsigned int i = 0; i < P.size(); i++) {
-		if(things[i]->meter[0] <= 0 && endTimer >= 5 * 60){ 
+		if(things[i]->current.meter[0] <= 0 && endTimer >= 5 * 60){ 
 			i = 2;
 			for(unsigned int j = 0; j < things.size(); j++)
 				things[j]->current.freeze = 30;

@@ -34,6 +34,7 @@ public:
 	virtual void setPosition(int, int);
 	virtual void updateRects();
 	virtual void draw();
+	virtual instance* spawn();
 	virtual void drawBoxen();
 	virtual void combineDelta();
 	virtual bool spriteCheck();
@@ -51,10 +52,8 @@ public:
 	status current;
 	status save;
 
-	vector<int> meter;
 	int particleType;
 	int blockType;
-	int age;
 	bool boxen:1;
 	bool sprite:1;
 protected:

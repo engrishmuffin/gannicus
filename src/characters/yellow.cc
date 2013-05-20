@@ -17,10 +17,10 @@ vector<int> yellow::generateMeter()
 	return meter;
 }
 
-void yellow::init(vector<int>& meter)
+void yellow::init(status &current)
 {
-	character::init(meter);
-	meter[5] = 0;
+	character::init(current);
+	current.meter[5] = 0;
 }
 
 void yellow::tick(vector<int>& meter)
@@ -61,16 +61,16 @@ action * yellow::createMove(string key)
 	return m;
 }
 
-void yellow::drawMeters(int ID, int hidden, vector<int> meter)
+void yellow::drawMeters(int ID, int hidden, status &current)
 {
 	int color;
-	character::drawMeters(ID, hidden, meter);
+	character::drawMeters(ID, hidden, current);
 	SDL_Rect c1;
-	if(meter[5] >= 0){
-		c1.w = meter[5]/3*2; 
+	if(current.meter[5] >= 0){
+		c1.w = current.meter[5]/3*2; 
 		color = 255;
 	} else {
-		c1.w = 360 + (meter[5]);
+		c1.w = 360 + (current.meter[5]);
 		color = 0;
 	}
 	if(ID == 1){

@@ -24,6 +24,11 @@ player::player(int id)
 	wins = 0;
 }
 
+instance * instance::spawn()
+{
+	return pick()->spawn(current);
+}
+
 instance::instance()
 {
 	init();
@@ -32,8 +37,8 @@ instance::instance()
 instance::instance(avatar * f)
 {
 	v = f;
-	meter = pick()->generateMeter();
-	pick()->init(meter);
+	current.meter = pick()->generateMeter();
+	pick()->init(current);
 	init();
 }
 
@@ -61,7 +66,8 @@ void instance::init()
 	current.freeze = 0;
 	current.aerial = false;
 	current.dead = false;
-	age = 0;
+	current.age = 0;
+	current.offspring.clear();
 	for(int i = 0; i < 30; i++) inputBuffer[i] = 5;
 }
 
@@ -75,9 +81,6 @@ bool instance::acceptTarget(instance * m)
 void player::init()
 {
 	/*Initialize input containers*/
-	for(int i = 0; i < 30; i++)
-		inputBuffer[i] = 5;
-
 	inputName.push_back("Up");
 	inputName.push_back("Down");
 	inputName.push_back("Left");
@@ -100,8 +103,8 @@ void player::roundInit()
 {
 	char buffer[200];
 	instance::init();
-	pick()->neutralize(current, current.move, meter);
-	if(v) pick()->init(meter);
+	pick()->neutralize(current, current.move, current.meter);
+	if(v) pick()->init(current);
 	if(record){
 		sprintf(buffer, "%i-%s.sh", ID, pick()->name.c_str());
 		record->write(buffer);
@@ -349,7 +352,7 @@ void player::characterSelect(int i)
 		break;
 	}
 	iterator = 0;
-	meter = pick()->generateMeter();
+	current.meter = pick()->generateMeter();
 }
 
 void player::readScripts()
@@ -602,7 +605,7 @@ void player::land()
 	for(unsigned int i = 0; i < momentum.size(); i++){
 		if(momentum[i].y > 0) momentum.erase(momentum.begin()+i);
 	}
-	pick()->land(current, meter);
+	pick()->land(current, current.meter);
 	current.reversal = nullptr;
 	current.aerial = false;
 }
@@ -628,7 +631,7 @@ void instance::print()
 void instance::step()
 {
 	action * m = current.move;
-	if(pick()->death(current.move, current.frame, age)) current.dead = true;
+	if(pick()->death(current.move, current.frame, current.age)) current.dead = true;
 	if(current.connect < 0) current.connect = 0;
 	if(m != current.move){
 		current.frame = 0;
@@ -638,9 +641,14 @@ void instance::step()
 	if(current.posX > 3300 || current.posX < -100) current.dead = true;
 	if(!current.freeze){ 
 		if(current.move->flip == current.frame) flip();
-		age++;
+		current.age++;
 	}
-	pick()->step(current, meter);
+	for(unsigned int i = 0; i < current.offspring.size(); i++){
+		if(current.offspring[i]->current.move == current.offspring[i]->pick()->die){
+			current.offspring.erase(current.offspring.begin()+i--);
+		}
+	}
+	pick()->step(current, current.meter);
 	if(current.move && current.frame >= current.move->frames){
 		if(current.move->modifier && current.move->basis.move){ 
 			current.frame = current.move->basis.frame;
@@ -649,7 +657,7 @@ void instance::step()
 			current.move = current.move->basis.move;
 		} else {
 			if(current.move->next) current.move = current.move->next;
-			else pick()->neutralize(current, current.move, meter);
+			else pick()->neutralize(current, current.move, current.meter);
 			current.frame = 0;
 			current.connect = 0;
 			current.hit = 0;
@@ -664,7 +672,7 @@ void instance::step()
 
 void instance::neutralize()
 {
-	pick()->neutralize(current, current.move, meter);
+	pick()->neutralize(current, current.move, current.meter);
 }
 
 void instance::flip()
@@ -708,7 +716,7 @@ int instance::passSignal(int sig)
 	switch (sig){
 	case 1:
 		action * a; 
-		a = pick()->moveSignal(age);
+		a = pick()->moveSignal(current.age);
 		if(a != nullptr){
 			current.move = a;
 			current.frame = 0;
@@ -735,7 +743,7 @@ void instance::getMove(vector<int> buttons, SDL_Rect &p, bool& dryrun)
 	if(!current.move) neutralize();
 	status e = current;
 	int n = current.frame;
-	pick()->prepHooks(current, inputBuffer, buttons, p, dryrun, meter);
+	pick()->prepHooks(current, inputBuffer, buttons, p, dryrun, current.meter);
 	if(current.move){
 		if(current.move->throwinvuln == 1 && current.throwInvuln <= 0) current.throwInvuln = 1;
 		if(current.move->throwinvuln == 2) current.throwInvuln = 6;
@@ -879,7 +887,7 @@ void instance::connect(int combo, hStat & s)
 	if(s.pause < 0){
 		if(!s.ghostHit) current.freeze = s.stun/4+10;
 	} else current.freeze = s.pause;
-	pick()->connect(current, meter);
+	pick()->connect(current, current.meter);
 	current.reversal = nullptr;
 	if(current.bufferedMove == current.move) current.bufferedMove = nullptr;
 }
@@ -895,7 +903,7 @@ int instance::takeHit(int combo, hStat & s, SDL_Rect &p)
 		}
 	}
 	current.reversal = nullptr;
-	return pick()->takeHit(current, s, blockType, particleType, meter);
+	return pick()->takeHit(current, s, blockType, particleType, current.meter);
 }
 
 int player::takeHit(int combo, hStat & s, SDL_Rect &p)
@@ -916,7 +924,7 @@ int player::takeHit(int combo, hStat & s, SDL_Rect &p)
 		temp = current.move->blockSuccess(s.stun, s.isProjectile);
 	}
 	SDL_Rect fake = {0, 0, 0, 0};
-	if(temp && temp != current.move && temp->check(fake, meter)){
+	if(temp && temp != current.move && temp->check(fake, current.meter)){
 		combo = 0;
 		current.bufferedMove = temp;
 		current.freeze = 0;
@@ -939,7 +947,7 @@ int player::takeHit(int combo, hStat & s, SDL_Rect &p)
 			v.x = 0;
 			v.y = 0;
 			current.freeze = 0;
-			meter[4] = 0;
+			current.meter[4] = 0;
 		}
 		momentum.push_back(v);
 		if(current.aerial && s.hover) hover = s.hover;
@@ -1014,8 +1022,8 @@ void player::getThrown(action *toss, int x, int y)
 	dummy.stun = 1;
 	dummy.ghostHit = 1;
 	setPosition(toss->arbitraryPoll(27, current.frame)*xSign + abs(x), toss->arbitraryPoll(26, current.frame) + y);
-	pick()->neutralize(current, current.move, meter);
-	pick()->takeHit(current, dummy, 0, particleType, meter);
+	pick()->neutralize(current, current.move, current.meter);
+	pick()->takeHit(current, dummy, 0, particleType, current.meter);
 	current.counter = -5;
 }
 

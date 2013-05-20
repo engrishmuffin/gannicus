@@ -412,9 +412,14 @@ action * avatar::createMove(string key)
 	return m;
 }
 
-instance * avatar::spawn(action * source)
+instance * avatar::spawn(status &current)
 {
-	return source->spawn();
+	instance * n = current.move->spawn();
+	if(!n) return nullptr;
+	else {
+		current.offspring.push_back(n);
+		return current.offspring.back();
+	}
 }
 
 void avatar::connect(status &current, vector<int>& meter)
@@ -564,12 +569,12 @@ vector<int> avatar::generateMeter()
 	return meter;
 }
 
-void character::init(vector<int>& meter)
+void character::init(status& current)
 {
-	meter[0] = 600;
-	meter[1] = 0;
-	resetAirOptions(meter);
-	meter[4] = 0;
+	current.meter[0] = 600;
+	current.meter[1] = 0;
+	resetAirOptions(current.meter);
+	current.meter[4] = 0;
 }
 
 void character::resetAirOptions(vector<int>& meter)

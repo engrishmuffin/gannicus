@@ -56,7 +56,9 @@ class status{
 public:
 	status();
 	status(const status&);
+	vector<int> meter;
 	int posX, posY;
+	int age;
 	int facing;
 	int deltaX, deltaY; 
 	int frame;
@@ -65,6 +67,7 @@ public:
 	bool rCorner, lCorner;
 	action *move, *bufferedMove, *reversal;
 	int reversalTimer;
+	vector <instance*> offspring;
 	int connect, hit, counter;
 	int drawX, drawY;
 	bool dead:1;
