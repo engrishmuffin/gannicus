@@ -91,6 +91,7 @@ void interface::createPlayers()
 		P.push_back(new player(i+1));
 		p.push_back(P[i]);
 		select.push_back(false);
+		groove.push_back(0);
 		selection.push_back(1+i);
 		combo.push_back(0);
 		damage.push_back(0);
@@ -103,6 +104,7 @@ void interface::createPlayers()
 		things.push_back(P[i]);
 		P[i]->boxen = false;
 		P[i]->sprite = true;
+		P[i]->current.prox = &prox;
 	}
 }
 
@@ -320,6 +322,7 @@ void interface::runTimer()
 						for(unsigned int i = 0; i < P.size(); i++){
 							delete P[i]->pick();
 							select[i] = 0;
+							groove[i] = 0;
 						}
 					}
 					if(SDL_WasInit(SDL_INIT_VIDEO) != 0){
@@ -472,6 +475,10 @@ void interface::resolveInputs()
 			else if(timer == 106 * 60 - 3) things[i]->inputBuffer[0] = selection[(i+1)%2] % 10;
 			else if(timer == 106 * 60 - 4) things[i]->inputBuffer[0] = 0;
 			else(things[i]->inputBuffer[0] = 5);
+			if(currentFrame[i].buttons[1] == 1 && !counter[i]){
+				P[i]->current.mode = P[i]->current.mode == 1 ? 2 : 1;
+				counter[i] = 10;
+			}
 			for(int j:currentFrame[i].buttons) j = 0;
 		}
 	} else {
@@ -486,7 +493,7 @@ void interface::resolveInputs()
 			things[i]->pushInput(currentFrame[things[i]->ID - 1].n.raw.dir + flop[things[i]->ID -1]);
 		for(unsigned int i = 0; i < P.size(); i++){
 			bool test = 1;
-			P[i]->getMove(currentFrame[i].buttons, prox, test);
+			P[i]->getMove(currentFrame[i].buttons, test);
 			if(!test && !P[i]->current.aerial){ 
 				P[i]->checkFacing(P[(i+1)%2]);
 			}
@@ -498,7 +505,7 @@ void interface::resolveInputs()
 				prox.x = things[(i+1)%2]->current.throwInvuln;
 			}
 			bool d = 0;
-			things[i]->getMove(currentFrame[things[i]->ID - 1].buttons, prox, d);
+			things[i]->getMove(currentFrame[things[i]->ID - 1].buttons, d);
 		}
 	}
 	for(unsigned int i = 0; i < P.size(); i++){
@@ -518,16 +525,16 @@ void interface::resolvePhysics()
 				if(things[i]->ID) things[i]->follow(things[(things[i]->ID)%2]);
 				things[i]->combineDelta();
 				things[i]->enforceGravity(grav, floor);
-				for(unsigned int j = 0; j < globals.size(); j++){
-					if(globals[j]->ID != things[i]->ID){
-						if(i < P.size()){
-							if(globals[j]->effectCode & 1){
-								things[i]->enforceAttractor(globals[j]);
-							}
-						} else {
-							if(globals[j]->effectCode & 2){
-								things[i]->enforceAttractor(globals[j]);
-							}
+			}
+			for(unsigned int j = 0; j < globals.size(); j++){
+				if(globals[j]->ID != things[i]->ID){
+					if(i < P.size()){
+						if(globals[j]->effectCode & 1){
+							things[i]->enforceAttractor(globals[j]);
+						}
+					} else {
+						if(globals[j]->effectCode & 2){
+							things[i]->enforceAttractor(globals[j]);
 						}
 					}
 				}
@@ -545,7 +552,7 @@ void interface::cleanup()
 		}
 		for(unsigned int i = 2; i < things.size(); i++){
 			if(things[i]->current.posX > bg.w + 300 || things[i]->current.posX < -300 || things[i]->current.posY < -300 || things[i]->current.posY > bg.h){
-				things[i]->pick()->die->execute(things[i]->current.move, things[i]->current, things[i]->current.meter);
+				things[i]->pick()->die->execute(things[i]->current);
 				things[i]->current.move = things[i]->pick()->die;
 			}
 		}
@@ -611,6 +618,7 @@ void interface::resolveSummons()
 			if(things[i]->current.move->arbitraryPoll(50, things[i]->current.frame)){
 				larva = things[i]->spawn();
 				if(larva){
+					larva->current.prox = &prox;
 					larva->boxen = things[i]->boxen;
 					larva->sprite = things[i]->sprite;
 					switch (things[i]->current.move->arbitraryPoll(56, things[i]->current.frame)){
@@ -863,12 +871,17 @@ void interface::cSelectMenu()
 				}
 				for(int j = 0; j < 5; j++){
 					if(currentFrame[i].buttons[j] == 1 && !select[i]){
+						if(j == 1) groove[i] = 2;
+						else groove[i] = 1;
 						select[i] = 1;
 					}
 				}
 				if(currentFrame[i].n.raw.Start){
 					if(!select[i]) menu[i] = 3;
-					else select[i] = 0;
+					else {
+						select[i] = 0;
+						groove[i] = 0;
+					}
 					counter[i] = 10;
 				}
 			}
@@ -889,6 +902,7 @@ void interface::cSelectMenu()
 		SDL_GL_SwapBuffers();
 		for(unsigned int i = 0; i < P.size(); i++){
 			P[i]->characterSelect(selection[i]);
+			P[i]->current.mode = groove[i];
 		}
 		loadAssets();
 		if(analytics){
@@ -1039,6 +1053,7 @@ void interface::pauseMenu()
 					for(unsigned int i = 0; i < P.size(); i++){
 						delete P[i]->pick();
 						select[i] = 0;
+						groove[i] = 0;
 						initCharacters();
 						things[i]->current.meter.clear();
 					}
@@ -1085,6 +1100,7 @@ void interface::rematchMenu()
 					for(unsigned int k = 0; k < P.size(); k++){
 						delete P[k]->pick();
 						select[k] = 0;
+						groove[k] = 0;
 						things[k]->current.meter.clear();
 					}
 					Mix_HaltMusic();
@@ -1107,8 +1123,9 @@ void interface::rematchMenu()
 
 interface::~interface()
 {
-	if(select[0]) delete P[0]->pick();
-	if(select[1]) delete P[1]->pick();
+	for(unsigned int i = 0; i < P.size(); i++){
+		if(select[i] && P[i]->pick()) delete P[i]->pick();
+	}
 	if(menuMusic != nullptr) Mix_FreeMusic(menuMusic);
 	delete stats;
 	SDL_FreeSurface(screen);
@@ -1296,7 +1313,7 @@ void interface::resolveHits()
 										punish[things[i]->ID-1] = s[i].stun + (s[i].pause > 0) ? s[i].pause : (s[i].stun/4 + 10);
 									}
 								}
-								things[i]->pollStats(s[i]);
+								s[i] = things[i]->pollStats();
 								if(i < P.size()) push[i] = s[i].push;
 								k = things[m]->hitreg.size();
 								j = things[i]->hitbox.size();
@@ -1337,8 +1354,7 @@ void interface::resolveHits()
 					ths.stun = 0;
 					ths.push = s[hitBy[i]].push;
 					if(things[i]->current.aerial){
-						if(P[things[hitBy[i]]->ID-1]->current.aerial) ths.push += s[hitBy[i]].blowback*5;
-						else ths.push += s[hitBy[i]].blowback;
+						ths.push += (P[things[hitBy[i]]->ID-1]->current.aerial) ? s[hitBy[i]].blowback*5 : s[hitBy[i]].blowback;
 					}
 					P[things[hitBy[i]]->ID-1]->takeHit(combo[i], ths, prox);
 				}

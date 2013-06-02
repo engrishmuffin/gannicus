@@ -1,9 +1,11 @@
 /*Copyright Somnambulant Studios 2012-2013*/
 #include "trie.h"
+#include <deque>
 
 #ifndef ___character
 #define ___character
 
+using std::deque;
 using std::string;
 using std::vector;
 
@@ -23,20 +25,20 @@ public:
 	virtual void build(string, string);
 	virtual void processMove(action * m);
 	virtual void sortMove(action *, string);
-	virtual void prepHooks(status&, int[], vector<int>, SDL_Rect &, bool, vector<int>&);
-	virtual action * hook(int[], int, int, vector<int>, vector<int>, action *, SDL_Rect&, int&, int&, bool);
-	virtual bool death(action *&, int, int) { return 0; }
-	virtual int takeHit(status&, hStat&, int, int&, vector<int>&) { return 0; }
+	virtual void prepHooks(status&, deque<int>, vector<int>, bool);
+	virtual action * hook(status&, deque<int>, int, int, vector<int>, action *, int&, int&);
+	virtual bool death(status&) { return 0; }
+	virtual int takeHit(status&, hStat&, int, int&) { return 0; }
 	virtual void getName(string, string);
 	virtual void loadAssets();
-	virtual void connect(status&, vector<int>&);
-	virtual void pollStats(hStat&, status&);
+	virtual void connect(status&);
+	virtual hStat pollStats(status&);
 	virtual void pollRects(status&, SDL_Rect&, vector<SDL_Rect>&, vector<SDL_Rect>&);
-	virtual void step(status&, vector<int>&);
+	virtual void step(status&);		//Anything that happens every frame
+	virtual void tick(status&) {}	//Anything that happens every frame as long as we're not in freeze state
 	virtual int acceptTarget(action*, int);
 	virtual instance * spawn(status&);
-	virtual void tick(vector<int>&) {}
-	virtual void neutralize(status&, action*&, vector<int>&);
+	virtual action * neutralize(status&);
 	virtual bool turn(int&) { return 0; }
 	string name;
 	actionTrie * head;
@@ -59,16 +61,16 @@ public:
 
 	virtual void build(string, string);
 	virtual int comboState(action *);
-	virtual void neutralize(status&, action*&, vector<int>&);
+	virtual action * neutralize(status&);
 	virtual void drawMeters(int, int, status&);
 	virtual void init(status&);
-	virtual int checkBlocking(status&, int[]);
+	virtual int checkBlocking(status&, deque<int>);
 	virtual void block(status&, int, bool);
 	virtual void resetAirOptions(vector<int>&);
-	virtual void land(status&, vector<int>&);
+	virtual void land(status&);
 	virtual void sortMove(action *, string);
-	virtual int takeHit(status&, hStat&, int, int&, vector<int>&);
-	virtual action * hook(int[], int, int, vector<int>, vector<int>, action *, SDL_Rect&, int&, int&, bool);
+	virtual int takeHit(status&, hStat&, int, int&);
+	virtual action * hook(status&, deque<int>, int, int, vector<int>, action *, int&, int&);
 
 	action * dead;
 	action * airNeutral;
@@ -90,12 +92,12 @@ public:
 	projectile() {}
 	virtual void build(string, string);
 	virtual int acceptTarget(action*, int);
-	virtual void pollStats(hStat&, status&);
-	virtual int takeHit(status&, hStat&, int, int&, vector<int>&);
+	virtual hStat pollStats(status&);
+	virtual int takeHit(status&, hStat&, int, int&);
 	virtual bool turn(int&);
 
 	virtual void processMove(action * m);
-	virtual bool death(action *&, int, int);
+	virtual bool death(status&);
 	virtual void init(status&);
 };
 #endif

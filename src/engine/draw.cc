@@ -183,7 +183,7 @@ void interface::drawLoadingScreen()
 		glRectf(0.0f, 0.0f, (GLfloat)screenWidth, (GLfloat)screenHeight);
 		glEnable(GL_TEXTURE_2D);
 		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-		drawGlyph("Salt and bone", 0, screenWidth, (screenHeight - 64)/2, 64, 1);
+		drawGlyph("loading", 0, screenWidth, (screenHeight - 64)/2, 64, 1);
 	glPopMatrix();
 }
 
@@ -344,6 +344,13 @@ void interface::drawHUD()
 	}
 	glDisable( GL_TEXTURE_2D );
 	for(unsigned int i = 0; i < P.size(); i++){
+		glColor4f(1.0*(P[i]->current.mode == 1), 0.0f, 1.0*(P[i]->current.mode == 2), 1.0f);
+		string grv("");
+		grv += 'A' - 1 + P[i]->current.mode;
+		glEnable( GL_TEXTURE_2D );
+		drawGlyph(grv, 1550*i, 50, 850, 50, 2*i);
+		glDisable( GL_TEXTURE_2D );
+		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 		P[i]->drawMeters(numRounds);
 		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	}

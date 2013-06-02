@@ -23,12 +23,13 @@ int projectile::acceptTarget(action * c, int f)
 	return 0;
 }
 
-void projectile::pollStats(hStat & s, status &current)
+hStat projectile::pollStats(status &current)
 {
+	hStat s = current.move->pollStats(current.frame, current.counter);
 	s.isProjectile = true;
-	current.move->pollStats(s, current.frame, current.counter);
 	if(s.pause == -1 && !s.ghostHit)
-		s.pause = 4;
+		s.pause = 5;
+	return s;
 }
 
 void projectile::init(status& current)
@@ -57,24 +58,24 @@ bool projectile::turn(int &ID)
 	return 1;
 }
 
-int projectile::takeHit(status &current, hStat &s, int blockType, int &hitType, vector<int>& meter)
+int projectile::takeHit(status &current, hStat &s, int blockType, int &hitType)
 {
 	if(s.killsProjectile || current.move->hittable){ 
-		die->execute(current.move, current, meter);
+		die->execute(current);
 		current.move = die;
 		return 1;
 	} else return 0;
 }
 
-bool projectile::death(action *& cMove, int f, int age)
+bool projectile::death(status &current)
 {
-	if(cMove == die){
-		if(f == cMove->frames - 1){
+	if(current.move == die){
+		if(current.frame == current.move->frames - 1){
 			return true;
 		}
 	}
-	if(cMove != die && lifespan > 0 && age > lifespan){
-		cMove = die;
+	if(current.move != die && lifespan > 0 && current.age > lifespan){
+		current.move = die;
 	}
 	return false;
 }

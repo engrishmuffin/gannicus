@@ -5,9 +5,9 @@ class red : public character{
 public:
 	red();
 	action * createMove(string);
-	void tick(vector<int>&);
+	void tick(status&);
 	vector<int> generateMeter();
-	void step(status&, vector<int>&);
+	void step(status&);
 	void init(status&);
 	vector<status> temporalBuffer;
 	instance * backup;
@@ -18,9 +18,9 @@ public:
 	redCancel() {}
 	~redCancel();
 	redCancel(string, string);
-	bool check(SDL_Rect&, vector<int>);
+	bool check(status&);
 	int arbitraryPoll(int, int);
-	void execute(action *, status&, vector<int>&);
+	void execute(status&);
 };
 
 class redSuper : virtual public special{

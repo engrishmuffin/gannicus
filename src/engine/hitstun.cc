@@ -3,13 +3,13 @@
 
 using std::max;
 
-void hitstun::step(vector<int>& meter, status &current)
+void hitstun::step(status &current)
 {
 	if(current.counter >= 0){
 		current.frame = frames-1;
-		action::step(meter, current);
+		action::step(current);
 	} else {
-		if(current.frame < frames - 1) action::step(meter, current);
+		if(current.frame < frames - 1) action::step(current);
 		current.counter++;
 	}
 }

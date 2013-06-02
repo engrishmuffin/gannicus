@@ -13,19 +13,19 @@ vector<int> red::generateMeter()
 	return meter;
 }
 
-void red::tick(vector<int>& meter)
+void red::tick(status &current)
 {
-	character::tick(meter);
-	if(meter[5] < 540) meter[5]++;
-	if(meter[5] < 0) meter[5] = 0;
+	character::tick(current);
+	if(current.meter[5] < 540) current.meter[5]++;
+	if(current.meter[5] < 0) current.meter[5] = 0;
 }
 
-void red::step(status& current, vector<int>& meter)
+void red::step(status& current)
 {
-	if(meter[6] > 0) meter[6]--;
+	if(current.meter[6] > 0) current.meter[6]--;
 	temporalBuffer.push_back(current);
 	if(temporalBuffer.size() > 120) temporalBuffer.erase(temporalBuffer.begin());
-	character::step(current, meter);
+	character::step(current);
 }
 
 void red::init(status& current)
@@ -58,18 +58,18 @@ redCancel::redCancel(string dir, string file)
 	build(dir, file); 
 }
 
-bool redCancel::check(SDL_Rect& p, vector<int> meter)
+bool redCancel::check(status &current)
 {
-	if(meter[6] > 0) return 0;
-	return action::check(p, meter);
+	if(current.meter[6] > 0) return 0;
+	return special::check(current);
 }
 
-void redCancel::execute(action * last, status &current, vector<int>& meter)
+void redCancel::execute(status &current)
 {
-	meter[2] = 1;
-	meter[3] = 1;
-	meter[6] = 16;
-	action::execute(last, current, meter);
+	current.meter[2] = 1;
+	current.meter[3] = 1;
+	current.meter[6] = 16;
+	action::execute(current);
 }
 
 int redCancel::arbitraryPoll(int q, int f)

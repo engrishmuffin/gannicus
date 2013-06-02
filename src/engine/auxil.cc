@@ -228,8 +228,8 @@ vector<SDL_Rect> aux::defineRectArray(string definition)
 {
 	vector<SDL_Rect> ret;
 	vector<string> coordinate;
-        tokenizer t(definition, " \n\t");
-        coordinate.push_back(t());
+	tokenizer t(definition, " \n\t");
+	coordinate.push_back(t());
 	while(t().size())
 		coordinate.push_back(t.current());
 
@@ -321,4 +321,10 @@ status::status(const status & o)
 	this->dead = o.dead;
 	this->throwInvuln = o.throwInvuln;
 	this->reversalFlag = o.reversalFlag;
+	this->meter = o.meter;
+	this->offspring = o.offspring;
+	this->age = o.age;
+	this->dead = o.dead;
+	this->mode = o.mode;
+	this->prox = o.prox;
 }

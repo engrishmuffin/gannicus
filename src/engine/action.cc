@@ -38,6 +38,7 @@ void action::zero()
 	tempRiposte.clear();
 	tempOnHold.clear();
 	tempParticle.clear();
+	requiredMode = 0;
 	particleX = 0;
 	particleY = 0;
 	particleSpawn = -1;
@@ -141,13 +142,6 @@ int action::arbitraryPoll(int q, int f)
 	return 0;
 }
 
-void negNormal::zero()
-{
-	action::zero();
-	minHold = 0;
-	maxHold = 0;
-}
-
 void action::build(string dir, string n)
 {
 	zero();
@@ -169,37 +163,33 @@ void action::build(string dir, string n)
 		strcpy(savedBuffer, buffer);
 	} while (setParameter(buffer));
 
-	parseProperties(savedBuffer, 0);
-
-	int currHit = 0;
-
 	for(int i = 0; i < frames; i++){
-		while(read.get() != '$'); read.ignore(2);
-		SDL_Rect co;
-		read >> co.x >> co.y >> co.w >> co.h;
-		collision.push_back(co);
-		while(read.get() != '$'); read.ignore(2);
-		read.get(buffer, 100, '\n');
-		hitreg.push_back(aux::defineRectArray(buffer));
-		while(read.get() != '$'); read.ignore(2);
-		read.get(buffer, 100, '\n');
-		delta.push_back(aux::defineRectArray(buffer));
-		if(hits > 0 && currHit < hits){
-			if(i > totalStartup[currHit] && i <= totalStartup[currHit]+active[currHit]){
-				while(read.get() != '$'); read.ignore(2);
-				read.get(buffer, 100, '\n');
-				hitbox.push_back(aux::defineRectArray(buffer));
-				if(i == totalStartup[currHit]+active[currHit]) currHit++;
-			} else {
-				vector<SDL_Rect> hi;
-				hitbox.push_back(hi);
-			}
-		} else {
-			vector<SDL_Rect> hi;
-			hitbox.push_back(hi);
-		}
+		do {
+			read.getline(buffer, 1000);
+			parseRect(buffer);
+		} while (buffer[0] == '$');
+		if(hitbox.size() < hitreg.size()) hitbox.push_back(vector<SDL_Rect>(0));
 	}
 	read.close();
+}
+
+bool action::parseRect(string buffer)
+{
+	switch(buffer[1]){
+	case 'C':
+		collision.push_back(aux::defineRectArray(buffer.substr(2))[0]);
+		return 1;
+	case 'R':
+		hitreg.push_back(aux::defineRectArray(buffer.substr(2)));
+		return 1;
+	case 'D':
+		delta.push_back(aux::defineRectArray(buffer.substr(2)));
+		return 1;
+	case 'A':
+		hitbox.push_back(aux::defineRectArray(buffer.substr(2)));
+		return 1;
+	}
+	return 0;
 }
 
 void action::loadMisc(string dir)
@@ -229,6 +219,9 @@ bool action::setParameter(string buffer)
 	if(t() == "Name"){;
 		name += t();
 		return true;
+	} else if (t.current() == "RequiredMode") {
+		requiredMode = stoi(t("\t: \n"));
+		return true;
 	} else if (t.current() == "Displace") {
 		displaceFrame = stoi(t("\t:\n"));
 		displaceX = stoi(t());
@@ -249,6 +242,9 @@ bool action::setParameter(string buffer)
 	} else if (t.current() == "Hold") {
 		minHold = stoi(t("\t: \n-"));
 		maxHold = stoi(t());
+		return true;
+	} else if (t.current() == "Properties") {
+		parseProperties(buffer, false);
 		return true;
 	} else if (t.current() == "Counterhit") {
 		parseProperties(buffer, true);
@@ -330,7 +326,9 @@ bool action::setParameter(string buffer)
 		allowed.i = stoi(t("\t: \n"));
 		return true;
 	} else if (t.current() == "Cost") {
-		cost = stoi(t("\t: \n"));
+		string temp = t("\t: \n");
+		if(temp[0] == '(') std::cout << stoi(temp);
+		cost = stoi(temp);
 		return true;
 	} else if (t.current() == "Frames") {
 		frames = stoi(t("\t: \n"));
@@ -622,7 +620,7 @@ bool action::window(int f)
 	return 1;
 }
 
-bool action::activate(vector<int> inputs, int pattern, int t, int f, vector<int> meter, SDL_Rect &p)
+bool action::activate(status &current, vector<int> inputs, int pattern, int t, int f)
 {
 	for(unsigned int i = 0; i < inputs.size(); i++){
 		if(pattern & (1 << i)){
@@ -632,23 +630,18 @@ bool action::activate(vector<int> inputs, int pattern, int t, int f, vector<int>
 	}
 	if(t > tolerance) return 0;
 	if(f > activation) return 0;
-	return check(p, meter);
+	return check(current);
 }
 
-bool action::check(SDL_Rect &p, vector<int> meter)
+bool action::check(status &current)
 {
-	if(cost && cost > meter[1]){ 
+	if(requiredMode && requiredMode != current.mode) return 0;
+	if(cost && cost > current.meter[1]){
 		return 0;
 	}
-	if(xRequisite > 0 && p.w > xRequisite) return 0;
-	if(yRequisite > 0 && p.h > yRequisite) return 0;
+	if(xRequisite > 0 && current.prox->w > xRequisite) return 0;
+	if(yRequisite > 0 && current.prox->h > yRequisite) return 0;
 	return 1;
-}
-
-bool special::check(SDL_Rect &p, vector<int> meter)
-{
-	if(cost > meter[1]) return 0;
-	else return action::check(p, meter);
 }
 
 void action::pollRects(int f, int cFlag, SDL_Rect &c, vector<SDL_Rect> &r, vector<SDL_Rect> &b)
@@ -701,9 +694,10 @@ int action::displace(int x, int &y, int f)
 	return dx;
 }
 
-void action::pollStats(hStat & s, int f, bool CH)
+hStat action::pollStats(int f, bool CH)
 {
-	if(modifier && basis.move) basis.move->pollStats(s, basis.frame, CH);
+	hStat s;
+	if(modifier && basis.move) s = basis.move->pollStats(basis.frame, CH);
 	else{
 		int c = calcCurrentHit(f);
 		s.damage = stats[c].damage + CHStats[c].damage * CH;
@@ -739,6 +733,7 @@ void action::pollStats(hStat & s, int f, bool CH)
 		s.killsProjectile = stats[c].killsProjectile;
 		s.blockMask.i = stats[c].blockMask.i;
 	}
+	return s;
 }
 
 bool action::cancel(action * x, int c, int h)
@@ -779,11 +774,11 @@ bool action::operator>(const status& o)
 	return cancel(o.move, o.connect, o.hit);
 }
 
-void action::step(vector<int>& meter, status &current)
+void action::step(status &current)
 {
-	if(!current.frame && !meter[4]){
-		if(meter[1] + gain[0] < 300) meter[1] += gain[0];
-		else meter[1] = 300;
+	if(!current.frame && !current.meter[4]){
+		if(current.meter[1] + gain[0] < 300) current.meter[1] += gain[0];
+		else current.meter[1] = 300;
 	}
 	current.frame++;
 	if(modifier && basis.move){
@@ -837,14 +832,14 @@ void action::playSound(int channel)
 	Mix_PlayChannel(channel, soundClip, 0);
 }
 
-void action::execute(action * last, status &current, vector<int> & meter)
+void action::execute(status &current)
 {
 	armorCounter = 0;
-	meter[1] -= cost;
-	meter[4] += cost;
+	current.meter[1] -= cost;
+	current.meter[4] += cost;
 	if(modifier){
-		if(last == nullptr) basis.move = nullptr;
-		basis.move = last;
+		if(current.move == nullptr) basis.move = nullptr;
+		basis.move = current.move;
 		basis.frame = current.frame;
 		basis.connect = current.connect;
 		basis.hit = current.hit;
@@ -902,7 +897,8 @@ bool action::operator!=(const string &o)
 
 bool action::operator==(const string &o)
 {
-	return fileName.compare(o) ? false : true;
+	if (fileName == o) return true;
+	else return false;
 }
 
 bool action::canGuard(int f)
@@ -947,3 +943,29 @@ bool action::CHState(int f)
 	else return fch;
 }
 
+hStat::hStat(const hStat& o)
+{
+	this->damage = o.damage;
+	this->chip = o.chip;
+	this->stun = o.stun;
+	this->pause = o.pause;
+	this->push = o.push;
+	this->lift = o.lift;
+	this->untech = o.untech;
+	this->blowback = o.blowback;
+	this->hover = o.hover;
+	this->launch = o.launch;
+	this->ghostHit = o.ghostHit;
+	this->wallBounce = o.wallBounce;
+	this->floorBounce = o.floorBounce;
+	this->slide = o.slide;
+	this->stick = o.stick;
+	this->hitsProjectile = o.hitsProjectile;
+	this->turnsProjectile = o.turnsProjectile;
+	this->killsProjectile = o.killsProjectile;
+	this->isProjectile = o.isProjectile;
+	this->connect = o.connect;
+	this->prorate = o.prorate;
+	this->blockMask.i = o.blockMask.i;
+	this->hitState.i = o.hitState.i;
+}

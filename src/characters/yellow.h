@@ -6,20 +6,20 @@ public:
 	yellow();
 	void resetAirOptions(vector<int>&);
 	action * createMove(string);
-	int takeHit(status&, hStat&, int, int&, vector<int>&);
+	int takeHit(status&, hStat&, int, int&);
 	void drawMeters(int, int, status&);
-	void tick(vector<int>&);
+	void tick(status&);
 	void init(status&);
 	vector<int> generateMeter();
-	void step(status&, vector<int>&);
+	void step(status&);
 };
 
 class flashStep : public airMove {
 public:
 	flashStep();
 	flashStep(string, string);
-	bool check(SDL_Rect&, vector<int>);
-	void execute(action *, status&, vector<int>&);
+	bool check(status&);
+	void execute(status&);
 private:
 	int flashMeterCost;
 };
@@ -29,11 +29,11 @@ public:
 	flashSummon();
 	flashSummon(string, string);
 	int arbitraryPoll(int, int);
-	bool check(SDL_Rect&, vector<int>);
-	void execute(action *, status&, vector<int>&);
+	bool check(status&);
+	void execute(status&);
 	bool setParameter(string);
 	virtual void zero();
-	void step(vector<int>&, status&);
+	void step(status&);
 private:
 	bool uFlag;
 	int flashMeterGain;

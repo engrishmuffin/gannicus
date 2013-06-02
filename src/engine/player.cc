@@ -42,12 +42,13 @@ instance::instance(avatar * f)
 	init();
 }
 
-void instance::pollStats(hStat &s)
+hStat instance::pollStats()
 {
-	pick()->pollStats(s, current);
+	hStat s = pick()->pollStats(current);
 	if(current.rCorner || current.lCorner){
 		s.push *= 2;
 	}
+	return s;
 }
 
 void instance::init()
@@ -68,7 +69,8 @@ void instance::init()
 	current.dead = false;
 	current.age = 0;
 	current.offspring.clear();
-	for(int i = 0; i < 30; i++) inputBuffer[i] = 5;
+	inputBuffer.clear();
+	for(int i = 0; i < 30; i++) inputBuffer.push_front(5);
 }
 
 bool instance::acceptTarget(instance * m)
@@ -103,7 +105,7 @@ void player::roundInit()
 {
 	char buffer[200];
 	instance::init();
-	pick()->neutralize(current, current.move, current.meter);
+	neutralize();
 	if(v) pick()->init(current);
 	if(record){
 		sprintf(buffer, "%i-%s.sh", ID, pick()->name.c_str());
@@ -507,6 +509,7 @@ void player::checkBlocking()
 {
 	if(current.move->state[current.connect].i & 513){
 		blockType = -pick()->checkBlocking(current, inputBuffer);
+		if(blockType == 1) blockType = !current.move->canGuard(current.frame);
 		updateRects();
 	}
 }
@@ -605,7 +608,7 @@ void player::land()
 	for(unsigned int i = 0; i < momentum.size(); i++){
 		if(momentum[i].y > 0) momentum.erase(momentum.begin()+i);
 	}
-	pick()->land(current, current.meter);
+	pick()->land(current);
 	current.reversal = nullptr;
 	current.aerial = false;
 }
@@ -631,14 +634,14 @@ void instance::print()
 void instance::step()
 {
 	action * m = current.move;
-	if(pick()->death(current.move, current.frame, current.age)) current.dead = true;
+	if(pick()->death(current)) current.dead = true;
 	if(current.connect < 0) current.connect = 0;
 	if(m != current.move){
 		current.frame = 0;
 		current.connect = 0;
 		current.hit = 0;
 	}
-	if(current.posX > 3300 || current.posX < -100) current.dead = true;
+	if(current.posX > 3400 || current.posX < -200) current.dead = true;
 	if(!current.freeze){ 
 		if(current.move->flip == current.frame) flip();
 		current.age++;
@@ -648,7 +651,7 @@ void instance::step()
 			current.offspring.erase(current.offspring.begin()+i--);
 		}
 	}
-	pick()->step(current, current.meter);
+	pick()->step(current);
 	if(current.move && current.frame >= current.move->frames){
 		if(current.move->modifier && current.move->basis.move){ 
 			current.frame = current.move->basis.frame;
@@ -657,7 +660,7 @@ void instance::step()
 			current.move = current.move->basis.move;
 		} else {
 			if(current.move->next) current.move = current.move->next;
-			else pick()->neutralize(current, current.move, current.meter);
+			else neutralize();
 			current.frame = 0;
 			current.connect = 0;
 			current.hit = 0;
@@ -672,7 +675,7 @@ void instance::step()
 
 void instance::neutralize()
 {
-	pick()->neutralize(current, current.move, current.meter);
+	current.move = pick()->neutralize(current);
 }
 
 void instance::flip()
@@ -732,18 +735,16 @@ int instance::passSignal(int sig)
 
 void instance::pushInput(unsigned int i)
 {
-	inputBuffer[0] = i;
-	for(int i = 29; i > 0; i--){
-		inputBuffer[i] = inputBuffer[i-1];
-	}
+	inputBuffer.push_front(i);
+	inputBuffer.pop_back();
 }
 
-void instance::getMove(vector<int> buttons, SDL_Rect &p, bool& dryrun)
+void instance::getMove(vector<int> buttons, bool& dryrun)
 {
 	if(!current.move) neutralize();
 	status e = current;
 	int n = current.frame;
-	pick()->prepHooks(current, inputBuffer, buttons, p, dryrun, current.meter);
+	pick()->prepHooks(current, inputBuffer, buttons, dryrun);
 	if(current.move){
 		if(current.move->throwinvuln == 1 && current.throwInvuln <= 0) current.throwInvuln = 1;
 		if(current.move->throwinvuln == 2) current.throwInvuln = 6;
@@ -887,7 +888,7 @@ void instance::connect(int combo, hStat & s)
 	if(s.pause < 0){
 		if(!s.ghostHit) current.freeze = s.stun/4+10;
 	} else current.freeze = s.pause;
-	pick()->connect(current, current.meter);
+	pick()->connect(current);
 	current.reversal = nullptr;
 	if(current.bufferedMove == current.move) current.bufferedMove = nullptr;
 }
@@ -903,7 +904,7 @@ int instance::takeHit(int combo, hStat & s, SDL_Rect &p)
 		}
 	}
 	current.reversal = nullptr;
-	return pick()->takeHit(current, s, blockType, particleType, current.meter);
+	return pick()->takeHit(current, s, blockType, particleType);
 }
 
 int player::takeHit(int combo, hStat & s, SDL_Rect &p)
@@ -924,7 +925,9 @@ int player::takeHit(int combo, hStat & s, SDL_Rect &p)
 		temp = current.move->blockSuccess(s.stun, s.isProjectile);
 	}
 	SDL_Rect fake = {0, 0, 0, 0};
-	if(temp && temp != current.move && temp->check(fake, current.meter)){
+	SDL_Rect *tempProx = current.prox;
+	current.prox = &fake;
+	if(temp && temp != current.move && temp->check(current)){
 		combo = 0;
 		current.bufferedMove = temp;
 		current.freeze = 0;
@@ -961,6 +964,7 @@ int player::takeHit(int combo, hStat & s, SDL_Rect &p)
 		if(current.aerial && s.stick) stick = true;
 		else stick = false;
 	}
+	current.prox = tempProx;
 	if(current.move == pick()->die){
 		current.bufferedMove = nullptr;
 		current.frame = 0;
@@ -1022,14 +1026,12 @@ void player::getThrown(action *toss, int x, int y)
 	dummy.stun = 1;
 	dummy.ghostHit = 1;
 	setPosition(toss->arbitraryPoll(27, current.frame)*xSign + abs(x), toss->arbitraryPoll(26, current.frame) + y);
-	pick()->neutralize(current, current.move, current.meter);
-	pick()->takeHit(current, dummy, 0, particleType, current.meter);
+	neutralize();
+	pick()->takeHit(current, dummy, 0, particleType);
 	current.counter = -5;
 }
 
-instance::~instance()
-{
-}
+instance::~instance(){}
 
 player::~player(){}
 

@@ -23,22 +23,22 @@ void yellow::init(status &current)
 	current.meter[5] = 0;
 }
 
-void yellow::tick(vector<int>& meter)
+void yellow::tick(status &current)
 {
-	character::tick(meter);
-	if(meter[5] > 0){
-		if(meter[4] < 2) meter[4] = 2;
-		meter[5]--;
-		if(meter[5] == 0){ 
-			meter[5] = -360;
+	character::tick(current);
+	if(current.meter[5] > 0){
+		if(current.meter[4] < 2) current.meter[4] = 2;
+		current.meter[5]--;
+		if(current.meter[5] == 0){ 
+			current.meter[5] = -360;
 		}
 	}
 }
 
-void yellow::step(status &current, vector<int>& meter)
+void yellow::step(status &current)
 {
-	if(meter[5] < 0) meter[5]++;
-	character::step(current, meter);
+	if(current.meter[5] < 0) current.meter[5]++;
+	character::step(current);
 }
 
 action * yellow::createMove(string key)
@@ -84,10 +84,10 @@ void yellow::drawMeters(int ID, int hidden, status &current)
 	glRectf((GLfloat)(c1.x), (GLfloat)(c1.y), (GLfloat)(c1.x + c1.w), (GLfloat)(c1.y + c1.h));
 }
 
-int yellow::takeHit(status& current, hStat & s, int blockType, int &hitType, vector<int> & meter)
+int yellow::takeHit(status& current, hStat & s, int blockType, int &hitType)
 {
-	int x = character::takeHit(current, s, blockType, hitType, meter);
-	if(hitType == 1 && meter[5] > 0) meter[5] = 0;
+	int x = character::takeHit(current, s, blockType, hitType);
+	if(hitType == 1 && current.meter[5] > 0) current.meter[5] = 0;
 	return x;
 }
 
@@ -120,19 +120,19 @@ bool flashSummon::setParameter(string buffer)
 	} else return action::setParameter(buffer);
 }
 
-bool flashStep::check(SDL_Rect& p, vector<int> meter)
+bool flashStep::check(status &current)
 {
-	if(meter[5] < 1) return 0;
-	else return action::check(p, meter);
+	if(current.meter[5] < 1) return 0;
+	else return action::check(current);
 }
 
-bool flashSummon::check(SDL_Rect& p, vector<int> meter)
+bool flashSummon::check(status &current)
 {
-	if(meter[5] < 0) return 0;
-	if(meter[5] > 0) uFlag = 1;
-	if(uFlag) meter[1] += cost;
-	bool ret = action::check(p, meter);
-	if(uFlag) meter[1] -= cost;
+	if(current.meter[5] < 0) return 0;
+	if(current.meter[5] > 0) uFlag = 1;
+	if(uFlag) current.meter[1] += cost;
+	bool ret = action::check(current);
+	if(uFlag) current.meter[1] -= cost;
 	uFlag = 0;
 	return ret;
 }
@@ -143,30 +143,30 @@ int flashSummon::arbitraryPoll(int q, int f)
 	else return action::arbitraryPoll(q,f);
 }
 
-void flashSummon::execute(action * last, status &current, vector<int>& meter)
+void flashSummon::execute(status &current)
 {
-	if(meter[5] > 0) uFlag = 1;
+	if(current.meter[5] > 0) uFlag = 1;
 	else uFlag = 0;
-	action::execute(last, current, meter);
+	action::execute(current);
 	if(uFlag){
-		meter[1] += cost;
-		meter[4] -= cost;
+		current.meter[1] += cost;
+		current.meter[4] -= cost;
 	}
 }
 
-void flashStep::execute(action * last, status &current, vector<int>& meter)
+void flashStep::execute(status &current)
 {
-	meter[5] -= 10;
-	if(meter[5] > 540) meter[5] = 540;
-	else if(meter[5] < 0) meter[5] = -360;
-	action::execute(last, current, meter);
+	current.meter[5] -= 10;
+	if(current.meter[5] > 540) current.meter[5] = 540;
+	else if(current.meter[5] < 0) current.meter[5] = -360;
+	action::execute(current);
 }
 
-void flashSummon::step(vector<int>& meter, status &current)
+void flashSummon::step(status &current)
 {
 	if(uFlag){
-		if(current.frame == frames - 1) meter[5] = 0;
-	} else meter[5] += flashMeterGain / frames + 1;
-	if(meter[5] > 540) meter[5] = 540;
-	action::step(meter, current);
+		if(current.frame == frames - 1) current.meter[5] = 0;
+	} else current.meter[5] += flashMeterGain / frames + 1;
+	if(current.meter[5] > 540) current.meter[5] = 540;
+	action::step(current);
 }

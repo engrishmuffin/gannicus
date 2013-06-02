@@ -12,7 +12,20 @@ negNormal::negNormal(string dir, string file)
 	build(dir, file);
 }
 
-bool negNormal::activate(vector<int> inputs, int pattern, int t, int f, vector<int> meter, SDL_Rect &p)
+void negNormal::zero()
+{
+	action::zero();
+	minHold = 0;
+	maxHold = 0;
+}
+
+bool special::check(status &current)
+{
+	if(cost > current.meter[1]) return 0;
+	else return action::check(current);
+}
+
+bool negNormal::activate(status &current, vector<int> inputs, int pattern, int t, int f)
 {
 	for(unsigned int i = 0; i < inputs.size(); i++){
 		if(pattern & (1 << i)){
@@ -21,10 +34,10 @@ bool negNormal::activate(vector<int> inputs, int pattern, int t, int f, vector<i
 	}
 	if(t > tolerance) return 0;
 	if(f > activation) return 0;
-	return check(p, meter);
+	return check(current);
 }
 
-bool special::activate(vector<int> inputs, int pattern, int t, int f, vector<int> meter, SDL_Rect &p)
+bool special::activate(status &current, vector<int> inputs, int pattern, int t, int f)
 {
 	for(unsigned int i = 0; i < inputs.size(); i++){
 		if(pattern & (1 << i)){
@@ -33,13 +46,13 @@ bool special::activate(vector<int> inputs, int pattern, int t, int f, vector<int
 	}
 	if(t > tolerance) return 0;
 	if(f > activation) return 0;
-	return check(p, meter);
+	return check(current);
 }
 
-bool mash::activate(vector <int> inputs, int pattern, int t, int f, vector<int> meter, SDL_Rect &p)
+bool mash::activate(status &current, vector <int> inputs, int pattern, int t, int f)
 {
 	int go = 0;
-	if(action::activate(inputs, pattern, t, f, meter, p)){
+	if(action::activate(current, inputs, pattern, t, f)){
 		for(unsigned int i = 0; i < inputs.size(); i++){
 			if(inputs[i] >= minHold){
 				if(inputs[i] <= maxHold || !maxHold) go++;
@@ -50,11 +63,11 @@ bool mash::activate(vector <int> inputs, int pattern, int t, int f, vector<int> 
 	return 0;
 }
 
-bool releaseCheck::activate(vector<int> inputs, int pattern, int t, int f, vector<int> meter, SDL_Rect &p){
+bool releaseCheck::activate(status &current, vector<int> inputs, int pattern, int t, int f){
 	for(unsigned int i = 0; i < inputs.size(); i++){
 		if(inputs[i] > 0) return 0;
 	}
-	return check(p, meter);
+	return check(current);
 }
 
 void mash::zero()
@@ -88,18 +101,18 @@ int werf::arbitraryPoll(int n, int f)
 	return action::arbitraryPoll(n, f);
 }
 
-bool werf::check(SDL_Rect &p, vector<int> meter)
+bool werf::check(status &current)
 {
-	if(p.y != 0) return 0;
-	if(p.x > 0) return 0;
-	return action::check(p, meter);
+	if(current.prox->y != 0) return 0;
+	if(current.prox->x > 0) return 0;
+	return action::check(current);
 }
 
-bool luftigeWerf::check(SDL_Rect &p, vector<int> meter)
+bool luftigeWerf::check(status &current)
 {
-	if(p.y == 0) return 0;
-	if(p.x > 0) return 0;
-	return action::check(p, meter);
+	if(current.prox->y == 0) return 0;
+	if(current.prox->x > 0) return 0;
+	return action::check(current);
 }
 
 bool werf::setParameter(string buffer)

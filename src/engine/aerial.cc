@@ -10,10 +10,15 @@ airMove::airMove(string dir, string file)
 
 action * airMove::land(status &current)
 {
-	current.frame = 0;
-	current.connect = 0;
-	current.hit = 0;
-	return landing;
+	if(landing){
+		if(landing->check(current)) {
+			current.frame = 0;
+			current.connect = 0;
+			current.hit = 0;
+			return landing;
+		}
+	}
+	return nullptr;
 }
 
 void airMove::zero()
@@ -50,17 +55,17 @@ airUtility::airUtility(string dir, string file)
 	airMove::build(dir, file);
 }
 
-bool airUtility::check(SDL_Rect &p, vector<int> meter) //Check to see if the action is possible right now.
+bool airUtility::check(status& current) //Check to see if the action is possible right now.
 {
-	if(abs(delta[0][0].y) > abs(delta[0][0].x) && meter[2] < 1) return 0;
-	else if(abs(delta[0][0].y) < abs(delta[0][0].x) && meter[3] < 1) return 0;
-	return action::check(p, meter);
+	if(abs(delta[0][0].y) > abs(delta[0][0].x) && current.meter[2] < 1) return 0;
+	else if(abs(delta[0][0].y) < abs(delta[0][0].x) && current.meter[3] < 1) return 0;
+	return action::check(current);
 }
 
-void airUtility::execute(action * last, status &current, vector<int>& meter){
-	if(abs(delta[0][0].y) > abs(delta[0][0].x)) meter[2]--;
-	else if(abs(delta[0][0].y) < abs(delta[0][0].x)) meter[3]--;
-	action::execute(last, current, meter);
+void airUtility::execute(status &current){
+	if(abs(delta[0][0].y) > abs(delta[0][0].x)) current.meter[2]--;
+	else if(abs(delta[0][0].y) < abs(delta[0][0].x)) current.meter[3]--;
+	action::execute(current);
 }
 
 airLooping::airLooping(string dir, string file)

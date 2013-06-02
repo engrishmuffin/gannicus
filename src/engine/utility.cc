@@ -5,7 +5,7 @@ utility::utility(string dir, string file)
 	build(dir, file);
 }
 
-bool utility::activate(vector<int> inputs, int pattern, int t, int f, vector<int> meter, SDL_Rect &p)
+bool utility::activate(status& current, vector<int> inputs, int pattern, int t, int f)
 {
 	for(unsigned int i = 0; i < inputs.size(); i++){
 		if(pattern & (1 << i)){
@@ -15,7 +15,7 @@ bool utility::activate(vector<int> inputs, int pattern, int t, int f, vector<int
 	}
 	if(t > tolerance) return 0;
 	if(f > activation) return 0;
-	return check(p, meter);
+	return check(current);
 }
 
 looping::looping(string dir, string file)
@@ -23,12 +23,12 @@ looping::looping(string dir, string file)
 	build(dir, file);
 }
 
-void looping::step(vector<int>& meter, status &current)
+void looping::step(status &current)
 {
-	action::step(meter, current);
-	if(current.frame && !meter[4]){
-		if(meter[1] + gain[0] < 300) meter[1] += gain[0];
-		else meter[1] = 300;
+	action::step(current);
+	if(current.frame && !current.meter[4]){
+		if(current.meter[1] + gain[0] < 300) current.meter[1] += gain[0];
+		else current.meter[1] = 300;
 	}
 	if(current.frame >= frames) current.frame = 0;
 }

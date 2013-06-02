@@ -1,7 +1,8 @@
 /*Copyright Somnambulant Studios 2012-2013*/
 #include "../charlist.h"
 #include "controller.h"
-
+#include <deque>
+using std::deque;
 #ifndef ___player
 #define ___player
 
@@ -17,16 +18,16 @@ public:
 	vector<SDL_Rect> hitbox, hitreg, momentum;
 	bool secondInstance;
 	int ID;
-	int inputBuffer[30];
+	deque<int> inputBuffer;
 	void checkFacing(instance*);
-	virtual void pollStats(hStat&);
+	virtual hStat pollStats();
 	virtual void neutralize();
 	virtual bool acceptTarget(instance*);
 	virtual int CHState() { return 0; }
 	virtual void init();
 	virtual void step();
 
-	virtual void getMove(vector<int>, SDL_Rect&, bool&);
+	virtual void getMove(vector<int>, bool&);
 	virtual int takeHit(int, hStat&, SDL_Rect&);
 	virtual void enforceGravity(int, int);
 	virtual void invertVectors(int);
