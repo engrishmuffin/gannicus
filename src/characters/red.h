@@ -18,7 +18,7 @@ public:
 	redCancel() {}
 	~redCancel();
 	redCancel(string, string);
-	bool check(status&);
+	bool check(const status&);
 	int arbitraryPoll(int, int);
 	void execute(status&);
 };

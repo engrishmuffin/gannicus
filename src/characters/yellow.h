@@ -18,7 +18,7 @@ class flashStep : public airMove {
 public:
 	flashStep();
 	flashStep(string, string);
-	bool check(status&);
+	bool check(const status&);
 	void execute(status&);
 private:
 	int flashMeterCost;
@@ -29,7 +29,7 @@ public:
 	flashSummon();
 	flashSummon(string, string);
 	int arbitraryPoll(int, int);
-	bool check(status&);
+	bool check(const status&);
 	void execute(status&);
 	bool setParameter(string);
 	virtual void zero();

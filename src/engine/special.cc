@@ -19,7 +19,7 @@ void negNormal::zero()
 	maxHold = 0;
 }
 
-bool special::check(status &current)
+bool special::check(const status &current)
 {
 	if(cost > current.meter[1]) return 0;
 	else return action::check(current);
@@ -101,14 +101,14 @@ int werf::arbitraryPoll(int n, int f)
 	return action::arbitraryPoll(n, f);
 }
 
-bool werf::check(status &current)
+bool werf::check(const status &current)
 {
 	if(current.prox->y != 0) return 0;
 	if(current.prox->x > 0) return 0;
 	return action::check(current);
 }
 
-bool luftigeWerf::check(status &current)
+bool luftigeWerf::check(const status &current)
 {
 	if(current.prox->y == 0) return 0;
 	if(current.prox->x > 0) return 0;

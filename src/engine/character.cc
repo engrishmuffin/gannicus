@@ -45,14 +45,12 @@ void avatar::prepHooks(status &current, deque<int> inputBuffer, vector<int> butt
 	action * t = nullptr;
 	if(current.move && current.reversal){
 		if(*current.reversal > current){
-			if(current.reversal->check(current)){
-				if(!dryrun) current.reversal->execute(current);
-				current.move = current.reversal;
-				current.reversalFlag = true;
-				if(!dryrun){
-					current.reversal = nullptr;
-					current.reversalTimer = 0;
-				}
+			if(!dryrun) current.reversal->execute(current);
+			current.move = current.reversal;
+			current.reversalFlag = true;
+			if(!dryrun){
+				current.reversal = nullptr;
+				current.reversalTimer = 0;
 			}
 		}
 	}

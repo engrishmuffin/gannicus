@@ -183,7 +183,7 @@ void interface::drawLoadingScreen()
 		glRectf(0.0f, 0.0f, (GLfloat)screenWidth, (GLfloat)screenHeight);
 		glEnable(GL_TEXTURE_2D);
 		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-		drawGlyph("loading", 0, screenWidth, (screenHeight - 64)/2, 64, 1);
+		drawGlyph("Salt and bone", 0, screenWidth, (screenHeight - 64)/2, 64, 1);
 	glPopMatrix();
 }
 

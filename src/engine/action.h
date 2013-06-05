@@ -66,7 +66,7 @@ public:
 	virtual void playSound(int);
 	virtual bool activate(status &, vector<int>, int, int, int); //Check to see if the action is possible right now.
 	virtual void generate(string, string);
-	virtual bool check(status&); //Check to see if the action is possible right now.
+	virtual bool check(const status&); //Check to see if the action is possible right now.
 
 	virtual action * blockSuccess(int, bool);
 	virtual int arbitraryPoll(int q, int f);
@@ -215,7 +215,7 @@ class special : virtual public action {
 public:
 	special() {}
 	special(string, string);
-	virtual bool check(status&); //Check to see if the action is possible right now.
+	virtual bool check(const status&); //Check to see if the action is possible right now.
 	virtual bool activate(status &, vector<int>, int, int, int); //Check to see if the action is possible right now.
 };
 
@@ -278,7 +278,7 @@ class airUtility : public airMove, public utility {
 public:
 	airUtility() {}
 	airUtility(string, string);
-	virtual bool check(status&); //Check to see if the action is possible right now.
+	virtual bool check(const status&); //Check to see if the action is possible right now.
 	virtual void execute(status&);
 };
 
@@ -303,7 +303,7 @@ public:
 	werf() {}
 	werf(string d, string f) { build(d,f); }
 	virtual bool setParameter(string);
-	virtual bool check(status&); //Check to see if the action is possible right now.
+	virtual bool check(const status&); //Check to see if the action is possible right now.
 	virtual int arbitraryPoll(int, int);
 	int startPosX;
 	int startPosY;
@@ -314,7 +314,7 @@ public:
 	luftigeWerf() {}
 	luftigeWerf(string d, string f) { build(d,f); }
 	virtual bool setParameter(string);
-	virtual bool check(status&); //Check to see if the action is possible right now.
+	virtual bool check(const status&); //Check to see if the action is possible right now.
 };
 
 class releaseCheck : virtual public action {

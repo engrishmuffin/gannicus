@@ -58,7 +58,7 @@ redCancel::redCancel(string dir, string file)
 	build(dir, file); 
 }
 
-bool redCancel::check(status &current)
+bool redCancel::check(const status &current)
 {
 	if(current.meter[6] > 0) return 0;
 	return special::check(current);

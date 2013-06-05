@@ -55,7 +55,7 @@ airUtility::airUtility(string dir, string file)
 	airMove::build(dir, file);
 }
 
-bool airUtility::check(status& current) //Check to see if the action is possible right now.
+bool airUtility::check(const status& current) //Check to see if the action is possible right now.
 {
 	if(abs(delta[0][0].y) > abs(delta[0][0].x) && current.meter[2] < 1) return 0;
 	else if(abs(delta[0][0].y) < abs(delta[0][0].x) && current.meter[3] < 1) return 0;

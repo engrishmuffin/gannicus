@@ -159,7 +159,7 @@ void action::build(string dir, string n)
 	} else null = false;
 
 	do {
-		read.getline(buffer, 100);
+		read.getline(buffer, 1000);
 		strcpy(savedBuffer, buffer);
 	} while (setParameter(buffer));
 
@@ -633,7 +633,7 @@ bool action::activate(status &current, vector<int> inputs, int pattern, int t, i
 	return check(current);
 }
 
-bool action::check(status &current)
+bool action::check(const status &current)
 {
 	if(requiredMode && requiredMode != current.mode) return 0;
 	if(cost && cost > current.meter[1]){
@@ -771,7 +771,7 @@ bool action::cancel(action * x, int c, int h)
 
 bool action::operator>(const status& o)
 {
-	return cancel(o.move, o.connect, o.hit);
+	return check(o) && cancel(o.move, o.connect, o.hit);
 }
 
 void action::step(status &current)

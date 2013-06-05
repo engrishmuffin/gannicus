@@ -120,19 +120,20 @@ bool flashSummon::setParameter(string buffer)
 	} else return action::setParameter(buffer);
 }
 
-bool flashStep::check(status &current)
+bool flashStep::check(const status &current)
 {
 	if(current.meter[5] < 1) return 0;
 	else return action::check(current);
 }
 
-bool flashSummon::check(status &current)
+bool flashSummon::check(const status &current)
 {
 	if(current.meter[5] < 0) return 0;
 	if(current.meter[5] > 0) uFlag = 1;
-	if(uFlag) current.meter[1] += cost;
+	int temp = cost;
+	if(uFlag) cost = 0;
 	bool ret = action::check(current);
-	if(uFlag) current.meter[1] -= cost;
+	if(uFlag) cost = temp;
 	uFlag = 0;
 	return ret;
 }
