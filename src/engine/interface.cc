@@ -29,8 +29,8 @@ interface::interface()
 	/*Initialize some pseudo-constants*/
 	screenWidth = 1600; /*screen{Width,Height} describe the size of the window holding the game.*/
 	screenHeight = 900;
-	screen = nullptr;
-	bg.w = 3200; /*The screen gives a partial view of the background, which is the area available for character movement.*/
+	screen = nullptr; /*The screen gives a partial view of the background, which is the area available for character movement.*/
+	bg.w = 3200;
 	bg.h = 1800;
 	floor = 50; /*Value of the floor. This is the maximum distance downward that characters can travel.*/
 	wall = 50; /*The size of the offset at which characters start to scroll the background, and get stuck.*/
