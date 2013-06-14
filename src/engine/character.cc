@@ -55,7 +55,7 @@ void avatar::prepHooks(status &current, deque<int> inputBuffer, vector<int> butt
 		}
 	}
 	else if(!current.move) current.move = neutralize(current);
-	t = hook(current, inputBuffer, 0, -1, buttons, current.move, current.connect, current.hit);
+	t = hook(current, inputBuffer, 0, -1, buttons);
 	if(t == nullptr){
 		if(current.move->window(current.frame)){
 			if(current.move->attempt->check(current)){
@@ -74,16 +74,18 @@ void avatar::prepHooks(status &current, deque<int> inputBuffer, vector<int> butt
 			current.move = current.bufferedMove;
 			if(!dryrun) current.bufferedMove = nullptr;
 		} else {
-			action * r;
-			bool l = current.reversalFlag;
-			r = neutralize(current);
-			current.reversalFlag = l;
+			status temp = current;
+			temp.move = neutralize(temp);
+			temp.reversalFlag = current.reversalFlag;
+			temp.connect = 0;
+			temp.hit = 0;
 			if (!current.reversal && (current.move->linkable || current.frame > 4 || current.counter < 0)){
-				int l = 0, m = 0;
-				current.reversal = hook(current, inputBuffer, 0, -1, buttons, r, l, m);
+				current.reversal = hook(temp, inputBuffer, 0, -1, buttons);
 				if(current.reversal){
-					if(current.reversal->state[0].b.neutral) 
+					if(current.reversal->state[0].b.neutral){
 						current.reversal = nullptr;
+						current.reversalTimer = 0;
+					}
 				}
 				if(current.move->linkable) {
 					current.reversalTimer = -1;
@@ -108,15 +110,15 @@ void avatar::prepHooks(status &current, deque<int> inputBuffer, vector<int> butt
 	}
 }
 
-action * avatar::hook(status &current, deque<int> inputBuffer, int i, int f, vector<int> buttons, action * c, int &cFlag, int &hFlag)
+action * avatar::hook(status &current, deque<int> inputBuffer, int i, int f, vector<int> buttons)
 {
-	return head->actionHook(current, inputBuffer, 0, -1, buttons, c, cFlag, hFlag);
+	return head->actionHook(current, inputBuffer, 0, -1, buttons);
 }
 
-action * character::hook(status &current, deque<int> inputBuffer, int i, int f, vector<int> buttons, action * c, int &cFlag, int &hFlag)
+action * character::hook(status &current, deque<int> inputBuffer, int i, int f, vector<int> buttons)
 {
-	if(current.aerial) return airHead->actionHook(current, inputBuffer, 0, -1, buttons, c, cFlag, hFlag);
-	else return avatar::hook(current, inputBuffer, 0, -1, buttons, c, cFlag, hFlag);
+	if(current.aerial) return airHead->actionHook(current, inputBuffer, 0, -1, buttons);
+	else return avatar::hook(current, inputBuffer, 0, -1, buttons);
 }
 
 action * avatar::moveSignal(int)

@@ -64,6 +64,7 @@ public:
 	//Do other stuff sometimes.
 	virtual void execute(status&);
 	virtual void playSound(int);
+	virtual bool patternMatch(vector<int>, int, int, int); //Check to see if the action is possible right now.
 	virtual bool activate(status &, vector<int>, int, int, int); //Check to see if the action is possible right now.
 	virtual void generate(string, string);
 	virtual bool check(const status&); //Check to see if the action is possible right now.
@@ -76,7 +77,7 @@ public:
 	virtual vector<SDL_Rect> pollDelta(int);
 	virtual int displace(int, int&, int);
 	virtual hStat pollStats(int, bool);
-	virtual bool cancel(action*, int, int); //Cancel allowed activate. Essentially: is action Lvalue allowed given the current state of action Rvalue?
+	virtual bool cancel(action*, int, int); //Cancel allowed patternMatch. Essentially: is action Lvalue allowed given the current state of action Rvalue?
 	virtual void step(status&); //Step forward one frame. This only happens if we're not in freeze state
 	virtual action * land(status&) { return this; }
 	virtual action * connect(vector<int>&, int&, int);
@@ -216,7 +217,7 @@ public:
 	special() {}
 	special(string, string);
 	virtual bool check(const status&); //Check to see if the action is possible right now.
-	virtual bool activate(status &, vector<int>, int, int, int); //Check to see if the action is possible right now.
+	virtual bool patternMatch(vector<int>, int, int, int); //Check to see if the action is possible right now.
 };
 
 class negNormal : virtual public action {
@@ -224,14 +225,14 @@ public:
 	negNormal() {}
 	negNormal(string, string);
 	virtual void zero();
-	virtual bool activate(status&, vector<int>, int, int, int); //Check to see if the action is possible right now.
+	virtual bool patternMatch(vector<int>, int, int, int); //Check to see if the action is possible right now.
 };
 
 class utility : virtual public action {
 public:
 	utility() {}
 	utility(string, string);
-	virtual bool activate(status &, vector<int>, int, int, int); //Check to see if the action is possible right now.
+	virtual bool patternMatch(vector<int>, int, int, int); //Check to see if the action is possible right now.
 };
 
 class looping : virtual public utility {
@@ -294,7 +295,7 @@ public:
 	mash(string d, string f) { build(d,f); }
 	virtual bool setParameter(string);
 	virtual void zero();
-	virtual bool activate(status &, vector<int>, int, int, int); //Check to see if the action is possible right now.
+	virtual bool patternMatch(vector<int>, int, int, int); //Check to see if the action is possible right now.
 	int buttons;
 };
 
@@ -321,7 +322,7 @@ class releaseCheck : virtual public action {
 public:
 	releaseCheck() {}
 	releaseCheck(string d, string f) { build(d,f); }
-	virtual bool activate(status &, vector<int>, int, int, int); //Check to see if the action is possible right now.
+	virtual bool patternMatch(vector<int>, int, int, int); //Check to see if the action is possible right now.
 };
 
 class airReleaseCheck : public airMove, public releaseCheck {

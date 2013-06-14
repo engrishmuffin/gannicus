@@ -25,7 +25,7 @@ bool special::check(const status &current)
 	else return action::check(current);
 }
 
-bool negNormal::activate(status &current, vector<int> inputs, int pattern, int t, int f)
+bool negNormal::patternMatch(vector<int> inputs, int pattern, int t, int f)
 {
 	for(unsigned int i = 0; i < inputs.size(); i++){
 		if(pattern & (1 << i)){
@@ -34,10 +34,10 @@ bool negNormal::activate(status &current, vector<int> inputs, int pattern, int t
 	}
 	if(t > tolerance) return 0;
 	if(f > activation) return 0;
-	return check(current);
+	return 1;
 }
 
-bool special::activate(status &current, vector<int> inputs, int pattern, int t, int f)
+bool special::patternMatch(vector<int> inputs, int pattern, int t, int f)
 {
 	for(unsigned int i = 0; i < inputs.size(); i++){
 		if(pattern & (1 << i)){
@@ -46,13 +46,13 @@ bool special::activate(status &current, vector<int> inputs, int pattern, int t, 
 	}
 	if(t > tolerance) return 0;
 	if(f > activation) return 0;
-	return check(current);
+	return 1;
 }
 
-bool mash::activate(status &current, vector <int> inputs, int pattern, int t, int f)
+bool mash::patternMatch(vector <int> inputs, int pattern, int t, int f)
 {
 	int go = 0;
-	if(action::activate(current, inputs, pattern, t, f)){
+	if(action::patternMatch(inputs, pattern, t, f)){
 		for(unsigned int i = 0; i < inputs.size(); i++){
 			if(inputs[i] >= minHold){
 				if(inputs[i] <= maxHold || !maxHold) go++;
@@ -63,11 +63,11 @@ bool mash::activate(status &current, vector <int> inputs, int pattern, int t, in
 	return 0;
 }
 
-bool releaseCheck::activate(status &current, vector<int> inputs, int pattern, int t, int f){
+bool releaseCheck::patternMatch(vector<int> inputs, int pattern, int t, int f){
 	for(unsigned int i = 0; i < inputs.size(); i++){
 		if(inputs[i] > 0) return 0;
 	}
-	return check(current);
+	return 1;
 }
 
 void mash::zero()

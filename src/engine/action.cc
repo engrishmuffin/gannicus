@@ -622,6 +622,11 @@ bool action::window(int f)
 
 bool action::activate(status &current, vector<int> inputs, int pattern, int t, int f)
 {
+	return patternMatch(inputs, pattern, t, f) && check(current) && *this > current;
+}
+
+bool action::patternMatch(vector<int> inputs, int pattern, int t, int f)
+{
 	for(unsigned int i = 0; i < inputs.size(); i++){
 		if(pattern & (1 << i)){
 			if(inputs[i] < minHold) return 0;
@@ -630,7 +635,7 @@ bool action::activate(status &current, vector<int> inputs, int pattern, int t, i
 	}
 	if(t > tolerance) return 0;
 	if(f > activation) return 0;
-	return check(current);
+	return 1; 
 }
 
 bool action::check(const status &current)

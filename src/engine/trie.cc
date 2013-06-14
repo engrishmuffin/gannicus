@@ -80,7 +80,7 @@ actionTrie::~actionTrie()
 	}
 }
 
-action * actionTrie::actionHook(status &current, deque<int> inputBuffer, int i, int first, vector<int> buttons, action * c, int cFlag, int hFlag)
+action * actionTrie::actionHook(status &current, deque<int> inputBuffer, int i, int first, vector<int> buttons)
 {
 	actionTrie * test = nullptr;
 	action * result = nullptr;
@@ -88,18 +88,16 @@ action * actionTrie::actionHook(status &current, deque<int> inputBuffer, int i, 
 	for(j = i; j < 30; j++){
 		if(inputBuffer[j] < 10) test = child[inputBuffer[j]];
 		if(test != nullptr){
-			if (first < 0) result = test->actionHook(current, inputBuffer, j, j, buttons, c, cFlag, hFlag);
-			else result = test->actionHook(current, inputBuffer, j, first, buttons, c, cFlag, hFlag);
+			if (first < 0) result = test->actionHook(current, inputBuffer, j, j, buttons);
+			else result = test->actionHook(current, inputBuffer, j, first, buttons);
 			if(result != nullptr) return result;
 		}
 	}
 	if(fish.size() != 0){
 		for(unsigned int k = 0; k < fish.size(); k++){
-			if(fish[k] != nullptr){
-				if(fish[k]->activate(current, buttons, pattern[k], i, first) == 1){
-					if(fish[k]->cancel(c, cFlag, hFlag)){
-						return fish[k];
-					}
+			if(fish[k]){
+				if(fish[k]->activate(current, buttons, pattern[k], i, first)){
+					return fish[k];
 				}
 			}
 		}

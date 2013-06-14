@@ -11,7 +11,7 @@ public:
 	actionTrie(action*);
 	actionTrie(action*, int);
 	~actionTrie();
-	action * actionHook(status&, deque<int>, int, int, vector<int>, action *, int, int);
+	action * actionHook(status&, deque<int>, int, int, vector<int>);
 	actionTrie * child[10];
 	vector<action*> fish;
 	actionTrie * insert(int);

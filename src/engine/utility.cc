@@ -5,7 +5,7 @@ utility::utility(string dir, string file)
 	build(dir, file);
 }
 
-bool utility::activate(status& current, vector<int> inputs, int pattern, int t, int f)
+bool utility::patternMatch(vector<int> inputs, int pattern, int t, int f)
 {
 	for(unsigned int i = 0; i < inputs.size(); i++){
 		if(pattern & (1 << i)){
@@ -15,7 +15,7 @@ bool utility::activate(status& current, vector<int> inputs, int pattern, int t, 
 	}
 	if(t > tolerance) return 0;
 	if(f > activation) return 0;
-	return check(current);
+	return 1;
 }
 
 looping::looping(string dir, string file)

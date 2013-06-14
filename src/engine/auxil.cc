@@ -313,7 +313,7 @@ status::status(const status & o)
 	this->deltaX = o.deltaX; this->deltaY = o.deltaY; 
 	this->frame = o.frame;
 	this->freeze = o.freeze;
-	this->reversalTimer = 0;
+	this->reversalTimer = o.reversalTimer;
 	this->aerial = o.aerial;
 	this->rCorner = o.rCorner; this->lCorner = o.lCorner;
 	this->move = o.move; this->bufferedMove = o.bufferedMove; this->reversal = o.reversal;
