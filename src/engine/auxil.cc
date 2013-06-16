@@ -307,24 +307,24 @@ status::status()
 
 status::status(const status & o) 
 {
-	this->posX = o.posX; this->posY = o.posY;
-	this->drawX = o.drawX; this->drawY = o.drawY;
-	this->facing = o.facing;
-	this->deltaX = o.deltaX; this->deltaY = o.deltaY; 
-	this->frame = o.frame;
-	this->freeze = o.freeze;
-	this->reversalTimer = o.reversalTimer;
-	this->aerial = o.aerial;
-	this->rCorner = o.rCorner; this->lCorner = o.lCorner;
-	this->move = o.move; this->bufferedMove = o.bufferedMove; this->reversal = o.reversal;
-	this->connect = o.connect; this->hit = o.hit; this->counter = o.counter;
-	this->dead = o.dead;
-	this->throwInvuln = o.throwInvuln;
-	this->reversalFlag = o.reversalFlag;
-	this->meter = o.meter;
-	this->offspring = o.offspring;
-	this->age = o.age;
-	this->dead = o.dead;
-	this->mode = o.mode;
-	this->prox = o.prox;
+	posX = o.posX; posY = o.posY;
+	drawX = o.drawX; drawY = o.drawY;
+	facing = o.facing;
+	deltaX = o.deltaX; deltaY = o.deltaY; 
+	frame = o.frame;
+	freeze = o.freeze;
+	reversalTimer = o.reversalTimer;
+	aerial = o.aerial;
+	rCorner = o.rCorner; lCorner = o.lCorner;
+	move = o.move; bufferedMove = o.bufferedMove; reversal = o.reversal;
+	connect = o.connect; hit = o.hit; counter = o.counter;
+	dead = o.dead;
+	throwInvuln = o.throwInvuln;
+	reversalFlag = o.reversalFlag;
+	meter = o.meter;
+	offspring = o.offspring;
+	age = o.age;
+	dead = o.dead;
+	mode = o.mode;
+	prox = o.prox;
 }
