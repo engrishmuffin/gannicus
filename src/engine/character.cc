@@ -63,7 +63,7 @@ void avatar::prepHooks(status &current, deque<int> inputBuffer, vector<int> butt
 			}
 		}
 		else if(current.move->holdFrame == current.frame){
-			if(current.move->onHold->patternMatch(buttons, current.move->holdCheck, 0, 0)){
+			if(current.move->onHold->patternMatch(buttons, current.move->holdCheck, 0, 0) && current.move->onHold->check(current)){
 				current.move->onHold->execute(current);
 				t = current.move->onHold;
 			}
