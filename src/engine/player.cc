@@ -512,8 +512,9 @@ void player::checkBlocking()
 		if(blockType == 1) blockType = !current.move->canGuard(current.frame);
 		updateRects();
 		if(blockType != 1){
-			save.move = current.move;
-			save.frame = current.frame;
+			save = current;
+			save.drawX = save.posX;
+			save.drawY = save.posY;
 		}
 	}
 }
