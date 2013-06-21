@@ -477,7 +477,7 @@ void instance::draw()
 {
 	bool sCheck = spriteCheck();
 	status * n;
-	if(sCheck && save.facing && blockType == 1 && current.freeze && current.counter) n =&save;
+	if(sCheck && save.facing && blockType == -1 && current.freeze && current.counter) n = &save;
 	else n = &current;
 
 	if(n == &current){
