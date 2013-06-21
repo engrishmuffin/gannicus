@@ -1357,6 +1357,7 @@ void interface::resolveHits()
 						ths.push += (P[things[hitBy[i]]->ID-1]->current.aerial) ? s[hitBy[i]].blowback*5 : s[hitBy[i]].blowback;
 					}
 					P[things[hitBy[i]]->ID-1]->takeHit(combo[i], ths, prox);
+					P[things[hitBy[i]]->ID-1]->current.freeze = 0;
 				}
 				if(s[hitBy[i]].stun) combo[(i+1)%2] += hit[hitBy[i]];
 			}

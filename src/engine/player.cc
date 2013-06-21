@@ -510,6 +510,7 @@ void player::checkBlocking()
 	if(current.move->state[current.connect].i & 513){
 		blockType = -pick()->checkBlocking(current, inputBuffer);
 		if(blockType == 1) blockType = !current.move->canGuard(current.frame);
+		else save = current;
 		updateRects();
 	}
 }
