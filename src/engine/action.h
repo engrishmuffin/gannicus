@@ -164,7 +164,7 @@ public:
 
 	attractor * distortion;
 	int distortSpawn;
-	int attemptStart, attemptEnd;
+	span<int> attemptSpan;
 	int displaceX, displaceY, displaceFrame;
 
 	string tempNext;

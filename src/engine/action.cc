@@ -46,8 +46,6 @@ void action::zero()
 	offY = 0;
 	linkable = 0;
 	guardType = 0;
-	attemptStart = 0;
-	attemptEnd = 0;
 	holdCheck = -1;
 	holdFrame = -1;
 	xRequisite = 0;
@@ -311,8 +309,9 @@ bool action::setParameter(string buffer)
 		flip = stoi(t("\t: \n"));
 		return true;
 	} else if (t.current() == "Attempt") {
-		attemptStart = stoi(t("\t: \n-")); 
-		attemptEnd = stoi(t()); 
+		int s = stoi(t("\t: \n-")); 
+		int e = stoi(t());
+		attemptSpan = span<int> (s,e);
 		tempAttempt = t();
 		return true;
 	} else if (t.current() == "Connect") {
@@ -615,9 +614,7 @@ bool action::window(int f)
 		if(basis.move->window(basis.frame)) return 1;
 	}
 	if(!attempt) return 0;
-	if(f < attemptStart) return 0;
-	if(f > attemptEnd) return 0;
-	return 1;
+	return attemptSpan == f;
 }
 
 bool action::activate(status &current, vector<int> inputs, int pattern, int t, int f)

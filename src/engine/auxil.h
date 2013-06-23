@@ -4,6 +4,7 @@
 #include <SDL/SDL_opengl.h>
 #include <string>
 #include <vector>
+#include "span.h"
 
 #ifndef ___auxil
 #define ___auxil
@@ -74,15 +75,5 @@ struct status{
 	bool dead:1;
 	int throwInvuln;
 	bool reversalFlag:1;
-};
-
-template <typename T>
-struct span {
-	T start;
-	T end;
-	span();
-	span(T, T);
-	bool operator==(const T&);
-	bool operator!=(const T&);
 };
 #endif
