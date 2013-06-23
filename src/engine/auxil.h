@@ -52,8 +52,7 @@ public:
 	void unitNormal(float, float, float, float, float, float, float, float, float);
 };
 
-class status{
-public:
+struct status{
 	status();
 	status(const status&);
 	vector<int> meter;
@@ -75,5 +74,15 @@ public:
 	bool dead:1;
 	int throwInvuln;
 	bool reversalFlag:1;
+};
+
+template <typename T>
+struct span {
+	T start;
+	T end;
+	span();
+	span(T, T);
+	bool operator==(const T&);
+	bool operator!=(const T&);
 };
 #endif

@@ -68,7 +68,7 @@ void avatar::prepHooks(status &current, deque<int> inputBuffer, vector<int> butt
 			}
 		}
 		if (current.bufferedMove != nullptr && current.freeze <= 0) {
-			if(!dryrun){ 
+			if(!dryrun){
 				current.bufferedMove->execute(current);
 			}
 			current.move = current.bufferedMove;

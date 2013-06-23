@@ -328,3 +328,29 @@ status::status(const status & o)
 	mode = o.mode;
 	prox = o.prox;
 }
+
+template <typename T>
+span<T>::span()
+{
+	start = 0;
+	end = 0;
+}
+
+template <typename T>
+span<T>::span(T a, T b)
+{
+	start = a;
+	end = b;
+}
+
+template <typename T>
+bool span<T>::operator==(const T& o)
+{
+	return o >= start && o <= end;
+}
+
+template <typename T>
+bool span<T>::operator!=(const T& o)
+{
+	return o < start || o > end;
+}
