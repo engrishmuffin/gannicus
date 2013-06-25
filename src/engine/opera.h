@@ -47,13 +47,11 @@ public:
 };
 
 class voice {
-    sample attack; //should be 1/60 s
-    vector<sample> sustain; //should be n/60 s
-    sample decay; //arbitrary length
+    sample attack, sustain, decay; //Attack == 1*f, Sustain = n*f length
 public: 
     voice(sample, sample, sample); //attack, sustain, decay
     void play(int, int); //Attack, then begin sustain and keep sustaining as long as necessary, then decay.
-                         //Arguments are volume and duration
+                         //Arguments are volume and sustain duration
     void stop(); //Stop even if still decaying.
     ~voice();
 };
