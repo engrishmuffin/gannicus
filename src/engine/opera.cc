@@ -5,6 +5,7 @@ void soundScape::init()
 {
 	alutInit(0, nullptr);
 	alGetError();
+	alGenSources(16, source);
 }
 
 sample::sample(string a)
@@ -15,6 +16,16 @@ sample::sample(string a)
 ALuint sample::operator()()
 {
 	return buffer;
+}
+
+sample::sample(const sample &o)
+{
+	buffer = o.buffer;
+}
+
+void soundScape::play(int i)
+{
+	alSourcePlay(source[i]);
 }
 
 soundScape::~soundScape()

@@ -11,7 +11,6 @@ using std::ifstream;
 using std::ofstream;
 using std::max;
 using std::min;
-
 interface::interface()
 {
 	stats = nullptr;
@@ -925,6 +924,12 @@ void interface::cSelectMenu()
 void interface::loadAssets()
 {
 	unsigned int b = SDL_WasInit(SDL_INIT_VIDEO);
+	for(int i = 0; i < 2; i++){
+		string temp = "content/sound/";
+		temp += P[i]->pick()->name + ".wav";
+		call[i] = sample(temp);
+		alSourcei(source[i], AL_BUFFER, call[i]());
+	}
 	if(b != 0){
 		for(player *i:P) i->loadAssets();
 		loadMatchBackground();
