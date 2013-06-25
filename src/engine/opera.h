@@ -15,5 +15,6 @@ struct note {
 class soundScape {
 public:
 	virtual void init();
+	virtual ~soundScape();
 };
 #endif
