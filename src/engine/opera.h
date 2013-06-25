@@ -12,6 +12,16 @@ struct note {
 //	int modulation;
 };
 
+class sample {
+public:
+	ALenum format;
+	ALsizei size;
+	ALsizei freq;
+	ALboolean loop;
+	ALvoid* data;
+	sample(string);
+};
+
 class soundScape {
 public:
 	virtual void init();
