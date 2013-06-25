@@ -4,38 +4,13 @@
 #include <string>
 #include <vector>
 #include <array>
+#include "notation.h"
+
 using std::array;
 using std::string;
 using std::vector;
 #ifndef OPERA_INCLUDED
 #define OPERA_INCLUDED
-
-enum scaleDegree
-{
-    Tonic, 
-    Supertonic, 
-    Mediant, 
-    Subdominant, 
-    Dominant, 
-    Submediant, 
-    Leading, 
-    ScaleDegrees //Count available degrees, == 7
-};
-
-enum chromaticScale {Cr0,Cr1,Cr2,Cr3,Cr4,Cr5,Cr6,Cr7,
-                     Cr8,Cr9,Cr10,Cr11,ChromaticDegrees};
-
-enum accidental {DoubleFlat=-2, Flat, Neutral, Sharp, DoubleSharp};
-
-typedef array <chromaticScale, ScaleDegrees> scale;
-
-struct note {
-	accidental a;
-    scaleDegree d;
-    size_t octave;
-	unsigned int velocity;
-	size_t duration;
-};
 
 class sample {
 public:
@@ -56,7 +31,7 @@ public:
     ~voice();
 };
 
-typedef array<voice, ChromaticDegrees> vocalRegister;
+typedef array<voice, ChromaticOctave> vocalRegister;
 //A vocal register is all of the samples for chroma within an octave
 
 class vocalFont : vector<vocalRegister>
