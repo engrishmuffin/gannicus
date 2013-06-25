@@ -1,5 +1,6 @@
 #include "opera.h"
-using std::string;
+#include <iostream>
+using std::cout;
 void soundScape::init()
 {
 	alutInit(0, nullptr);
@@ -8,8 +9,12 @@ void soundScape::init()
 
 sample::sample(string a)
 {
-	alutLoadWAVFile(a.c_str(), &format, &data, &size, &freq, &loop);
-	if ((error = alGetError()) != AL_NO_ERROR) cout << "Eu dunne fukt up\n";
+	buffer = alutCreateBufferFromFile (a.c_str());
+}
+
+ALuint sample::operator()()
+{
+	return buffer;
 }
 
 soundScape::~soundScape()

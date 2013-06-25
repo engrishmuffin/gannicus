@@ -1,6 +1,8 @@
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <AL/alut.h>
+#include <string>
+using std::string;
 #ifndef OPERA_INCLUDED
 #define OPERA_INCLUDED
 struct note {
@@ -14,11 +16,8 @@ struct note {
 
 class sample {
 public:
-	ALenum format;
-	ALsizei size;
-	ALsizei freq;
-	ALboolean loop;
-	ALvoid* data;
+	ALuint buffer;
+	ALuint operator()();
 	sample(string);
 };
 
