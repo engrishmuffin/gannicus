@@ -88,6 +88,7 @@ public:
 	vector<bool> select;
 	vector<int> groove;
 	vector<int> selection;
+	sample call[2];
 	int menu[2];
 	int configMenu[2];
 	int rMenu;

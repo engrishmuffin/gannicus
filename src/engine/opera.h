@@ -18,11 +18,15 @@ class sample {
 public:
 	ALuint buffer;
 	ALuint operator()();
+	sample(const sample&);
+	sample() {}
 	sample(string);
 };
 
 class soundScape {
 public:
+	ALuint source[16];
+	virtual void play(int);
 	virtual void init();
 	virtual ~soundScape();
 };

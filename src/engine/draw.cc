@@ -297,8 +297,11 @@ void interface::drawHUD()
 	if(timer > 100 * 60 && timer < 100 * 60 + 31){ 
 		int l = P[0]->rounds + P[1]->rounds + 1;
 		sprintf(buffer, "Round %i", l);
-		if(timer == 100 * 60 + 30)
-			Mix_PlayChannel(3, announceRound[l - 1], 0);
+		if(timer == 100 * 60 + 30){
+			play(1);
+			play(0);
+			//Mix_PlayChannel(3, announceRound[l - 1], 0);
+		}
 		drawGlyph(buffer, 0, 1600, 375, 150, 1);
 	}
 	if(timer > 99 * 60 && timer < 99 * 60 + 31){ 
