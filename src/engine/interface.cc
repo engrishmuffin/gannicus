@@ -189,6 +189,12 @@ bool gameInstance::screenInit()
 	return ret;
 }
 
+void gameInstance::init()
+{
+	soundScape::init();
+	harness::init();
+}
+
 void gameInstance::initialConfig(int ID)
 {
 	char buffer[200];

@@ -1,16 +1,18 @@
 /*Copyright Somnambulant Studios 2012-2013*/
 #include "harness.h"
 #include "window.h"
+#include "opera.h"
 #ifndef ___interface
 #define ___interface
 using std::string;
 using std::vector;
 
-class gameInstance : public window, public arcadeHarness, public HUD{
+class gameInstance : public window, public arcadeHarness, public HUD, public soundScape {
 public:
 	virtual void resolve() = 0;
 	virtual void handleArgs(vector<string>) {}
 	virtual bool screenInit();
+	virtual void init();
 	virtual bool screenInit(int, int);
 	virtual void processInput(SDL_Event&);
 	virtual void initialConfig(int);

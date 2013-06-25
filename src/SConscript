@@ -14,7 +14,9 @@ linux = base.Clone()
 linux.Append(LIBS=['SDL',
                    'SDLmain',
                    'SDL_image',
-                   'SDL_mixer'])
+                   'SDL_mixer',
+                   'alut',
+                   'openal'])
 gcc = linux.Clone()
 gcc.Replace(CXX='g++')
 gcc.Append(LIBS=['GL', 'GLU', 'glut'])
