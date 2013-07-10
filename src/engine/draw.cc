@@ -232,18 +232,18 @@ void interface::drawHint(int i)
 		if(blockFail[i] & 1){
 			if(!(blockFail[i] & 2)){
 				glColor4f(0.0, 1.0, 0.0, 0.7);
-				drawGlyph("low", 100+1000*i, 400, 300, 55, 2*i);
+				drawGlyph("low", 0, 400, 300, 55, 2*i);
 			}
 		} else if(blockFail[i] & 2){
 			glColor4f(1.0, 0.6, 0.6, 0.7);
-			drawGlyph("high", 100+1000*i, 400, 300, 55, 2*i);
+			drawGlyph("high", 0, 400, 300, 55, 2*i);
 		} else if(blockFail[i] & 4){
 			if(blockFail[i] & 8) glColor4f(1.0, 0.0, 0.0, 0.7);
 			else glColor4f(0.0, 0.0, 1.0, 0.7);
-			drawGlyph("air", 100+1000*i, 400, 300, 55, 2*i);
+			drawGlyph("air", 0, 400, 300, 55, 2*i);
 		} else if(blockFail[i] & 8){
 			glColor4f(1.0, 0.0, 0.0, 0.7);
-			drawGlyph("unblock", 100+1000*i, 300, 500, 55, 2*i);
+			drawGlyph("unblock", 0, 300, 500, 55, 2*i);
 		}
 	}
 }
@@ -263,7 +263,19 @@ void interface::drawHUD()
 	for(unsigned int i = 0; i < P.size(); i++){
 		if(P[i]->name.size()) drawGlyph(P[i]->name, 100+800*i, 600, 30, 40, 0+2*i);
 		else drawGlyph(things[i]->pick()->name, 100+800*i, 600, 30, 40, 0+2*i);
-		drawHint(i);
+		if(P[i]->reversalPossible()){
+			glDisable( GL_TEXTURE_2D );
+			glPushMatrix();
+				glTranslatef(100+i*1370, 100, 0);
+				glColor4f(0.0, 1.0, 0.0, 1.0);
+				glRectf(0.0, 0.0, 30.0, 30.0);
+			glPopMatrix();
+			glEnable( GL_TEXTURE_2D );
+		}
+		glPushMatrix();
+			glTranslatef(100+i*1000, 0, 0);
+			drawHint(i);
+		glPopMatrix();
 		if(counterHit[i] > 0){
 			glColor4f(1.0, 1.0, 0.5, 0.7);
 			drawGlyph("Counter", 100+1000*i, 400, 200, 55, 2*i);
