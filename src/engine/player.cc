@@ -326,7 +326,7 @@ void controller::writeConfig(int ID)
 
 bool player::reversalPossible()
 {
-	if(current.move->state[current.connect] & 1) return false;
+	if(current.move->state[current.connect].i & 1) return false;
 	if(current.move->linkable) return true;
 	if(current.counter < 0 && current.counter > -11) return true;
 	int f = current.move->frames;
