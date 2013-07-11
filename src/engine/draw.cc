@@ -450,13 +450,15 @@ void character::drawMeters(int ID, int hidden, status &current)
 	G = (m.w == 600) ? 255 : ((m.w / 150) % 2);
 	if(m.w < 300) R = 191;
 	else if(m.w < 600) B = 255;
-	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
+	glRectf((GLfloat)(ID == 1 ? 100 : 900), (GLfloat)(h.y), (GLfloat)(ID == 1 ? 700 : 1500), (GLfloat)(h.y + h.h));
 	glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
 	glRectf((GLfloat)(h.x), (GLfloat)(h.y), (GLfloat)(h.x + h.w), (GLfloat)(h.y + h.h));
-	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
+	glRectf((GLfloat)(ID == 1 ? 100 : 900), (GLfloat)(m.y), (GLfloat)(ID == 1 ? 700 : 1500), (GLfloat)(m.y + m.h));
 	glColor4f((float)R, (float)G, (float)B, 1.0f);
 	glRectf((GLfloat)(m.x), (GLfloat)(m.y), (GLfloat)(m.x + m.w), (GLfloat)(m.y + m.h));
-	glColor4f((float)R, (float)G, (float)B, 0.4f);
+	glColor4f((float)R, (float)G, (float)B, 0.6f);
 	glRectf((GLfloat)(g.x), (GLfloat)(g.y), (GLfloat)(g.x + g.w), (GLfloat)(g.y + g.h));
 }
 
