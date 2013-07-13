@@ -1201,7 +1201,7 @@ void interface::resolveCollision()
 		temp.back().x -= dx.back();
 	}
 
-	unsigned int localMaximum = min(temp[0].w, temp[1].w) / 5 - 1;
+	unsigned int localMaximum = min(temp[0].w, temp[1].w) / 6 - 1;
 	unsigned int j[2] = {0, 0};
 	while(j[0] < abs(dx[0]) || j[1] < abs(dx[1])){
 		if(aux::checkCollision(temp[0], temp[1])){

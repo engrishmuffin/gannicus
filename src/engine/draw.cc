@@ -165,8 +165,10 @@ void interface::drawConfigMenu(int ID)
 					break;
 			}
 		}
-		if(a == 0) glColor4f(1.0, 0.0, 0.0, 0.4 + (float)(configMenu[ID] == i)*0.4);
-		else glColor4f(1.0, 1.0, 0.0, 0.4 + (float)(configMenu[ID] == i)*0.4);
+		if(!a){ 
+			sprintf(buffer, "Not Set");
+			glColor4f(1.0, 0.0, 0.0, 0.4 + (float)(configMenu[ID] == i)*0.4);
+		} else glColor4f(1.0, 1.0, 0.0, 0.4 + (float)(configMenu[ID] == i)*0.4);
 		drawGlyph(buffer, 70 + 1230*ID, 300, 310+40*(i-1), 40, 0);
 	}
 	glColor4f(0.0, 0.0, 1.0, 0.4 + (float)(configMenu[ID] == 7)*0.4);
