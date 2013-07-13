@@ -480,11 +480,11 @@ void interface::resolveInputs()
 			else if(timer == 106 * 60 - 3) things[i]->inputBuffer[0] = selection[(i+1)%2] % 10;
 			else if(timer == 106 * 60 - 4) things[i]->inputBuffer[0] = 0;
 			else(things[i]->inputBuffer[0] = 5);
-			if(currentFrame[i].buttons[1] == 1 && !counter[i]){
+/*			if(currentFrame[i].buttons[1] == 1 && !counter[i]){
 				P[i]->current.mode = P[i]->current.mode == 1 ? 2 : 1;
 				counter[i] = 10;
 			}
-			for(int j:currentFrame[i].buttons) j = 0;
+*/			for(int j:currentFrame[i].buttons) j = 0;
 		}
 	} else {
 		int flop[2] = {0, 0};
@@ -908,7 +908,7 @@ void interface::cSelectMenu()
 		SDL_GL_SwapBuffers();
 		for(unsigned int i = 0; i < P.size(); i++){
 			P[i]->characterSelect(selection[i]);
-			P[i]->current.mode = groove[i];
+//			P[i]->current.mode = groove[i];
 		}
 		loadAssets();
 		if(analytics){

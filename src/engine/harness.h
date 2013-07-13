@@ -11,7 +11,11 @@ public:
 	virtual void init();
 	virtual void readInput();
 	virtual void processInput(SDL_Event&);
+	virtual void runMacro();
 	bool gameover;
+	bool macro;
+	string command;
+
 	vector<controller*> p;
 };
 

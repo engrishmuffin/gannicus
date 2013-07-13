@@ -1,6 +1,8 @@
 #include "gl-compat.h"
 #include "harness.h"
 #include "window.h"
+#include <iostream>
+using std::cout;
 
 harness::harness()
 {
@@ -10,6 +12,8 @@ harness::harness()
 void harness::init()
 {
 	/*Set up input buffers and joysticks*/
+	macro = false;
+	command.clear();
 	for(int i = 0; i < SDL_NumJoysticks(); i++)
 		SDL_JoystickOpen(i);
 }
@@ -25,16 +29,34 @@ void harness::processInput(SDL_Event &event)
 		break;
 	/*Keyboard handler. Maybe I'll optimize such that the knows if it even needs to check this (EG if sticks are used)*/
 	case SDL_KEYDOWN:
-	case SDL_KEYUP:
 		switch (event.key.keysym.sym) {
 		case SDLK_ESCAPE:
 			gameover = 1;
 			break;
+		case SDLK_SEMICOLON:
+			if(SDL_GetModState() & KMOD_SHIFT && !macro){
+				macro = true;
+				command = "";
+			}
+			break;
+		case SDLK_RETURN:
+			if(macro){ 
+				runMacro();
+				macro = false;
+				command.clear();
+			}
+			break;
 		default:
+			if(macro) command += SDL_GetKeyName(event.key.keysym.sym);
 			break;
 		}
 		break;
 	}
+}
+
+void harness::runMacro()
+{
+	cout << command + '\n';
 }
 
 void harness::readInput()
