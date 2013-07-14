@@ -515,9 +515,9 @@ void interface::resolveInputs()
 	}
 	for(unsigned int i = 0; i < P.size(); i++){
 		if(analytics)
-			replay->push(i, currentFrame[i]);
+			replay->push(i, currentFrame[i].n);
 		if(P[i]->record)
-			P[i]->record->push(currentFrame[i]);
+			P[i]->record->push(currentFrame[i].n);
 	}
 }
 
@@ -730,7 +730,7 @@ void gameInstance::genInput()
 {
 	if(oldReplay){
 		for(unsigned int i = 0; i < p.size(); i++)
-			oldReplay->genEvent(i, replayIterator, currentFrame[i]);
+			oldReplay->genEvent(i, replayIterator, currentFrame[i].n);
 		replayIterator++;
 		if(replayIterator > oldReplay->command[0].size()){
 			delete oldReplay;
@@ -741,7 +741,7 @@ void gameInstance::genInput()
 		if(!pauseEnabled){
 			for(unsigned int i = 0; i < P.size(); i++){
 				if(P[i]->currentMacro){
-					if(!P[i]->currentMacro->genEvent(0, P[i]->iterator, currentFrame[i])){
+					if(!P[i]->currentMacro->genEvent(0, P[i]->iterator, currentFrame[i].n)){
 						P[i]->currentMacro = nullptr;
 					} else {
 						if(P[i]->current.facing == -1){

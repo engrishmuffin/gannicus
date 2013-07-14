@@ -9,11 +9,33 @@ harness::harness()
 	gameover = false;
 }
 
+void command::build(string in)
+{
+	inputs temp;
+	temp.i = 0;
+	for(unsigned int i = 0; i < in.size(); i++) {
+		int d = in[i];
+		if(d > '0' && d <= '9'){
+			if(temp.i){
+				push_back(temp);
+				temp.i = 0;
+			}
+			temp.raw.dir = d;
+		} else if (toupper(in[i]) >= 'A' && toupper(in[i]) <= 'E') {
+			temp.i += 1 << (4 + 2 * (toupper(in[i]) - 'A'));
+		}
+	}
+	if(temp.i){
+		if(!temp.raw.dir) temp.raw.dir = 5;
+		push_back(temp);
+	}
+}
+
 void harness::init()
 {
 	/*Set up input buffers and joysticks*/
-	macro = false;
-	command.clear();
+	console = false;
+	macro.clear();
 	for(int i = 0; i < SDL_NumJoysticks(); i++)
 		SDL_JoystickOpen(i);
 }
@@ -34,20 +56,20 @@ void harness::processInput(SDL_Event &event)
 			gameover = 1;
 			break;
 		case SDLK_SEMICOLON:
-			if(SDL_GetModState() & KMOD_SHIFT && !macro){
-				macro = true;
-				command = "";
+			if(SDL_GetModState() & KMOD_SHIFT && !console){
+				console = true;
+				macro = "";
 			}
 			break;
 		case SDLK_RETURN:
-			if(macro){ 
+			if(console){ 
 				runMacro();
-				macro = false;
-				command.clear();
+				console = false;
+				macro.clear();
 			}
 			break;
 		default:
-			if(macro) command += SDL_GetKeyName(event.key.keysym.sym);
+			if(console) macro += SDL_GetKeyName(event.key.keysym.sym);
 			break;
 		}
 		break;
@@ -56,7 +78,15 @@ void harness::processInput(SDL_Event &event)
 
 void harness::runMacro()
 {
-	cout << command + '\n';
+	cout << macro + '\n';
+}
+
+void arcadeHarness::runMacro()
+{
+	pending.build(macro);
+	for(inputs i:pending){
+	}
+	pending.clear();
 }
 
 void harness::readInput()
