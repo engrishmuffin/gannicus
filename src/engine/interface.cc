@@ -58,7 +58,10 @@ interface::interface()
 void interface::handleArgs(vector<string> args)
 {
 	for(string i:args) {
-		if(i == "eleven") killTimer = true;
+		if(i == "eleven"){
+			killTimer = true;
+			pauseEnabled = true;
+		}
 	}
 }
 
