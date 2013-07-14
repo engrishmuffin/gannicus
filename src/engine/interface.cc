@@ -1361,7 +1361,7 @@ void interface::resolveHits()
 				}
 				if(things[i]->particleType == -2){
 					hStat ths;
-					ths.damage = s[hitBy[i]].chip ? s[hitBy[i]].chip : 1;
+					ths.damage = s[hitBy[i]].chip ? s[hitBy[i]].chip : s[hitBy[i]].damage/5;
 					ths.ghostHit = true;
 					ths.stun = 0;
 					ths.push = s[hitBy[i]].push;
