@@ -167,7 +167,13 @@ void action::build(string dir, string n)
 			read.getline(buffer, 1000);
 			parseRect(buffer);
 		} while (buffer[0] == '$');
-		if(hitbox.size() < hitreg.size()) hitbox.push_back(vector<SDL_Rect>(0));
+		if(hitbox.size() < (unsigned int)i+1) hitbox.push_back(vector<SDL_Rect>(0));
+		if(hitreg.size() < (unsigned int)i+1) hitreg.push_back(vector<SDL_Rect>(0));
+		if(delta.size() < (unsigned int)i+1) delta.push_back(vector<SDL_Rect>(0));
+		if(collision.size() < (unsigned int)i+1){ 
+			SDL_Rect a;
+			collision.push_back(a);
+		}
 	}
 	read.close();
 }
@@ -656,38 +662,22 @@ void action::pollRects(int f, int cFlag, SDL_Rect &c, vector<SDL_Rect> &r, vecto
 	if(modifier && basis.move) basis.move->pollRects(basis.frame, basis.connect, c, r, b);
 	else {
 		if(f >= frames) f = frames-1;
-
-		c.x = collision[f].x; c.w = collision[f].w;
-		c.y = collision[f].y; c.h = collision[f].h;
-
+		if((unsigned int)f < collision.size()) c = collision[f];
 		r.clear();
-		for(unsigned int i = 0; i < hitreg[f].size(); i++){
-			SDL_Rect reg;
-			reg.x = hitreg[f][i].x; reg.w = hitreg[f][i].w;
-			reg.y = hitreg[f][i].y; reg.h = hitreg[f][i].h;
-			r.push_back(reg);
-		}
+		if((unsigned int)f < hitreg.size()) r = hitreg[f];
 		b.clear();
-		for(unsigned int i = 0; i < hitbox[f].size(); i++){
-			if(cFlag > calcCurrentHit(f)) {
-				i = hitbox[f].size();
-			} else {
-				SDL_Rect hit;
-				hit.x = hitbox[f][i].x; hit.w = hitbox[f][i].w;
-				hit.y = hitbox[f][i].y; hit.h = hitbox[f][i].h;
-				b.push_back(hit);
-			}
-		}
+		if((unsigned int)f < hitbox.size() && cFlag <= calcCurrentHit(f)) b = hitbox[f];
 	}
 }
 
 vector<SDL_Rect> action::pollDelta(int f)
 {
+	vector<SDL_Rect> ret;
 	if(modifier && basis.move){
-		vector<SDL_Rect> ret = basis.move->pollDelta(basis.frame);
+		ret = basis.move->pollDelta(basis.frame);
 		for(SDL_Rect i:delta[f]) ret.push_back(i);
-		return ret;
-	} else return delta[f];
+	} else if ((unsigned int)f < delta.size()) ret = delta[f];
+	return ret;
 }
 
 int action::displace(int x, int &y, int f)
