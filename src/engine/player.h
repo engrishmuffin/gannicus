@@ -41,6 +41,7 @@ public:
 	virtual bool spriteCheck();
 	virtual void connect(int, hStat&);
 	virtual void pushInput(unsigned int);
+	virtual void pushInput(deque<int>);
 	virtual int passSignal(int);
 	virtual int dragBG(int, int);
 	virtual void follow(instance*);

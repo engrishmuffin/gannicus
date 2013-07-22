@@ -745,6 +745,11 @@ int instance::passSignal(int sig)
 	}
 }
 
+void instance::pushInput(deque <int> i)
+{
+	inputBuffer = i;
+}
+
 void instance::pushInput(unsigned int i)
 {
 	inputBuffer.push_front(i);

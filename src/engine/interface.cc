@@ -499,8 +499,8 @@ void interface::resolveInputs()
 				else if(currentFrame[i].n.raw.dir % 3 == 1) flop[i] += 2; 
 			}
 		}
-		for(unsigned int i = 0; i < things.size(); i++)
-			things[i]->pushInput(currentFrame[things[i]->ID - 1].n.raw.dir + flop[things[i]->ID -1]);
+		for(player *i:P) i->pushInput(currentFrame[i->ID - 1].n.raw.dir + flop[i->ID -1]);
+		for(unsigned int i = 2; i < things.size(); i++) things[i]->pushInput(P[things[i]->ID - 1]->inputBuffer);
 		for(unsigned int i = 0; i < P.size(); i++){
 			bool test = 1;
 			P[i]->getMove(currentFrame[i].buttons, test);
