@@ -433,7 +433,13 @@ void interface::resolveCombos()
 				blockFail[i] = 0;
 				break;
 			case 0:
-				if(killTimer) P[i]->current.meter[0] = 600;
+				if(killTimer){ 
+					P[i]->current.meter[0] = 600;
+					if(combo[i] == 0 && P[(i+1)%2]->current.move->state[0].b.neutral){
+						P[(i+1)%2]->current.meter[1] = 300;
+						P[(i+1)%2]->current.meter[4] = 0;
+					}
+				}
 				combo[(i+1)%2] = 0;
 				damage[(i+1)%2] = 0;
 				prorate[(i+1)%2] = 1.0;
