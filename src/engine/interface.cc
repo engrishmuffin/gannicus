@@ -236,7 +236,7 @@ void interface::matchInit()
 	}
 	pMenu = 0;
 	if(!select[0] || !select[1]){
-		Mix_VolumeMusic(100);
+		Mix_VolumeMusic(musicVolume);
 		Mix_PlayMusic(menuMusic, -1);
 		//printf("\n");
 	}
