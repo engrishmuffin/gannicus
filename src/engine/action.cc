@@ -889,8 +889,7 @@ bool action::operator!=(const string &o)
 
 bool action::operator==(const string &o)
 {
-	if (fileName == o) return true;
-	else return false;
+	return fileName == o;
 }
 
 bool action::canGuard(int f)
@@ -919,7 +918,6 @@ int action::takeHit(hStat & s, int b, status &current)
 			}
 		}
 		if(s.stun != 0){
-			current.frame = 0;
 			current.frame = 0;
 			current.hit = 0;
 		}

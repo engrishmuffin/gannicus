@@ -105,6 +105,7 @@ public:
 	int grav;
 
 	GLuint background;
+	int musicVolume;
 	Mix_Music *matchMusic;
 	Mix_Music *menuMusic;
 	Mix_Chunk **announceWinner;

@@ -35,12 +35,14 @@ interface::interface()
 	wall = 50; /*The size of the offset at which characters start to scroll the background, and get stuck.*/
 	menuMusic = nullptr;
 
-	read.open(".config/resolution.conf");
+	read.open(".config/settings.conf");
 	if(read.fail()){ 
 		scalingFactor = 0.5;
+		musicVolume = 100;
 	} else {
 		read >> scalingFactor >> displayMode;
 		read.ignore(100, '\n');
+		read >> musicVolume;
 	}
 	read.close();
 	sf = scalingFactor;
@@ -281,7 +283,7 @@ void interface::runTimer()
 {
 	if(freeze > 0) freeze--;
 	if(P[0]->rounds == 0 && P[1]->rounds == 0 && timer == 101 * 60){
-		Mix_VolumeMusic(100);
+		Mix_VolumeMusic(musicVolume);
 		Mix_PlayMusic(matchMusic,-1);
 	}
 	int plus;
