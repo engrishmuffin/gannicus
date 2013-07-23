@@ -21,6 +21,11 @@ gcc = linux.Clone()
 gcc.Replace(CXX='g++')
 gcc.Append(LIBS=['GL', 'GLU', 'glut'])
 
+mingw = linux.Clone()
+mingw.Replace(CXX='i486-mingw32-g++')
+mingw.Append(LIBS=['mingw', 'SDLimage', 'GL', 'GLU', 'glut'])
+
+
 clang = linux.Clone()
 clang.Replace(CXX='clang++')
 clang.Append(LIBS=['GL', 'GLU', 'm', 'c++'],
@@ -78,6 +83,7 @@ def AddExtras(k):
 for k, env in {'':gcc, '.gcc':gcc,
                '.cl':clang,
                '.osx':mac,
+               '.exe':mingw,
                '.s':std_inside,
                '.sosx':mac_std_inside
                }.items():
