@@ -35,7 +35,7 @@ interface::interface()
 	wall = 50; /*The size of the offset at which characters start to scroll the background, and get stuck.*/
 	menuMusic = nullptr;
 
-	read.open(".config/settings.conf");
+	read.open(".config/resolution.conf");
 	if(read.fail()){ 
 		scalingFactor = 0.5;
 		musicVolume = 100;
@@ -1401,7 +1401,7 @@ void interface::resolveHits()
 			}
 			if(!things[i]->current.aerial){
 				for(int j = 0; j < 6; j++){
-					if(2 << j & things[i]->current.move->state[things[i]->current.hit].i){
+					if(2 << j & things[i]->current.move->state[things[i]->current.hit].i || s[i].autoCorrects){
 						P[i]->checkFacing(P[(things[i]->ID)%2]);
 						break;
 					}

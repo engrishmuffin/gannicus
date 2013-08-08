@@ -480,12 +480,12 @@ void instance::drawBoxen()
 			glRectf(0.0f, 0.0f, (GLfloat)(hitreg[i].w), (GLfloat)(-hitreg[i].h));
 		glPopMatrix();
 	}
-	for(unsigned int i = 0; i < hitbox.size(); i++){
+	for(unsigned int i = 0; i < current.move->hitbox[current.frame].size(); i++){
 		glFlush();
 		glColor4f(1.0f, 0.0f, (GLfloat)(ID - 1.0f)/2.0f, 0.5f);
 		glPushMatrix();
-			glTranslatef(hitbox[i].x, -hitbox[i].y, 0);
-			glRectf(0.0f, 0.0f, (GLfloat)(hitbox[i].w), (GLfloat)(-hitbox[i].h));
+			glTranslatef(current.move->hitbox[current.frame][i].x*current.facing + current.posX, -(current.move->hitbox[current.frame][i].y + current.posY), 0);
+			glRectf(0.0f, 0.0f, (GLfloat)(current.move->hitbox[current.frame][i].w*current.facing), (GLfloat)(-(current.move->hitbox[current.frame][i].h)));
 		glPopMatrix();
 	}
 	glFlush();
