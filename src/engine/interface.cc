@@ -863,7 +863,7 @@ void interface::cSelectMenu()
 	for(player *i:P) i->secondInstance = 0;
 	if(!initd){ 
 		ofstream write;
-		write.open(".config/resolution.conf");
+		write.open(".config/settings.conf");
 		write << sf << ' ' << displayMode << '\n';
 		write << musicVolume << '\n';
 		write.close();
