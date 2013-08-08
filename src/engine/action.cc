@@ -536,6 +536,10 @@ void action::parseProperties(string buffer, bool counter)
 	while(buffer[i++] != ':'); i++;
 	for(; i < buffer.size(); i++){
 		switch(buffer[i]){
+		case 'a':
+			if(counter) CHStats[ch].autoCorrects = 1;
+			else stats[ch].autoCorrects = 1;
+			break;
 		case '^':
 			if(counter) CHStats[ch].launch = 1;
 			else stats[ch].launch = 1;
@@ -706,6 +710,7 @@ hStat action::pollStats(int f, bool CH)
 		s.blowback = stats[c].blowback + CHStats[c].blowback * CH;
 		s.pause = stats[c].pause + CHStats[c].pause * CH;
 		s.connect = stats[c].connect + CHStats[c].connect * CH;
+		s.autoCorrects = stats[c].autoCorrects + CHStats[c].autoCorrects * CH;
 		if(CH){
 			s.launch = CHStats[c].launch || stats[c].launch;
 			s.hover = CHStats[c].hover;
