@@ -932,10 +932,11 @@ int action::takeHit(hStat & s, int b, status &current)
 
 bool action::CHState(int f)
 {
+	if(fch) return true;
 	if(modifier && basis.move) return basis.move->CHState(basis.frame);
 	if(hits < 1) return false;
-	else if(f < totalStartup[hits-1] + active[hits-1]) return true;
-	else return fch;
+	if(f < totalStartup[hits-1] + active[hits-1]) return true;
+	return false;
 }
 
 hStat::hStat(const hStat& o)
