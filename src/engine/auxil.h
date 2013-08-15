@@ -14,6 +14,13 @@ using std::vector;
 
 class instance;
 class action;
+
+class vect{
+public:
+	float x, y, z;
+	void unitNormal(float, float, float, float, float, float, float, float, float);
+};
+
 class aux{
 	private:
 		static void scale  (SDL_Surface* source, SDL_Surface* destination);
@@ -22,6 +29,8 @@ class aux{
 	public:
 		static GLuint load_texture(string filename); 
 		static GLuint surface_to_texture(SDL_Surface* source);
+		static GLuint surface_to_texture(SDL_Surface* source, unsigned int *);
+		static vector<vect> surface_to_normals(SDL_Surface *);
 		static SDL_Surface* init_screen(int width, int height, int bpp);
 		static void update_screen(SDL_Surface* source, SDL_Surface* destination);
 
@@ -45,12 +54,6 @@ struct attractor{
 	int effectCode;
 	instance * origin;
 	action * check;
-};
-
-class vect{
-public:
-	float x, y, z;
-	void unitNormal(float, float, float, float, float, float, float, float, float);
 };
 
 struct status{

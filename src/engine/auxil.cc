@@ -244,14 +244,32 @@ vector<SDL_Rect> aux::defineRectArray(string definition)
 	return ret;
 }
 
-GLuint aux::surface_to_texture(SDL_Surface * source)
+vector<vect> aux::surface_to_normals(SDL_Surface * source)
+{
+	unsigned char * p = (unsigned char*)source->pixels;
+	int x = 0;
+	vector<vect> ret;
+	vect temp;
+	for(int i = 0; i < source->h; i++){
+		for(int j = 0; j < source->w; j++){
+			temp.x = (p[x] - 128) / 128.0;
+			temp.y = (p[x+1] - 128) / 128.0;
+			temp.z = (p[x+2] - 128) / 128.0;
+			x += 4;
+			ret.push_back(temp);
+		}
+	}
+	return ret;
+}
+
+GLuint aux::surface_to_texture(SDL_Surface * source, unsigned int * pixels)
 {
 	if(source == nullptr) return -1;
 	GLint nColors;
 	GLenum texFormat;
 	GLuint texture;
 	nColors = source->format->BytesPerPixel;
-  if (source->format->Rmask == 0x000000ff)
+	if (source->format->Rmask == 0x000000ff)
 		texFormat = GL_RGBA;
 	else
 		texFormat = GL_BGRA;
@@ -259,7 +277,25 @@ GLuint aux::surface_to_texture(SDL_Surface * source)
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	
+	glTexImage2D(GL_TEXTURE_2D, 0, nColors, source->w, source->h, 0, texFormat, ___gufg_tex_mode, pixels);
+	return texture;
+}
+
+GLuint aux::surface_to_texture(SDL_Surface * source)
+{
+	if(source == nullptr) return -1;
+	GLint nColors;
+	GLenum texFormat;
+	GLuint texture;
+	nColors = source->format->BytesPerPixel;
+	if (source->format->Rmask == 0x000000ff)
+		texFormat = GL_RGBA;
+	else
+		texFormat = GL_BGRA;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexImage2D(GL_TEXTURE_2D, 0, nColors, source->w, source->h, 0, texFormat, ___gufg_tex_mode, source->pixels);
 	return texture;
 }
