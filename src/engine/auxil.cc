@@ -216,6 +216,29 @@ void aux::apply_surface(int x, int y, SDL_Surface* source, SDL_Surface* destinat
 	SDL_BlitSurface(source, nullptr, destination, &offset);
 }
 
+SDL_Rect aux::collisionRect(SDL_Rect a, SDL_Rect b)
+{
+	SDL_Rect ret;
+
+	if(a.x > b.x){
+		ret.x = a.x;
+		ret.w = b.x + b.w - a.x;
+	} else {
+		ret.x = b.x;
+		ret.w = a.x + a.w - b.x;
+	}
+
+	if(a.y > b.y){
+		ret.y = a.y;
+		ret.h = b.y + b.h - a.y;
+	} else {
+		ret.y = b.y;
+		ret.h = a.y + a.h - b.y;
+	}
+
+	return ret;
+}
+
 bool aux::checkCollision(SDL_Rect a, SDL_Rect b)
 {
 	if(a.h == 0 || a.w == 0 || b.h == 0 || b.w == 0) return 0;

@@ -217,9 +217,19 @@ void interface::drawGame()
 			things[i]->draw();
 			if(i < 2)
 				P[i]->drawHitParticle();
-			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 			glEnable( GL_TEXTURE_2D );
 		}
+		glDisable( GL_TEXTURE_2D );
+		int cull = 0;
+		for(player *j:P)
+			if(!j->particleLife) cull++;
+		if(cull > 2) hitLocation.clear();
+		for(SDL_Rect i:hitLocation){
+			glColor4f(1.0f, 0.5f, 0.0f, 1.0f);
+			glRectf(i.x, i.y, i.w, i.h);
+		}
+		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		glEnable( GL_TEXTURE_2D );
 	glPopMatrix();
 	glDisable( GL_TEXTURE_2D );
 	if(freeze > 0){

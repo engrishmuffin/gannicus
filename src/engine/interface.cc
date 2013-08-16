@@ -1327,6 +1327,7 @@ void interface::resolveHits()
 				for(unsigned int j = 0; j < things[i]->hitbox.size(); j++){
 					for(unsigned int k = 0; k < things[m]->hitreg.size(); k++){
 						if(aux::checkCollision(things[i]->hitbox[j], things[m]->hitreg[k])){
+							hitLocation.push_back(aux::collisionRect(things[i]->hitbox[j], things[m]->hitreg[k]));
 							if(!taken[m] && !connect[i] && things[i]->acceptTarget(things[m])){
 								connect[i] = 1;
 								things[i]->current.counter = things[m]->CHState();

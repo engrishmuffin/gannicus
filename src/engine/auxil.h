@@ -28,6 +28,7 @@ class aux{
 		static SDL_Surface* load_image(string filename);
 		static void apply_surface(int x, int y, SDL_Surface* source, SDL_Surface* destination);
 		static bool checkCollision(SDL_Rect, SDL_Rect);
+		static SDL_Rect collisionRect(SDL_Rect, SDL_Rect);
 		static vector<SDL_Rect> defineRectArray(string);
 };
 
