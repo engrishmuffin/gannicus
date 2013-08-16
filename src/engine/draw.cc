@@ -213,12 +213,9 @@ void interface::drawGame()
 	drawHUD();
 	glPushMatrix();
 		glTranslatef(-bg.x, (bg.y+bg.h), 0);
-		for(unsigned int i = 0; i < things.size(); i++){
-			things[i]->draw();
-			if(i < 2)
-				P[i]->drawHitParticle();
-			glEnable( GL_TEXTURE_2D );
-		}
+		for(instance *i:things) i->draw();
+		for(player *i:P) i->drawHitParticle();
+		glEnable( GL_TEXTURE_2D );
 		glDisable( GL_TEXTURE_2D );
 	glPopMatrix();
 		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);

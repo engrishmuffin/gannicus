@@ -1431,8 +1431,8 @@ void interface::resolveHits()
 				}
 			} else { 
 				if(things[(i+1)%2]->current.aerial){
-					if(P[(i+1)%2]->current.rCorner || P[(i+1)%2]->current.lCorner) residual.x -= combo[i];
-					if(P[(i+1)%2]->stick) residual.x -= s[i].push/2 + combo[i];
+					if(P[(i+1)%2]->current.rCorner || P[(i+1)%2]->current.lCorner) residual.x -= abs(combo[i]);
+					if(P[(i+1)%2]->stick) residual.x -= s[i].push/2 + abs(combo[i]);
 					residual.x -= 2;
 				} else {
 					if(combo[i] > 1) residual.x = -3*(abs(combo[i]-1));
