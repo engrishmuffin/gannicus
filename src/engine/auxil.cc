@@ -220,7 +220,6 @@ void aux::apply_surface(int x, int y, SDL_Surface* source, SDL_Surface* destinat
 
 SDL_Rect aux::collisionRect(SDL_Rect a, SDL_Rect b)
 {
-
 	SDL_Rect ret = {0, 0, 0, 0};
 	int leftX = max( a.x, b.x );
 	int rightX = min( a.x+a.w, b.x+b.w );
@@ -230,6 +229,12 @@ SDL_Rect aux::collisionRect(SDL_Rect a, SDL_Rect b)
 	ret.w = rightX - leftX > 0 ? rightX - leftX : 0;
 	ret.h = topY - bottomY > 0 ? topY - bottomY : 0;
 	return ret;
+}
+
+bool aux::checkCollision(SDL_Rect a, SDL_Rect b, SDL_Rect &c)
+{
+	c = collisionRect(a, b);
+	return (c.w && c.h);
 }
 
 bool aux::checkCollision(SDL_Rect a, SDL_Rect b)
