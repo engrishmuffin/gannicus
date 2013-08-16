@@ -220,18 +220,11 @@ void interface::drawGame()
 			glEnable( GL_TEXTURE_2D );
 		}
 		glDisable( GL_TEXTURE_2D );
-		int cull = 0;
-		for(player *j:P)
-			if(!j->particleLife) cull++;
-		if(cull > 2) hitLocation.clear();
-		for(SDL_Rect i:hitLocation){
-			glColor4f(1.0f, 0.5f, 0.0f, 1.0f);
-			glRectf(i.x, i.y, i.w, i.h);
-		}
+	glPopMatrix();
 		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 		glEnable( GL_TEXTURE_2D );
-	glPopMatrix();
 	glDisable( GL_TEXTURE_2D );
+
 	if(freeze > 0){
 		glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
 		glRectf(0.0f, 0.0f, (GLfloat)screenWidth, (GLfloat)screenHeight);
@@ -592,11 +585,23 @@ void player::drawHitParticle()
 			glColor4f(0.4f, 0.4f, 0.4f, 0.5f);
 		}
 		glPushMatrix();
-			glTranslatef(current.posX, -collision.y, 0.0f);
-			glRectf((GLfloat)(-10*current.facing), (GLfloat)(-collision.h), (GLfloat)(50 * current.facing), (GLfloat)(-collision.h - 40));
+			glTranslatef(current.posX, 0.0f, 0.0f);
+			glPushMatrix();
+				glTranslatef(0.0f, -collision.y, 0.0f);
+				glRectf((GLfloat)(-10*current.facing), (GLfloat)(-collision.h), (GLfloat)(50 * current.facing), (GLfloat)(-collision.h - 40));
+			glPopMatrix();
+			for(SDL_Rect i:hitLocation){
+				glPushMatrix();
+					glTranslatef(i.x, -current.posY - i.y - i.h, 0.0f);
+					glRectf(0.0f, 0.0f, i.w, i.h);
+				glPopMatrix();
+			}
 		glPopMatrix();
 		particleLife--;
-	} else blockType = 0;
+	} else {
+		blockType = 0;
+		hitLocation.clear();
+	}
 }
 
 void avatar::draw(action *& cMove, int f)

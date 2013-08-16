@@ -16,6 +16,7 @@ public:
 
 	SDL_Rect collision;
 	vector<SDL_Rect> hitbox, hitreg, momentum;
+	vector<SDL_Rect> hitLocation;
 	bool secondInstance;
 	int ID;
 	deque<int> inputBuffer;

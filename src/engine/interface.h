@@ -88,7 +88,6 @@ public:
 	vector<bool> select;
 	vector<int> groove;
 	vector<int> selection;
-	vector<SDL_Rect> hitLocation;
 	sample call[2];
 	int menu[2];
 	int configMenu[2];
