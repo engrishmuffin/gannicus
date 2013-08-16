@@ -221,10 +221,10 @@ void aux::apply_surface(int x, int y, SDL_Surface* source, SDL_Surface* destinat
 SDL_Rect aux::collisionRect(SDL_Rect a, SDL_Rect b)
 {
 	SDL_Rect ret = {0, 0, 0, 0};
-	int leftX = max( a.x, b.x );
-	int rightX = min( a.x+a.w, b.x+b.w );
-	int bottomY = max( a.y, b.y );
-	int topY = min( a.y+a.h, b.y+b.h );
+	int leftX = max(a.x, b.x);
+	int rightX = min(a.x+a.w, b.x+b.w);
+	int bottomY = max(a.y, b.y);
+	int topY = min(a.y+a.h, b.y+b.h);
 	ret.x = leftX; ret.y = bottomY; 
 	ret.w = rightX - leftX > 0 ? rightX - leftX : 0;
 	ret.h = topY - bottomY > 0 ? topY - bottomY : 0;
