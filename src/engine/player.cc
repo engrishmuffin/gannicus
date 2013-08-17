@@ -80,6 +80,18 @@ bool instance::acceptTarget(instance * m)
 	return m->pick()->acceptTarget(current.move, current.frame);
 }
 
+bool instance::checkHit(SDL_Rect a, SDL_Rect b)
+{
+	SDL_Rect hitLoc;
+	if(aux::checkCollision(a, b, hitLoc)){
+		hitLoc.x -= current.posX;
+		hitLoc.y -= current.posY;
+		hitLocation.push_back(hitLoc);
+		return true;
+	}
+	return false;
+}
+
 void player::init()
 {
 	/*Initialize input containers*/

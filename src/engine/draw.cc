@@ -213,7 +213,10 @@ void interface::drawGame()
 	drawHUD();
 	glPushMatrix();
 		glTranslatef(-bg.x, (bg.y+bg.h), 0);
-		for(instance *i:things) i->draw();
+		for(instance *i:things){ 
+			i->draw();
+			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		}
 		for(player *i:P) i->drawHitParticle();
 		glEnable( GL_TEXTURE_2D );
 		glDisable( GL_TEXTURE_2D );

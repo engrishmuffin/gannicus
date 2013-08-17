@@ -1308,7 +1308,6 @@ void interface::resolveHits()
 	vector<bool> connect(things.size());
 	vector<bool> taken(things.size());
 	vector<int> hitBy(things.size());
-	SDL_Rect hitLoc;
 	int push[2];
 	for(player *i:P) i->checkCorners(bg.x + wall, bg.x + screenWidth - wall);
 	for(unsigned int i = 0; i < things.size(); i++){
@@ -1327,10 +1326,7 @@ void interface::resolveHits()
 			if(m != (int)i){
 				for(unsigned int j = 0; j < things[i]->hitbox.size(); j++){
 					for(unsigned int k = 0; k < things[m]->hitreg.size(); k++){
-						if(aux::checkCollision(things[i]->hitbox[j], things[m]->hitreg[k], hitLoc)){
-							hitLoc.x -= things[m]->current.posX;
-							hitLoc.y -= things[m]->current.posY;
-							things[m]->hitLocation.push_back(hitLoc);
+						if(things[m]->checkHit(things[i]->hitbox[j], things[m]->hitreg[k])){
 							if(!taken[m] && !connect[i] && things[i]->acceptTarget(things[m])){
 								connect[i] = 1;
 								things[i]->current.counter = things[m]->CHState();

@@ -47,6 +47,7 @@ public:
 	virtual int dragBG(int, int);
 	virtual void follow(instance*);
 	virtual void loadAssets();
+	virtual bool checkHit(SDL_Rect, SDL_Rect);
 	void enforceAttractor(attractor*);
 	int middle();
 	void flip();
