@@ -10,6 +10,8 @@
 #include <math.h>
 #include <string>
 #include <vector>
+using std::max;
+using std::min;
 SDL_Surface* aux::init_screen(int width, int height, int bpp) {
 	if (SDL_Init(SDL_INIT_EVERYTHING) == -1) {
 		return nullptr;
@@ -214,6 +216,25 @@ void aux::apply_surface(int x, int y, SDL_Surface* source, SDL_Surface* destinat
 	offset.y = y;
 
 	SDL_BlitSurface(source, nullptr, destination, &offset);
+}
+
+SDL_Rect aux::collisionRect(SDL_Rect a, SDL_Rect b)
+{
+	SDL_Rect ret = {0, 0, 0, 0};
+	int leftX = max(a.x, b.x);
+	int rightX = min(a.x+a.w, b.x+b.w);
+	int bottomY = max(a.y, b.y);
+	int topY = min(a.y+a.h, b.y+b.h);
+	ret.x = leftX; ret.y = bottomY; 
+	ret.w = rightX - leftX > 0 ? rightX - leftX : 0;
+	ret.h = topY - bottomY > 0 ? topY - bottomY : 0;
+	return ret;
+}
+
+bool aux::checkCollision(SDL_Rect a, SDL_Rect b, SDL_Rect &c)
+{
+	c = collisionRect(a, b);
+	return (c.w && c.h);
 }
 
 bool aux::checkCollision(SDL_Rect a, SDL_Rect b)

@@ -80,6 +80,18 @@ bool instance::acceptTarget(instance * m)
 	return m->pick()->acceptTarget(current.move, current.frame);
 }
 
+bool instance::checkHit(SDL_Rect a, SDL_Rect b)
+{
+	SDL_Rect hitLoc;
+	if(aux::checkCollision(a, b, hitLoc)){
+		hitLoc.x -= current.posX;
+		hitLoc.y -= current.posY;
+		hitLocation.push_back(hitLoc);
+		return true;
+	}
+	return false;
+}
+
 void player::init()
 {
 	/*Initialize input containers*/
@@ -326,6 +338,8 @@ void controller::writeConfig(int ID)
 
 bool player::reversalPossible()
 {
+	if(!current.move) return false;
+	if(current.connect > current.move->hits) return false;
 	if(current.move->state[current.connect].i & 1) return false;
 	if(current.move->linkable) return true;
 	if(current.counter < 0 && current.counter > -11) return true;

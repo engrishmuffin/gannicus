@@ -1326,7 +1326,7 @@ void interface::resolveHits()
 			if(m != (int)i){
 				for(unsigned int j = 0; j < things[i]->hitbox.size(); j++){
 					for(unsigned int k = 0; k < things[m]->hitreg.size(); k++){
-						if(aux::checkCollision(things[i]->hitbox[j], things[m]->hitreg[k])){
+						if(things[m]->checkHit(things[i]->hitbox[j], things[m]->hitreg[k])){
 							if(!taken[m] && !connect[i] && things[i]->acceptTarget(things[m])){
 								connect[i] = 1;
 								things[i]->current.counter = things[m]->CHState();
@@ -1427,8 +1427,8 @@ void interface::resolveHits()
 				}
 			} else { 
 				if(things[(i+1)%2]->current.aerial){
-					if(P[(i+1)%2]->current.rCorner || P[(i+1)%2]->current.lCorner) residual.x -= combo[i];
-					if(P[(i+1)%2]->stick) residual.x -= s[i].push/2 + combo[i];
+					if(P[(i+1)%2]->current.rCorner || P[(i+1)%2]->current.lCorner) residual.x -= abs(combo[i]);
+					if(P[(i+1)%2]->stick) residual.x -= s[i].push/2 + abs(combo[i]);
 					residual.x -= 2;
 				} else {
 					if(combo[i] > 1) residual.x = -3*(abs(combo[i]-1));
