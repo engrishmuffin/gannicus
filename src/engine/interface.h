@@ -93,6 +93,7 @@ public:
 	int configMenu[2];
 	int rMenu;
 	int pMenu;
+	float bgR, bgG, bgB;
 	SDL_Rect bg;
 	SDL_Rect prox;
 	bool firstFrame:1;

@@ -117,7 +117,31 @@ void interface::loadMatchBackground()
 	char buffer[100];
 
 	sprintf(buffer, "content/stages/%i/bg.png", selection[0]);
-	background = aux::load_texture(buffer);
+	if(!killTimer) background = aux::load_texture(buffer);
+	else {
+		switch (selection[0]){
+		case 1: 
+			bgR = 1.0;
+			bgG = 0.0;
+			bgB = 0.0;
+			break;
+		case 2:
+			bgR = 1.0;
+			bgG = 1.0;
+			bgB = 0.0;
+			break;
+		case 3:
+			bgR = 0.0;
+			bgG = 0.0;
+			bgB = 0.0;
+			break;
+		case 4:
+			bgR = 1.0;
+			bgG = 0.5;
+			bgB = 0.0;
+			break;
+		}
+	}
 
 	if(selection[0] == selection[1]) sprintf(buffer, "content/sound/Mirror.ogg");
 	else sprintf(buffer, "content/sound/%i.ogg", selection[1]);

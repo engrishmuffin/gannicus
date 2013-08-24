@@ -191,24 +191,31 @@ void interface::drawLoadingScreen()
 
 void interface::drawGame()
 {
-	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-	glEnable( GL_TEXTURE_2D );
-	glBindTexture(GL_TEXTURE_2D, background);
 	glPushMatrix();
 		glTranslatef(-bg.x, bg.y, 0);
-		glBegin(GL_QUADS);
-		glTexCoord2i(0, 0);
-		glVertex3f(0.0f, 0.0f, 0.f);
+		if(killTimer){
+			glColor4f(bgR, bgG, bgB, 0.5f);
+			glRectf(0, 0, bg.w, bg.h);
+			glEnable( GL_TEXTURE_2D );
+		} else {
+			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+			glEnable( GL_TEXTURE_2D );
+			glBindTexture(GL_TEXTURE_2D, background);
+				glBegin(GL_QUADS);
+				glTexCoord2i(0, 0);
+				glVertex3f(0.0f, 0.0f, 0.f);
 
-		glTexCoord2i(1, 0);
-		glVertex3f((GLfloat)(bg.w), 0.0f, 0.f);
+				glTexCoord2i(1, 0);
+				glVertex3f((GLfloat)(bg.w), 0.0f, 0.f);
 
-		glTexCoord2i(1, 1);
-		glVertex3f((GLfloat)(bg.w), (GLfloat)(bg.h), 0.f);
+				glTexCoord2i(1, 1);
+				glVertex3f((GLfloat)(bg.w), (GLfloat)(bg.h), 0.f);
 
-		glTexCoord2i(0, 1);
-		glVertex3f(0.0f, (GLfloat)(bg.h), 0.f);
-		glEnd();
+				glTexCoord2i(0, 1);
+				glVertex3f(0.0f, (GLfloat)(bg.h), 0.f);
+				glEnd();
+			
+		}
 	glPopMatrix();
 	drawHUD();
 	glPushMatrix();
