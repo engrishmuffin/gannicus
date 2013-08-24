@@ -306,6 +306,8 @@ bool action::setParameter(string buffer)
 		return true;
 	} else if (t.current() == "EventHorizon") {
 		distortion->eventHorizon = stoi(t("\t: \n"));
+		distortion->grip = stoi(t());
+		std::cout << distortion->grip << '\n';
 		return true;
 	} else if (t.current() == "Attracts") {
 		distortion->ID = stoi(t("\t: \n"));

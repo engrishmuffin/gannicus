@@ -697,6 +697,7 @@ void interface::summonAttractors()
 			avec->radius = tvec->radius;
 			avec->effectCode = tvec->effectCode;
 			avec->eventHorizon = tvec->eventHorizon;
+			avec->grip = tvec->grip;
 			if(things[i]->current.facing == 1) avec->posX = things[i]->collision.x + things[i]->collision.w / 2;
 			else avec->posX = things[i]->collision.x + things[i]->collision.w / 2 + things[i]->collision.w % 2;
 			avec->posY = things[i]->collision.y + things[i]->collision.h/2;

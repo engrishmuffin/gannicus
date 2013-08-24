@@ -468,10 +468,11 @@ void instance::enforceAttractor(attractor* p)
 	xDist = abs(midpoint - p->posX);
 	yDist = abs(collision.y + collision.h/2 - p->posY);
 	float totalDist = sqrt(pow(xDist, 2) + pow(yDist, 2));
-	if(totalDist < p->eventHorizon && p->eventHorizon > 0){
+	if(totalDist < p->eventHorizon && p->eventHorizon > 0 && p->grip){
 		resultant.x = 0;
 		resultant.y = 0;
 		current.deltaX = 0; current.deltaY = 0;
+		p->grip--;
 		momentum.clear();
 	} else {
 		switch(p->type){
