@@ -117,7 +117,7 @@ void interface::loadMatchBackground()
 	char buffer[100];
 
 	sprintf(buffer, "content/stages/%i/bg.png", selection[0]);
-	if(!killTimer) background = aux::load_texture(buffer);
+	if(!killTimer && scalingFactor > .8) background = aux::load_texture(buffer);
 	else {
 		switch (selection[0]){
 		case 1: 

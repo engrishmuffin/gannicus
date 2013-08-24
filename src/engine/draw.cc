@@ -193,7 +193,7 @@ void interface::drawGame()
 {
 	glPushMatrix();
 		glTranslatef(-bg.x, bg.y, 0);
-		if(killTimer){
+		if(killTimer || scalingFactor < .8){
 			glColor4f(bgR, bgG, bgB, 0.5f);
 			glRectf(0, 0, bg.w, bg.h);
 			glEnable( GL_TEXTURE_2D );

@@ -54,9 +54,9 @@ struct attractor{
 				*/
 	int eventHorizon;
 	int effectCode;
-	int grip;
 	instance * origin;
 	action * check;
+	int grip;
 };
 
 struct status{
