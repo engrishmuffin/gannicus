@@ -203,8 +203,7 @@ public:
 	bool spawnTrackY:1;
 	bool spawnTrackFloor:1;
 
-	SDL_Surface * normalImage;
-	vector <vect> normals;
+	vector <pixelMap> shadedSprite;
 
 	bool operator!=(const string&);
 	bool operator==(const string&);

@@ -215,9 +215,9 @@ void action::loadMisc(string dir)
 		}
 		SDL_FreeSurface(temp);
 	}
-	soundClip = Mix_LoadWAV(string("content/characters/"+dir+"/"+fileName+".ogg").c_str());
-	normalImage = aux::load_image("content/normal0000.png");
-	normals = aux::surface_to_normals(normalImage);
+//	soundClip = Mix_LoadWAV(string("content/characters/"+dir+"/"+fileName+".ogg").c_str());
+//	normalImage = aux::load_image("content/normal0000.png");
+//	normals = aux::surface_to_normals(normalImage);
 }
 
 bool action::setParameter(string buffer)

@@ -21,6 +21,11 @@ public:
 	void unitNormal(float, float, float, float, float, float, float, float, float);
 };
 
+struct pixelMap{
+	vect normal;
+	int colorIndex;
+};
+
 class aux{
 	private:
 		static void scale  (SDL_Surface* source, SDL_Surface* destination);
@@ -30,7 +35,7 @@ class aux{
 		static GLuint load_texture(string filename); 
 		static GLuint surface_to_texture(SDL_Surface* source);
 		static GLuint surface_to_texture(SDL_Surface* source, unsigned int *);
-		static vector<vect> surface_to_normals(SDL_Surface *);
+		static vector<pixelMap> surface_to_normals(SDL_Surface *);
 		static SDL_Surface* init_screen(int width, int height, int bpp);
 		static void update_screen(SDL_Surface* source, SDL_Surface* destination);
 

@@ -265,17 +265,18 @@ vector<SDL_Rect> aux::defineRectArray(string definition)
 	return ret;
 }
 
-vector<vect> aux::surface_to_normals(SDL_Surface * source)
+vector<pixelMap> aux::surface_to_normals(SDL_Surface * source)
 {
 	unsigned char * p = (unsigned char*)source->pixels;
 	int x = 0;
-	vector<vect> ret;
-	vect temp;
+	vector<pixelMap> ret;
+	pixelMap temp;
 	for(int i = 0; i < source->h; i++){
 		for(int j = 0; j < source->w; j++){
-			temp.x = (p[x] - 128) / 128.0;
-			temp.y = (p[x+1] - 128) / 128.0;
-			temp.z = (p[x+2] - 128) / 128.0;
+			temp.normal.x = (p[x] - 128) / 128.0;
+			temp.normal.y = (p[x+1] - 128) / 128.0;
+			temp.normal.z = (p[x+2] - 128) / 128.0;
+			temp.colorIndex = p[x+3];
 			x += 4;
 			ret.push_back(temp);
 		}

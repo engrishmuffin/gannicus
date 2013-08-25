@@ -197,11 +197,13 @@ void interface::drawGame()
 			glColor4f(bgR, bgG, bgB, 0.5f);
 			glRectf(0, 0, bg.w, bg.h);
 			glEnable( GL_TEXTURE_2D );
+			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 		} else {
 			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 			glEnable( GL_TEXTURE_2D );
 			glBindTexture(GL_TEXTURE_2D, background);
-				glBegin(GL_QUADS);
+
+			glBegin(GL_QUADS);
 				glTexCoord2i(0, 0);
 				glVertex3f(0.0f, 0.0f, 0.f);
 
@@ -213,8 +215,7 @@ void interface::drawGame()
 
 				glTexCoord2i(0, 1);
 				glVertex3f(0.0f, (GLfloat)(bg.h), 0.f);
-				glEnd();
-			
+			glEnd();
 		}
 	glPopMatrix();
 	drawHUD();
