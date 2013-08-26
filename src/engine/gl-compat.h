@@ -1,3 +1,5 @@
+#define GL_GLEXT_PROTOTYPES
+
 #ifdef ___mac_osx
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
@@ -9,5 +11,7 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
+#include <GL/glext.h>
 #define ___gufg_tex_mode GL_UNSIGNED_BYTE
 #endif
+

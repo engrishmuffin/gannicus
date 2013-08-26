@@ -1,6 +1,9 @@
 #include "window.h"
 #include "gl-compat.h"
+#include "shader.h"
+#include "auxil.h"
 #include <SDL/SDL_opengl.h>
+#include <iostream>
 
 window::window()
 {
@@ -8,13 +11,21 @@ window::window()
 	h = 450, w = 800;
 }
 
+bool window::initShaders()
+{
+	prog = glCreateProgram();
+	for(shader i:currentShaders) glAttachShader(prog, i.x);
+	glLinkProgram(prog);
+	glUseProgram(prog);
+	return true;
+}
+
 bool window::screenInit()
 {
 	/*Initialize SDL*/
 	if(SDL_Init(SDL_INIT_EVERYTHING) < 0){  
 		return false;
-
-	}
+	} 
 	/*WM stuff*/
 	SDL_WM_SetCaption("downtop", "downtop");
 	if((screen = SDL_SetVideoMode(w, h, 32, SDL_OPENGL | (displayMode ? (displayMode == 2 ? SDL_NOFRAME : SDL_FULLSCREEN) : false))) == nullptr)
@@ -43,6 +54,7 @@ bool window::screenInit()
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+	initShaders();
 	return true;
 }
 

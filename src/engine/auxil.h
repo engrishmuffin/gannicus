@@ -32,6 +32,7 @@ class aux{
 		static void bilinear_scale  (SDL_Surface* source, SDL_Surface* destination);
 		static SDL_Surface* scale2x(SDL_Surface* source);
 	public:
+		static string textFileRead(string filename);
 		static GLuint load_texture(string filename); 
 		static GLuint surface_to_texture(SDL_Surface* source);
 		static GLuint surface_to_texture(SDL_Surface* source, unsigned int *);

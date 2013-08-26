@@ -7,6 +7,7 @@
 #include <SDL/SDL_opengl.h>
 #include <cmath>
 #include <iostream>
+#include <fstream>
 #include <math.h>
 #include <string>
 #include <vector>
@@ -31,6 +32,17 @@ void aux::update_screen(SDL_Surface* source, SDL_Surface* destination) {
 
 	//scale(source, destination);
 	SDL_Flip(destination);
+}
+
+string aux::textFileRead(string filename)
+{
+	std::ifstream read;
+	read.open(filename);
+	string buf, ret;
+	while(std::getline(read, buf))
+		ret += buf + "\n";
+	read.close();
+	return ret;
 }
 
 // uses nearest-neighbor algorithm found here:
