@@ -437,6 +437,16 @@ bool action::setParameter(string buffer)
 			}
 		}
 		return true;
+	} else if (t.current() == "Launch") {
+		for(int i = 0; i < hits; i++){
+			if(buffer[0] == '+')
+				CHStats[i].initialLaunch = stoi(t("\t: \n"));
+			else{
+				stats[i].initialLaunch = stoi(t("\t: \n"));
+				CHStats[i].initialLaunch = 10;
+			}
+		}
+		return true;
 	} else if (t.current() == "Untech") {
 		for(int i = 0; i < hits; i++){
 			if(buffer[0] == '+')
@@ -709,6 +719,7 @@ hStat action::pollStats(int f, bool CH)
 		s.stun = stats[c].stun + CHStats[c].stun * CH;
 		s.push = stats[c].push + CHStats[c].push * CH;
 		s.lift = stats[c].lift + CHStats[c].lift * CH;
+		s.initialLaunch = stats[c].initialLaunch + CHStats[c].initialLaunch * CH;
 		s.untech = stats[c].untech + CHStats[c].untech * CH;
 		s.blowback = stats[c].blowback + CHStats[c].blowback * CH;
 		s.pause = stats[c].pause + CHStats[c].pause * CH;
