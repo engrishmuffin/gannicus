@@ -40,6 +40,7 @@ public:
 	void readInput();
 	void loadMisc();
 	void initCharacters();
+	virtual void initShaders();
 	virtual void loadAssets();
 	virtual void handleArgs(vector<string>);
 	void processInput(SDL_Event&);

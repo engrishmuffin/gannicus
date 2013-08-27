@@ -6,7 +6,7 @@
 class window{
 public:
 	window();
-	virtual bool initShaders();
+	virtual void initShaders();
 	virtual bool screenInit();
 	virtual void setLighting();
 	GLuint prog;
