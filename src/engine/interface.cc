@@ -564,6 +564,7 @@ void interface::resolveInputs()
 
 void interface::resolvePhysics()
 {
+	bool gripCheck;
 	for(unsigned int i = 0; i < things.size(); i++){
 		if(!things[i]->current.freeze){
 			if(!(things[i]->current.move->stop & 4)){
@@ -574,6 +575,7 @@ void interface::resolvePhysics()
 			}
 			for(unsigned int j = 0; j < globals.size(); j++){
 				if(globals[j]->ID != things[i]->ID){
+					gripCheck = globals[j]->grip ? true : false;
 					if(i < P.size()){
 						if(globals[j]->effectCode & 1){
 							things[i]->enforceAttractor(globals[j]);
@@ -582,6 +584,10 @@ void interface::resolvePhysics()
 						if(globals[j]->effectCode & 2){
 							things[i]->enforceAttractor(globals[j]);
 						}
+					}
+					if(!globals[j]->grip && gripCheck){ 
+						globals.erase(globals.begin()+j);
+						j--;
 					}
 				}
 			}
