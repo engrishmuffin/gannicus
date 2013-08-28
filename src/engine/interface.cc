@@ -463,7 +463,7 @@ void interface::resolveCombos()
 				blockFail[i] = 0;
 				break;
 			case 0:
-				if(killTimer){ 
+				if(killTimer && !freeze){ 
 					P[i]->current.meter[0] = 600;
 					if(combo[i] == 0 && P[(i+1)%2]->current.move->state[0].b.neutral){
 						P[(i+1)%2]->current.meter[1] = 300;
