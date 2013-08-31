@@ -14,8 +14,17 @@ window::window()
 void window::initShaders()
 {
 	prog = glCreateProgram();
-	for(shader i:currentShaders) glAttachShader(prog, i.x);
+	char log[1024];
+	int len, check;
+	for(shader i:currentShaders)
+		glAttachShader(prog, i.x);
 	glLinkProgram(prog);
+	glGetProgramiv(prog, GL_LINK_STATUS, &check);
+	if(!check){
+		glGetProgramInfoLog(prog, sizeof(log), &len, log);
+		std::cout << log << '\n';
+	}
+	glUseProgram(prog);
 }
 
 bool window::screenInit()

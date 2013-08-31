@@ -5,8 +5,15 @@
 void shader::init(string filename)
 {
 	const char *title = aux::textFileRead(filename).c_str();
+	char log[1024];
+	int len, compiled;
 	glShaderSource(x, 1, &title, NULL);
 	glCompileShader(x);
+	glGetShaderiv(x, GL_COMPILE_STATUS, &compiled);
+	if(!compiled){
+		glGetShaderInfoLog(x, sizeof(log), &len, log);
+		std::cout << log << '\n';
+	}
 }
 
 vertShader::vertShader(string filename)
@@ -25,6 +32,4 @@ fragShader::fragShader(string filename)
 {
 	x = glCreateShader(GL_FRAGMENT_SHADER);
 	init(filename);
-	GLint compiled;
-	while(!compiled) glGetShaderiv(x, GL_COMPILE_STATUS, &compiled);
 }
