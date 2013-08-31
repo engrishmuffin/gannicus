@@ -56,7 +56,7 @@ public:
 	action(string, string);
 	char typeKey;
 	virtual ~action();
-	int requiredMode;
+	int requiredMode, activateMode, removeMode, restrictedMode;
 	bool spriteCheck(int);
 	virtual void build(string, string);
 	virtual bool parseRect(string);

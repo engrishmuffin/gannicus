@@ -16,7 +16,6 @@ void window::initShaders()
 	prog = glCreateProgram();
 	for(shader i:currentShaders) glAttachShader(prog, i.x);
 	glLinkProgram(prog);
-	glUseProgram(prog);
 }
 
 bool window::screenInit()
@@ -44,7 +43,7 @@ bool window::screenInit()
 	glHint (GL_POLYGON_SMOOTH_HINT, GL_NICEST);
 
 	glClearColor(0, 0, 0, 1);
-	glShadeModel (GL_SMOOTH);
+	//glShadeModel (GL_SMOOTH);
 	glClearDepth(1.0f);
 	glViewport(0, 0, w, h);
 	glMatrixMode(GL_PROJECTION);
@@ -52,6 +51,7 @@ bool window::screenInit()
 	glOrtho(0, w, h, 0, 1, -1);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glMatrixMode(GL_MODELVIEW);
+	std::cout << "GLSL:" << glGetString (GL_SHADING_LANGUAGE_VERSION) << "\n";
 	glLoadIdentity();
 	initShaders();
 	return true;

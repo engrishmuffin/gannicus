@@ -1,4 +1,3 @@
-#define GL_GLEXT_PROTOTYPES
 
 #ifdef ___mac_osx
 #include <OpenGL/gl.h>

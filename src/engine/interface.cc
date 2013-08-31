@@ -69,7 +69,7 @@ void interface::handleArgs(vector<string> args)
 
 void interface::initShaders()
 {
-	currentShaders.push_back(fragShader("src/shaders/pink.frag"));
+	currentShaders.push_back(vertShader("src/shaders/pink.frag"));
 	window::initShaders();
 }
 

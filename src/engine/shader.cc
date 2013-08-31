@@ -1,5 +1,6 @@
 #include "shader.h"
 #include <GL/glext.h>
+#include <iostream>
 #include "auxil.h"
 void shader::init(string filename)
 {
@@ -24,4 +25,6 @@ fragShader::fragShader(string filename)
 {
 	x = glCreateShader(GL_FRAGMENT_SHADER);
 	init(filename);
+	GLint compiled;
+	while(!compiled) glGetShaderiv(x, GL_COMPILE_STATUS, &compiled);
 }

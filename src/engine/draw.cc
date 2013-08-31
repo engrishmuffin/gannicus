@@ -10,6 +10,8 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include "window.h"
+#include "shader.h"
 
 using std::to_string;
 
@@ -42,6 +44,7 @@ void interface::drawCSelect()
 
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	glBindTexture(GL_TEXTURE_2D, selectScreen);
+		glUseProgram(prog);
 	glBegin(GL_QUADS);
 		glTexCoord2i(0, 0);
 		glVertex3f(350.0f, 0.0f, 0.f);

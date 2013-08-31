@@ -39,7 +39,10 @@ void action::zero()
 	tempRiposte.clear();
 	tempOnHold.clear();
 	tempParticle.clear();
+	restrictedMode = 0;
 	requiredMode = 0;
+	activateMode = 0;
+	removeMode = 0;
 	particleX = 0;
 	particleY = 0;
 	particleSpawn = -1;
@@ -225,6 +228,15 @@ bool action::setParameter(string buffer)
 	tokenizer t(buffer, "\t:+\n");
 	if(t() == "Name"){;
 		name += t();
+		return true;
+	} else if (t.current() == "+Mode") {
+		activateMode += stoi(t("\t: \n"));
+		return true;
+	} else if (t.current() == "-Mode") {
+		removeMode += stoi(t("\t: \n"));
+		return true;
+	} else if (t.current() == "RestrictedMode") {
+		restrictedMode = stoi(t("\t: \n"));
 		return true;
 	} else if (t.current() == "RequiredMode") {
 		requiredMode = stoi(t("\t: \n"));
@@ -665,12 +677,18 @@ bool action::patternMatch(vector<int> inputs, int pattern, int t, int f)
 
 bool action::check(const status &current)
 {
-	if(requiredMode && requiredMode != current.mode) return 0;
-	if(cost && cost > current.meter[1]){
+	if(restrictedMode)
+		if(restrictedMode & current.mode)
+			return 0;
+	if(requiredMode)
+		if(!(requiredMode & current.mode))
+			return 0;
+	if(cost && cost > current.meter[1])
 		return 0;
-	}
-	if(xRequisite > 0 && current.prox->w > xRequisite) return 0;
-	if(yRequisite > 0 && current.prox->h > yRequisite) return 0;
+	if(xRequisite > 0 && current.prox->w > xRequisite) 
+		return 0;
+	if(yRequisite > 0 && current.prox->h > yRequisite) 
+		return 0;
 	return 1;
 }
 

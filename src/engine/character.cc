@@ -591,6 +591,7 @@ void character::init(status& current)
 	current.meter[1] = 0;
 	resetAirOptions(current.meter);
 	current.meter[4] = 0;
+	current.mode = 0;
 }
 
 void character::resetAirOptions(vector<int>& meter)
