@@ -222,13 +222,10 @@ void interface::drawGame()
 	drawHUD();
 	glPushMatrix();
 		glTranslatef(-bg.x, (bg.y+bg.h), 0);
-		auto p = prog();
-		glUseProgram(p);
 		for(instance *i:things){ 
-			i->draw(p);
+			i->draw(prog());
 			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 		}
-		glUseProgram(0);
 		for(player *i:P) i->drawHitParticle();
 		glEnable( GL_TEXTURE_2D );
 		glDisable( GL_TEXTURE_2D );
@@ -552,8 +549,9 @@ void instance::draw(GLint p)
 	}
 	glEnable(GL_TEXTURE_2D);
 	if(sprite && sCheck){
-		if(secondInstance)
-			glColor4f(0.75f, 0.5f, 0.85f, 1.0f);
+		glUseProgram(p);
+		//if(secondInstance)
+		//	glColor4f(0.75f, 0.5f, 0.85f, 1.0f);
 		glPushMatrix();
 			glTranslatef(n->drawX, -n->drawY, 0);
 			glPushMatrix();
@@ -561,6 +559,7 @@ void instance::draw(GLint p)
 				pick()->draw(n->move, n->frame, p);
 			glPopMatrix();
 		glPopMatrix();
+		glUseProgram(0);
 	}
 	glDisable(GL_TEXTURE_2D);
 	if(!sCheck || boxen){
