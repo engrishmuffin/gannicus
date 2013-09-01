@@ -6,8 +6,6 @@ void shader::init(string filename)
 {
 	string shader (aux::textFileRead(filename));
 	const char *title = shader.c_str();
-	std::cout << shader;
-	
 	char log[1024];
 	int len, compiled;
 	glShaderSource(x, 1, &title, NULL);
