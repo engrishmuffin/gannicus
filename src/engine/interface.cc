@@ -69,7 +69,13 @@ void interface::handleArgs(vector<string> args)
 
 void interface::initShaders()
 {
-	currentShaders.push_back(fragShader("src/shaders/pink.frag"));
+	string version(reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
+	version.erase(1,1);
+	//Currently we've only dealt with two shaders, which we have code for. 
+	//Ostensibly we need to look for a closest version or a threshold version where syntax changed.
+	string shaderName("src/shaders/pink" + version + ".frag");
+	cout << "Loading fragment shader: " << shaderName << "\n";
+	currentShaders.push_back(fragShader(shaderName));
 	window::initShaders();
 }
 

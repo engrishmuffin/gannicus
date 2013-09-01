@@ -6,8 +6,8 @@ void shader::init(string filename)
 {
 	const char *title = aux::textFileRead(filename).c_str();
 	char log[1024];
-	int len, compiled;
-	glShaderSource(x, 1, &title, NULL);
+	int len(sizeof(title)), compiled;
+	glShaderSource(x, 1, &title, &len);
 	glCompileShader(x);
 	glGetShaderiv(x, GL_COMPILE_STATUS, &compiled);
 	if(!compiled){
