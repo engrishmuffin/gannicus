@@ -37,11 +37,15 @@ fragShader::fragShader(string filename)
 
 shaderProgram::shaderProgram(string vert, string frag)
 {
-	vertShader v(vert);
-	fragShader f(frag);
 	handle = glCreateProgram();
-	if(!vert.empty()) glAttachShader(handle, v.x);
-	if(!frag.empty()) glAttachShader(handle, f.x);
+	if(!vert.empty()){ 
+		vertShader v(vert);
+		glAttachShader(handle, v.x);
+	}
+	if(!frag.empty()){ 
+		fragShader f(frag);
+		glAttachShader(handle, f.x);
+	}
 	init();
 }
 
