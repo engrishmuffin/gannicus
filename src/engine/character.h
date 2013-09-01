@@ -44,8 +44,10 @@ public:
 	virtual action * neutralize(status&);
 	virtual bool turn(int&) { return 0; }
 	string name;
+	string dir;
 	actionTrie * head;
 	int lifespan;
+	GLuint palette;
 
 	action * die;
 	action * neutral;

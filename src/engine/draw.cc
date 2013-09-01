@@ -618,6 +618,10 @@ void player::drawHitParticle()
 
 void avatar::draw(action *& cMove, int f, GLint p)
 {
+	GLint paletteID = glGetUniformLocation(p, "palette"); //Get a pointer to a shader uniform var
+	glActiveTexture(GL_TEXTURE2); // Choose texture unit 1 (base texture). 
+	glBindTexture(GL_TEXTURE_2D, palette); //Bind texture as normal
+	glUniform1i(paletteID, 2); //Set base texture sampler uniform var
 	cMove->draw(f, p);
 }
 

@@ -217,6 +217,7 @@ void avatar::build(string directory, string file)
 	bool commentFlag;
 	ifstream read;
 	read.open("content/characters/"+directory+"/"+file+".ch");
+	dir = directory;
 
 	if(read.fail()){ 
 		cout << directory << "/" << file << " Character definition not found\n";
@@ -250,7 +251,8 @@ void avatar::sortMove(action * m, string key)
 
 void avatar::loadAssets()
 {
-	for(action *i:moveList){ 
+	palette = aux::load_texture("content/characters/"+dir+"/palette1.png");
+	for(action *i:moveList){
 		if(i->payload) i->payload->loadAssets();
 		i->loadMisc(name);
 	}
