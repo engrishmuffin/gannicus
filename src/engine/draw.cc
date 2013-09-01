@@ -204,7 +204,6 @@ void interface::drawGame()
 			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 			glEnable( GL_TEXTURE_2D );
 			glBindTexture(GL_TEXTURE_2D, background);
-
 			glBegin(GL_QUADS);
 				glTexCoord2i(0, 0);
 				glVertex3f(0.0f, 0.0f, 0.f);
@@ -223,9 +222,10 @@ void interface::drawGame()
 	drawHUD();
 	glPushMatrix();
 		glTranslatef(-bg.x, (bg.y+bg.h), 0);
-		glUseProgram(prog());
+		auto p = prog();
+		glUseProgram(p);
 		for(instance *i:things){ 
-			i->draw();
+			i->draw(p);
 			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 		}
 		glUseProgram(0);
@@ -480,6 +480,7 @@ void character::drawMeters(int ID, int hidden, status &current)
 }
 
 void instance::drawBoxen()
+			
 {
 	glColor4f(1.0f, 1.0f, 1.0f, 0.5f);
 	glPushMatrix();
@@ -507,7 +508,7 @@ void instance::drawBoxen()
 	glDisable( GL_TEXTURE_2D );
 }
 
-void instance::draw()
+void instance::draw(GLint p)
 {
 	bool sCheck = spriteCheck();
 	status * n;
@@ -557,7 +558,7 @@ void instance::draw()
 			glTranslatef(n->drawX, -n->drawY, 0);
 			glPushMatrix();
 				glScalef((float)n->facing, 1.0, 1.0);
-				pick()->draw(n->move, n->frame);
+				pick()->draw(n->move, n->frame, p);
 			glPopMatrix();
 		glPopMatrix();
 	}
@@ -616,9 +617,9 @@ void player::drawHitParticle()
 	}
 }
 
-void avatar::draw(action *& cMove, int f)
+void avatar::draw(action *& cMove, int f, GLint p)
 {
-	cMove->draw(f);
+	cMove->draw(f, p);
 }
 
 int gameInstance::drawGlyph(string s, int x, int space, int y, int height, int just)
@@ -672,11 +673,14 @@ int gameInstance::drawGlyph(string s, int x, int space, int y, int height, int j
 	return x;
 }
 
-void action::draw(int f)
+void action::draw(int f, GLint p)
 {
-	if(modifier && basis.move) basis.move->draw(basis.frame);
+	if(modifier && basis.move) basis.move->draw(basis.frame, p);
 	if(sprite[f]){
-		glBindTexture(GL_TEXTURE_2D, sprite[f]);
+		GLint baseTextureID = glGetUniformLocation(p, "colorIn"); //Get a pointer to a shader uniform var
+		glActiveTexture(GL_TEXTURE0); // Choose texture unit 0 (base texture). 
+		glBindTexture(GL_TEXTURE_2D, sprite[f]); //Bind texture as normal
+		glUniform1i(baseTextureID, 0); //Set base texture sampler uniform var
 		glBegin(GL_QUADS);
 		glTexCoord2i(0, 0);
 		glVertex3f(0.0f, (GLfloat)(-height[f]), 0.f);
@@ -875,7 +879,7 @@ void session::draw(model & object)
 	SDL_GL_SwapBuffers();
 }
 
-void model::draw()
+void model::draw(GLint shaderProg)
 {
 /* Load the identity matrix into modelmatrix. rotate the model, and move it back 5 */
 	vect v;

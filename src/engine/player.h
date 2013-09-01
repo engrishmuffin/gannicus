@@ -35,7 +35,7 @@ public:
 	virtual void pullVolition();
 	virtual void setPosition(int, int);
 	virtual void updateRects();
-	virtual void draw();
+	virtual void draw(GLint);
 	virtual instance* spawn();
 	virtual void drawBoxen();
 	virtual void combineDelta();

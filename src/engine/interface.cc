@@ -73,7 +73,7 @@ void interface::initShaders()
 	//version.erase(1,1);
 	//Currently we've only dealt with two shaders, which we have code for. 
 	//Ostensibly we need to look for a closest version or a threshold version where syntax changed.
-	prog = shaderProgram("", "src/shaders/pink430.frag");
+	prog = shaderProgram("", "src/shaders/pink130.frag");
 	window::initShaders();
 }
 

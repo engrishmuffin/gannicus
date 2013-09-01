@@ -15,7 +15,7 @@ using std::ifstream;
 class actionTrie;
 struct animation{
 	int frames;	//Number of frames.
-	virtual void draw(int) = 0;
+	virtual void draw(int, GLint) = 0;
 };
 
 class avatar;
@@ -91,7 +91,7 @@ public:
 	virtual void feed(action *, int, int);
 	virtual string request(int, int);
 
-	virtual void draw(int);
+	virtual void draw(int, GLint);
 	virtual void drawBoxen(int);
 	virtual bool CHState(int);
 

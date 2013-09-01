@@ -18,7 +18,7 @@ public:
 	virtual void init(status&) = 0;
 	virtual action * moveSignal(int);
 	bool spriteCheck(action *&, int);
-	virtual void draw(action *&, int);
+	virtual void draw(action *&, int, GLint);
 	virtual action * createMove(string);
 	virtual action * dealWithMove(string);
 	virtual action * mandateMove(string);
