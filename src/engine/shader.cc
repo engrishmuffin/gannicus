@@ -34,3 +34,30 @@ fragShader::fragShader(string filename)
 	x = glCreateShader(GL_FRAGMENT_SHADER);
 	init(filename);
 }
+
+shaderProgram::shaderProgram(string vert, string frag)
+{
+	vertShader v(vert);
+	fragShader f(frag);
+	handle = glCreateProgram();
+	if(!vert.empty()) glAttachShader(handle, v.x);
+	if(!frag.empty()) glAttachShader(handle, f.x);
+	init();
+}
+
+void shaderProgram::init()
+{
+	char log[1024];
+	int len, check;
+	glLinkProgram(handle);
+	glGetProgramiv(handle, GL_LINK_STATUS, &check);
+	if(!check){
+		glGetProgramInfoLog(handle, sizeof(log), &len, log);
+		std::cout << log << '\n';
+	}
+}
+
+GLuint shaderProgram::operator()()
+{
+	return handle;
+}
