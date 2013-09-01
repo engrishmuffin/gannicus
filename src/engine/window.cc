@@ -24,7 +24,6 @@ void window::initShaders()
 		glGetProgramInfoLog(prog, sizeof(log), &len, log);
 		std::cout << log << '\n';
 	}
-	glUseProgram(prog);
 }
 
 bool window::screenInit()
