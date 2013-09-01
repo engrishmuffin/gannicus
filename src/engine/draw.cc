@@ -678,7 +678,7 @@ void action::draw(int f, GLint p)
 	if(sprite[f]){
 		GLint baseTextureID = glGetUniformLocation(p, "colorIn"); //Get a pointer to a shader uniform var
 		glActiveTexture(GL_TEXTURE0); // Choose texture unit 0 (base texture). 
-		glBindTexture(GL_TEXTURE_2D, sprite[f]); //Bind texture as normal
+		glBindTexture(GL_TEXTURE_2D, sprite[f]); //Bind texture as usual
 		glUniform1i(baseTextureID, 0); //Set base texture sampler uniform var
 		glBegin(GL_QUADS);
 		glTexCoord2i(0, 0);
