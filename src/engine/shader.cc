@@ -4,10 +4,13 @@
 #include "auxil.h"
 void shader::init(string filename)
 {
-	const char *title = aux::textFileRead(filename).c_str();
+	string shader (aux::textFileRead(filename));
+	const char *title = shader.c_str();
+	std::cout << shader;
+	
 	char log[1024];
-	int len(sizeof(title)), compiled;
-	glShaderSource(x, 1, &title, &len);
+	int len, compiled;
+	glShaderSource(x, 1, &title, NULL);
 	glCompileShader(x);
 	glGetShaderiv(x, GL_COMPILE_STATUS, &compiled);
 	if(!compiled){
