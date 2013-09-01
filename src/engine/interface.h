@@ -87,7 +87,6 @@ public:
 	void writeImage(string, int, action*);
 
 	vector<bool> select;
-	vector<int> groove;
 	vector<int> selection;
 	sample call[2];
 	int menu[2];

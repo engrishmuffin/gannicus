@@ -450,7 +450,7 @@ void instance::combineDelta()
 
 void instance::loadAssets()
 {
-	if(sprite) pick()->loadAssets();
+	if(sprite) pick()->loadAssets(selectedPalette);
 }
 
 void instance::enforceAttractor(attractor* p)

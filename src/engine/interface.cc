@@ -105,7 +105,6 @@ void interface::createPlayers()
 		P.push_back(new player(i+1));
 		p.push_back(P[i]);
 		select.push_back(false);
-		groove.push_back(0);
 		selection.push_back(1+i);
 		combo.push_back(0);
 		damage.push_back(0);
@@ -366,7 +365,6 @@ void interface::runTimer()
 						for(unsigned int i = 0; i < P.size(); i++){
 							delete P[i]->pick();
 							select[i] = 0;
-							groove[i] = 0;
 						}
 					}
 					if(SDL_WasInit(SDL_INIT_VIDEO) != 0){
@@ -901,7 +899,6 @@ void gameInstance::processInput(SDL_Event &event)
 void interface::cSelectMenu()
 {
 	/*The plan is that this is eventually a menu, preferably pretty visual, in which players can select characters.*/
-	for(player *i:P) i->secondInstance = 0;
 	if(!initd){ 
 		ofstream write;
 		write.open(".config/settings.conf");
@@ -930,16 +927,14 @@ void interface::cSelectMenu()
 				}
 				for(int j = 0; j < 5; j++){
 					if(currentFrame[i].buttons[j] == 1 && !select[i]){
-						if(j == 1) groove[i] = 2;
-						else groove[i] = 1;
 						select[i] = 1;
+						P[i]->selectedPalette = j;
 					}
 				}
 				if(currentFrame[i].n.raw.Start){
 					if(!select[i]) menu[i] = 3;
 					else {
 						select[i] = 0;
-						groove[i] = 0;
 					}
 					counter[i] = 10;
 				}
@@ -954,14 +949,15 @@ void interface::cSelectMenu()
 
 	if(select[0] && select[1]){
 		//cout << "2 6\n" << selection[0] << " " << selection[1] << '\n';
-		if(selection[0] == selection[1]) P[1]->secondInstance = true;
+		if(selection[0] == selection[1] && P[0]->selectedPalette == P[1]->selectedPalette){ 
+			P[1]->selectedPalette = (P[1]->selectedPalette + 1) % 5;
+		}
 		glClear(GL_COLOR_BUFFER_BIT);
 		glDisable(GL_TEXTURE_2D);
 		drawLoadingScreen();
 		SDL_GL_SwapBuffers();
 		for(unsigned int i = 0; i < P.size(); i++){
 			P[i]->characterSelect(selection[i]);
-//			P[i]->current.mode = groove[i];
 		}
 		loadAssets();
 		if(analytics){
@@ -1118,7 +1114,6 @@ void interface::pauseMenu()
 					for(unsigned int i = 0; i < P.size(); i++){
 						delete P[i]->pick();
 						select[i] = 0;
-						groove[i] = 0;
 						initCharacters();
 						things[i]->current.meter.clear();
 					}
@@ -1165,7 +1160,6 @@ void interface::rematchMenu()
 					for(unsigned int k = 0; k < P.size(); k++){
 						delete P[k]->pick();
 						select[k] = 0;
-						groove[k] = 0;
 						things[k]->current.meter.clear();
 					}
 					Mix_HaltMusic();

@@ -33,7 +33,7 @@ public:
 	virtual bool death(status&) { return 0; }
 	virtual int takeHit(status&, hStat&, int, int&) { return 0; }
 	virtual void getName(string, string);
-	virtual void loadAssets();
+	virtual void loadAssets(int);
 	virtual void connect(status&);
 	virtual hStat pollStats(status&);
 	virtual void pollRects(status&, SDL_Rect&, vector<SDL_Rect>&, vector<SDL_Rect>&);

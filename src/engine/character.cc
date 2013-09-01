@@ -249,11 +249,13 @@ void avatar::sortMove(action * m, string key)
 	}
 }
 
-void avatar::loadAssets()
+void avatar::loadAssets(int pal)
 {
-	palette = aux::load_texture("content/characters/"+dir+"/palette1.png");
+	string p = "content/characters/"+dir+"/palette" + std::to_string(pal) + ".png";
+	std::cout << p + '\n';
+	palette = aux::load_texture(p);
 	for(action *i:moveList){
-		if(i->payload) i->payload->loadAssets();
+		if(i->payload) i->payload->loadAssets(pal);
 		i->loadMisc(name);
 	}
 }
