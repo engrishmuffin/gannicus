@@ -252,7 +252,6 @@ void avatar::sortMove(action * m, string key)
 void avatar::loadAssets(int pal)
 {
 	string p = "content/characters/"+dir+"/palette" + std::to_string(pal) + ".png";
-	std::cout << p + '\n';
 	palette = aux::load_texture(p);
 	for(action *i:moveList){
 		if(i->payload) i->payload->loadAssets(pal);

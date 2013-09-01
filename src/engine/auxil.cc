@@ -336,7 +336,9 @@ GLuint aux::surface_to_texture(SDL_Surface * source)
 
 GLuint aux::load_texture (string filename)
 {
-	return surface_to_texture(load_image(filename));
+	SDL_Surface * i = load_image(filename);
+	if(!i) return 0;
+	else return surface_to_texture(i);
 }
 
 void vect::unitNormal(float Ax, float Ay, float Az, float Bx, float By, float Bz, float Cx, float Cy, float Cz)

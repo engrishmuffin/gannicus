@@ -549,8 +549,6 @@ void instance::draw(GLint p)
 	}
 	glEnable(GL_TEXTURE_2D);
 	if(sprite && sCheck){
-		glUseProgram(p);
-		//if(secondInstance)
 		//	glColor4f(0.75f, 0.5f, 0.85f, 1.0f);
 		glPushMatrix();
 			glTranslatef(n->drawX, -n->drawY, 0);
@@ -559,7 +557,6 @@ void instance::draw(GLint p)
 				pick()->draw(n->move, n->frame, p);
 			glPopMatrix();
 		glPopMatrix();
-		glUseProgram(0);
 	}
 	glDisable(GL_TEXTURE_2D);
 	if(!sCheck || boxen){
@@ -618,11 +615,13 @@ void player::drawHitParticle()
 
 void avatar::draw(action *& cMove, int f, GLint p)
 {
+	if(palette) glUseProgram(p);
 	GLint paletteID = glGetUniformLocation(p, "palette"); //Get a pointer to a shader uniform var
 	glActiveTexture(GL_TEXTURE2); // Choose texture unit 1 (base texture). 
 	glBindTexture(GL_TEXTURE_2D, palette); //Bind texture as normal
 	glUniform1i(paletteID, 2); //Set base texture sampler uniform var
 	cMove->draw(f, p);
+	glUseProgram(0);
 }
 
 int gameInstance::drawGlyph(string s, int x, int space, int y, int height, int just)
