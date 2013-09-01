@@ -9,9 +9,8 @@ public:
 	virtual void initShaders();
 	virtual bool screenInit();
 	virtual void setLighting();
-	GLuint prog;
+	shaderProgram prog;
 	SDL_Surface * screen;
-	vector <shader> currentShaders;
 	int displayMode;
 	int h, w;
 };

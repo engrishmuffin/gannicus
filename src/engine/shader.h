@@ -26,4 +26,13 @@ class geoShader : public shader {
 public:
 	geoShader(string);
 };
+
+class shaderProgram {
+public:
+	virtual void init();
+	GLuint handle;
+	shaderProgram(string, string);
+	shaderProgram() {}
+	GLuint operator()();
+};
 #endif
