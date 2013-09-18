@@ -952,7 +952,7 @@ int action::takeHit(hStat & s, int b, status &current)
 					}
 					return guardType;
 				} else if (current.frame >= armorStart && current.frame <= armorStart + armorLength && 
-						   (armorHits < 1 || armorHits < armorCounter)){
+						   (armorHits < 1 || armorHits > armorCounter)){
 					s.stun = 0;
 					armorCounter++;
 					return 1;
