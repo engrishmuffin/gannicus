@@ -921,7 +921,7 @@ void instance::connect(int combo, hStat & s)
 	if(s.pause < 0){
 		if(!s.ghostHit) current.freeze = s.stun/4+10;
 	} else current.freeze = s.pause;
-	pick()->connect(current);
+	if(!current.freeze) pick()->connect(current);
 	current.reversal = nullptr;
 	if(current.bufferedMove == current.move) current.bufferedMove = nullptr;
 }
