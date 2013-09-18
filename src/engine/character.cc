@@ -544,11 +544,11 @@ int character::takeHit(status &current, hStat & s, int blockType, int &hitType)
 		current.move = die;
 		current.aerial = true;
 	} else if(hitType == 1) {
-		if(s.launch){
-			if(!current.aerial) s.untech += s.initialLaunch;
-			current.aerial = true;
-		}
 		if(s.stun != 0){
+			if(s.launch){
+				if(!current.aerial) s.untech += s.initialLaunch;
+				current.aerial = true;
+			}
 			current.frame = 0;
 			if(current.aerial){
 				current.counter = -(s.stun+s.untech);
