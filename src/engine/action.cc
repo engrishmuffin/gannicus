@@ -811,7 +811,7 @@ bool action::operator>(const status& o)
 void action::step(status &current)
 {
 	if(current.connect == calcCurrentHit(current.frame)+1) 
-		current.connect += stats[current.connect].connect;
+		current.connect += stats[current.connect-1].connect;
 	if(!current.frame && !current.meter[4]){
 		if(current.meter[1] + gain[0] < 300) current.meter[1] += gain[0];
 		else current.meter[1] = 300;
