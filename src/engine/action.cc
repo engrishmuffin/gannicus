@@ -701,7 +701,7 @@ void action::pollRects(status &current, SDL_Rect &c, vector<SDL_Rect> &r, vector
 		r.clear();
 		if((unsigned int)current.frame < hitreg.size()) r = hitreg[current.frame];
 		b.clear();
-		if((unsigned int)current.frame < hitbox.size() && current.connect <= calcCurrentHit(current.frame) && !current.freeze) b = hitbox[current.frame];
+		if((unsigned int)current.frame < hitbox.size() && current.connect <= calcCurrentHit(current.frame) && current.freeze <= 0) b = hitbox[current.frame];
 	}
 }
 
