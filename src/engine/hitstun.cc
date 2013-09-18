@@ -21,8 +21,6 @@ bool hitstun::canGuard(int f)
 
 int hitstun::takeHit(hStat& s, int b, status& current)
 {
-
-	if(!s.stun) return 1;
 	blockField temp;
 	temp.i = s.blockMask.i;
 	if(b == -2 && temp.i) temp.b.air = true;

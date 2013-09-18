@@ -65,6 +65,7 @@ public:
 	virtual ~character();
 
 	virtual void build(string, string);
+	virtual int assessStun(status&, hStat&);
 	virtual int comboState(action *);
 	virtual action * neutralize(status&);
 	virtual void drawMeters(int, int, status&);

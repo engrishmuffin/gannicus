@@ -77,6 +77,7 @@ struct status{
 	int deltaX, deltaY; 
 	int frame;
 	int freeze;
+	int absorbedHits;
 	bool aerial;
 	bool rCorner, lCorner;
 	action *move, *bufferedMove, *reversal;

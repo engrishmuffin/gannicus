@@ -692,16 +692,17 @@ bool action::check(const status &current)
 	return 1;
 }
 
-void action::pollRects(int f, int cFlag, SDL_Rect &c, vector<SDL_Rect> &r, vector<SDL_Rect> &b)
+void action::pollRects(status &current, SDL_Rect &c, vector<SDL_Rect> &r, vector<SDL_Rect> &b)
 {
-	if(modifier && basis.move) basis.move->pollRects(basis.frame, basis.connect, c, r, b);
+	if(modifier && basis.move) basis.move->pollRects(basis, c, r, b);
 	else {
-		if(f >= frames) f = frames-1;
-		if((unsigned int)f < collision.size()) c = collision[f];
+		if(current.frame >= frames) current.frame = frames-1;
+		if((unsigned int)current.frame < collision.size()) c = collision[current.frame];
 		r.clear();
-		if((unsigned int)f < hitreg.size()) r = hitreg[f];
+		if((unsigned int)current.frame < hitreg.size()) r = hitreg[current.frame];
 		b.clear();
-		if((unsigned int)f < hitbox.size() && cFlag <= calcCurrentHit(f)) b = hitbox[f];
+		if((unsigned int)current.frame < hitbox.size() && current.connect <= calcCurrentHit(current.frame)) b = hitbox[current.frame];
+
 	}
 }
 
@@ -836,18 +837,19 @@ int action::calcCurrentHit(int frame)
 	return b;
 }
 
-action * action::connect(vector<int>& meter, int &c, int f)
+action * action::connect(vector<int> &meter, status &current)
 {
-	if(modifier && basis.move) return basis.move->connect(meter, basis.connect, basis.frame);
+	if(modifier && basis.move) return basis.move->connect(meter, basis);
 	else if (hits == 0) return nullptr;
 	else {
-		c = calcCurrentHit(f)+1;
+		current.connect = calcCurrentHit(current.frame)+1;
+		if(current.connect != 0) std::cout << current.move->name << " " << current.connect << '\n';
 		if(!meter[4]){
-			if(meter[1] + gain[c] < 300) meter[1] += gain[c];
+			if(meter[1] + gain[current.connect] < 300) meter[1] += gain[current.connect];
 			else meter[1] = 300;
 		}
-		if(onConnect[c-1] != nullptr){
-			return onConnect[c-1];
+		if(onConnect[current.connect-1] != nullptr){
+			return onConnect[current.connect-1];
 		} else return nullptr;
 	}
 }
@@ -868,7 +870,7 @@ void action::playSound(int channel)
 
 void action::execute(status &current)
 {
-	armorCounter = 0;
+	current.absorbedHits = 0;
 	current.meter[1] -= cost;
 	current.meter[4] += cost;
 	if(modifier){
@@ -940,10 +942,19 @@ bool action::canGuard(int f)
 	else return false;
 }
 
+bool action::armor(status &current)
+{
+	if (current.frame >= armorStart && current.frame <= armorStart + armorLength && (armorHits < 1 || armorHits > current.absorbedHits)){
+		current.absorbedHits++;
+		return true;
+	}
+	return false;
+}
+
 int action::takeHit(hStat & s, int b, status &current)
 {
 	if(modifier && basis.move) return basis.move->takeHit(s, b, current);
-	else{
+	else {
 		if(!stunMin || s.stun >= stunMin){
 			if(!stunMax || s.stun <= stunMax){
 				if(s.blockMask.i & blockState.i && canGuard(current.frame)){
@@ -951,17 +962,8 @@ int action::takeHit(hStat & s, int b, status &current)
 						if(!s.isProjectile || countersProjectile) return -5;
 					}
 					return guardType;
-				} else if (current.frame >= armorStart && current.frame <= armorStart + armorLength && 
-						   (armorHits < 1 || armorHits > armorCounter)){
-					s.stun = 0;
-					armorCounter++;
-					return 1;
 				}
 			}
-		}
-		if(s.stun != 0){
-			current.frame = 0;
-			current.hit = 0;
 		}
 		return 1;
 	}

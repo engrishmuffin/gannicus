@@ -439,7 +439,7 @@ instance * avatar::spawn(status &current)
 
 void avatar::connect(status &current)
 {
-	action * t = current.move->connect(current.meter, current.connect, current.frame);
+	action * t = current.move->connect(current.meter, current);
 	if(t != nullptr){
 		current.bufferedMove = t;
 	}
@@ -508,7 +508,7 @@ void character::block(status &current, int st, bool high)
 
 void avatar::pollRects(status& current, SDL_Rect& collision, vector<SDL_Rect>& hitreg, vector<SDL_Rect>& hitbox)
 {
-	current.move->pollRects(current.frame, current.connect, collision, hitreg, hitbox);
+	current.move->pollRects(current, collision, hitreg, hitbox);
 }
 
 hStat avatar::pollStats(status &current)
@@ -518,7 +518,23 @@ hStat avatar::pollStats(status &current)
 	return s;
 }
 
-int character::takeHit(status &current, hStat & s, int blockType, int &hitType)
+int character::assessStun(status &current, hStat &s)
+{
+	if(current.move->armor(current)) return 0;
+	else if(current.aerial){
+		current.move = untech;
+		resetAirOptions(current.meter);
+		return -(s.stun+s.untech);
+	} else if(current.move->crouch) {
+		current.move = crouchReel;
+		return -(s.stun + s.stun/5);
+	} else {
+		current.move = reel;
+		return -(s.stun);
+	}
+}
+
+int character::takeHit(status &current, hStat &s, int blockType, int &hitType)
 {
 	bool dead = false;
 	int freeze = 0;
@@ -549,17 +565,11 @@ int character::takeHit(status &current, hStat & s, int blockType, int &hitType)
 				if(!current.aerial) s.untech += s.initialLaunch;
 				current.aerial = true;
 			}
-			current.frame = 0;
-			if(current.aerial){
-				current.counter = -(s.stun+s.untech);
-				current.move = untech;
-				resetAirOptions(current.meter);
-			} else if(current.move->crouch) {
-				current.counter = -(s.stun + s.stun/5);
-				current.move = crouchReel;
-			} else {
-				current.counter = -(s.stun);
-				current.move = reel;
+			current.counter = assessStun(current, s);
+			if(current.counter < 0){
+				current.frame = 0;
+				current.hit = 0;
+				current.connect = 0;
 			}
 		}
 	} else if (hitType == -1) {
@@ -640,8 +650,8 @@ void avatar::step(status &current)
 	} else {
 		current.freeze--;
 		if(!current.freeze && a > 0){
-			current.connect += a;
-			current.hit += a;
+			//current.connect += a;
+			//current.hit += a;
 		}
 	}
 	if(current.meter[4] > 0) current.meter[4]--;
