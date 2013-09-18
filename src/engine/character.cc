@@ -634,25 +634,12 @@ void character::land(status& current)
 
 void avatar::step(status &current)
 {
-	int a = 0;
-	if(current.move){
-		if(current.move->hits > 0 && current.connect <= current.move->hits){
-			a += current.move->stats[current.connect-1].connect;
-			if(current.counter > 0)
-				a += current.move->CHStats[current.connect-1].connect;
-		}
-	}
 	if(current.freeze <= 0){
 		current.move->step(current);
 		tick(current);
-		if(a < 0) current.connect += a;
 		if(current.counter > 0) current.counter = 0;
 	} else {
 		current.freeze--;
-		if(!current.freeze && a > 0){
-			//current.connect += a;
-			//current.hit += a;
-		}
 	}
 	if(current.meter[4] > 0) current.meter[4]--;
 }
