@@ -810,6 +810,8 @@ bool action::operator>(const status& o)
 
 void action::step(status &current)
 {
+	if(current.connect == calcCurrentHit(current.frame)+1) 
+		current.connect += stats[current.connect].connect;
 	if(!current.frame && !current.meter[4]){
 		if(current.meter[1] + gain[0] < 300) current.meter[1] += gain[0];
 		else current.meter[1] = 300;
@@ -842,7 +844,6 @@ action * action::connect(vector<int> &meter, status &current)
 	else if (hits == 0) return nullptr;
 	else {
 		current.connect = calcCurrentHit(current.frame)+1;
-		current.connect += stats[current.connect-1].connect;
 		if(!meter[4]){
 			if(meter[1] + gain[current.connect] < 300) meter[1] += gain[current.connect];
 			else meter[1] = 300;
