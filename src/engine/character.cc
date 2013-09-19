@@ -140,14 +140,20 @@ action * avatar::moveSignal(int)
 action * avatar::neutralize(status &current)
 {
 	current.reversalFlag = false;
+	neutral->execute(current);
 	return neutral;
 }
 
 action * character::neutralize(status &current)
 {
 	current.reversalFlag = false;
-	if(current.aerial) return airNeutral;
-	else return neutral;
+	if(current.aerial){ 
+		airNeutral->execute(current);
+		return airNeutral;
+	} else {
+		neutral->execute(current);
+		return neutral;
+	}
 }
 
 void avatar::getName(string directory, string file)
