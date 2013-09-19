@@ -944,11 +944,7 @@ bool action::canGuard(int f)
 
 bool action::armor(status &current)
 {
-	if (current.frame >= armorStart && current.frame <= armorStart + armorLength && (armorHits < 1 || armorHits > current.absorbedHits)){
-		current.absorbedHits++;
-		return true;
-	}
-	return false;
+	return (current.frame >= armorStart && current.frame <= armorStart + armorLength && (armorHits < 1 || armorHits > current.absorbedHits);
 }
 
 int action::takeHit(hStat & s, int b, status &current)

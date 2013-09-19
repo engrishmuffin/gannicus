@@ -542,6 +542,7 @@ int character::takeHit(status &current, hStat &s, int blockType, int &hitType)
 		freeze = s.stun/4 + 10;
 		if(s.ghostHit) freeze = 0;
 	} else freeze = s.pause;
+	current.absorbedHits++;
 	hitType = current.move->takeHit(s, blockType, current);
 	if(hitType == 1) current.meter[0] -= s.damage;
 	else if(hitType > -2) {
