@@ -84,7 +84,6 @@ void avatar::getReversal(status &current, deque<int> inputBuffer, vector<int> bu
 void avatar::executeBuffer(status &current, bool dryrun)
 {
 	if(!dryrun) current.bufferedMove->execute(current);
-	std::cout << name << '\n';
 	current.move = current.bufferedMove;
 	if(!dryrun) current.bufferedMove = nullptr;
 }
