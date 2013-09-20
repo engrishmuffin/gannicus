@@ -8,6 +8,7 @@
 
 using std::ifstream;
 using std::ofstream;
+using std::to_string;
 using std::cout;
 
 player::player()
@@ -119,7 +120,7 @@ void player::roundInit()
 	neutralize();
 	if(v) pick()->init(current);
 	if(record){
-		record->write(std::to_string(ID)+"-"+pick()->name+".sh");
+		record->write(to_string(ID)+"-"+pick()->name+".sh");
 		delete record;
 		record = nullptr;
 	}
@@ -148,7 +149,7 @@ bool controller::readConfig(int ID)
 {
 	ifstream read;
 	int i = 0;
-	read.open(".config/p" + std::to_string(ID) + ".conf");
+	read.open(".config/p" + to_string(ID) + ".conf");
 	if(read.fail()) {
 		read.close();
 		return 0;
@@ -305,7 +306,7 @@ bool player::setKey(int effect, SDL_Event temp)
 void controller::writeConfig(int ID)
 {
 	ofstream write;
-	write.open(".config/p" + std::to_string(ID) + ".conf");
+	write.open(".config/p" + to_string(ID) + ".conf");
 	for(unsigned int i = 0; i < input.size(); i++){
 		switch(input[i]->trigger.type){
 		case SDL_JOYHATMOTION:
@@ -839,7 +840,7 @@ void player::macroCheck(SDL_Event &event)
 					record = new script();
 					record->init(1);
 				} else {
-					record->write(std::to_string(ID) + "-" + v->name + ".sh");
+					record->write(to_string(ID) + "-" + v->name + ".sh");
 					delete record;
 					record = nullptr;
 				}

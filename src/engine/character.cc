@@ -7,6 +7,7 @@
 #include <iostream>
 #include <stdio.h>
 
+using std::to_string;
 using std::cout;
 using std::ifstream;
 
@@ -257,7 +258,7 @@ void avatar::sortMove(action * m, string key)
 
 void avatar::loadAssets(int pal)
 {
-	string p = "content/characters/"+dir+"/palette" + std::to_string(pal) + ".png";
+	string p = "content/characters/"+dir+"/palette" + to_string(pal) + ".png";
 	palette = aux::load_texture(p);
 	for(action *i:moveList){
 		if(i->payload) i->payload->loadAssets(pal);

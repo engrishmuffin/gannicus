@@ -11,6 +11,8 @@ using std::ifstream;
 using std::ofstream;
 using std::max;
 using std::min;
+using std::to_string;
+
 interface::interface()
 {
 	stats = nullptr;
@@ -122,7 +124,7 @@ void interface::createPlayers()
 
 void interface::loadMatchBackground()
 {
-	if(!killTimer && scalingFactor > .8) background = aux::load_texture("content/stages/" + std::to_string(selection[0]) + "/bg.png");
+	if(!killTimer && scalingFactor > .8) background = aux::load_texture("content/stages/" + to_string(selection[0]) + "/bg.png");
 	else {
 		switch (selection[0]){
 		case 1: 
@@ -151,7 +153,7 @@ void interface::loadMatchBackground()
 	if(selection[0] == selection[1]) 
 		matchMusic = Mix_LoadMUS("content/sound/Mirror.ogg");
 	else
-		matchMusic = Mix_LoadMUS(("content/sound/" + std::to_string(selection[1]) + ".ogg").c_str());
+		matchMusic = Mix_LoadMUS(("content/sound/" + to_string(selection[1]) + ".ogg").c_str());
 }
 
 void interface::startGame()
@@ -171,7 +173,7 @@ void interface::startGame()
 void HUD::loadMisc()
 {
 	for(int i = 0; i < 91; i++){
-		glyph.push_back(aux::load_texture("content/glyphs/"+std::to_string(i)+".png"));
+		glyph.push_back(aux::load_texture("content/glyphs/"+to_string(i)+".png"));
 	}
 }
 
@@ -182,7 +184,7 @@ void interface::loadMisc()
 	menuMusic = Mix_LoadMUS("content/sound/Menu.ogg");
 	announceWinner = new Mix_Chunk*[numChars + 1];
 	for(int i = 0; i < numChars + 1; i++){
-		announceWinner[i] = Mix_LoadWAV(("content/sound/announcer/Win"+std::to_string(i)+".ogg").c_str());
+		announceWinner[i] = Mix_LoadWAV(("content/sound/announcer/Win"+to_string(i)+".ogg").c_str());
 	}
 	for(unsigned int i = 0; i < p.size(); i++){
 		if(!p[i]->readConfig(i+1)) initialConfig(i);
@@ -236,7 +238,7 @@ void gameInstance::initialConfig(int ID)
 			glRectf(0.0f, 0.0f, (GLfloat)screenWidth, (GLfloat)screenHeight);
 			glEnable( GL_TEXTURE_2D );
 			glColor4f(0.1f, 0.1f, 0.1f, 1.0f);
-			drawGlyph("Player " + std::to_string(ID + 1), 0, screenWidth, 300, 80, 1);
+			drawGlyph("Player " + to_string(ID + 1), 0, screenWidth, 300, 80, 1);
 			drawGlyph("Please enter a", 0, screenWidth, 400, 80, 1);
 			drawGlyph("command for %s" + p[ID]->inputName[i], 0, screenWidth, 500, 80, 1);
 			SDL_GL_SwapBuffers();
@@ -369,7 +371,7 @@ void interface::runTimer()
 					}
 					for(player *i:P){
 						if(i->record){
-							i->record->write(std::to_string(i->ID) + "-" + i->pick()->name + ".sh");
+							i->record->write(to_string(i->ID) + "-" + i->pick()->name + ".sh");
 							delete i->record;
 							i->record = nullptr;
 						}

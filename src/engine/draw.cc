@@ -62,7 +62,7 @@ void interface::drawCSelect()
 			x = ((float)screenWidth/2.0 + ((float)screenHeight/3.0) * cos(((M_PI*2.0)/(float)numChars)*(float)selection[i]+M_PI/4.0+M_PI/2.0)) - 100.0;
 			y = ((float)screenHeight/2.0 + ((float)screenHeight/3.0) * sin(((M_PI*2.0)/(float)numChars)*(float)selection[i]+M_PI/4.0+M_PI/2.0));
 			glColor4f(0.0, 0.3+i*0.3, 0.3+(1-i)*0.3, 1.0-select[i]*0.5);
-			drawGlyph("P" + std::to_string(i+1), x, 200, y, 50, i*2);
+			drawGlyph("P" + to_string(i+1), x, 200, y, 50, i*2);
 		}
 	}
 
@@ -131,13 +131,13 @@ void interface::drawConfigMenu(int ID)
 		drawGlyph("Keyboard", 20 + 1260*ID, 300, 310, 40, 2*ID);
 		break;
 	case SDL_JOYBUTTONDOWN:
-		drawGlyph("Joy " + std::to_string(p[ID]->input[0]->trigger.jbutton.which), 20 + 1260*ID, 300, 310, 40, 2*ID);
+		drawGlyph("Joy " + to_string(p[ID]->input[0]->trigger.jbutton.which), 20 + 1260*ID, 300, 310, 40, 2*ID);
 		break;
 	case SDL_JOYAXISMOTION:
-		drawGlyph("Joy " + std::to_string(p[ID]->input[0]->trigger.jaxis.which), 20 + 1260*ID, 300, 310, 40, 2*ID);
+		drawGlyph("Joy " + to_string(p[ID]->input[0]->trigger.jaxis.which), 20 + 1260*ID, 300, 310, 40, 2*ID);
 		break;
 	case SDL_JOYHATMOTION:
-		drawGlyph("Joy " + std::to_string(p[ID]->input[0]->trigger.jhat.which), 20 + 1260*ID, 300, 310, 40, 2*ID);
+		drawGlyph("Joy " + to_string(p[ID]->input[0]->trigger.jhat.which), 20 + 1260*ID, 300, 310, 40, 2*ID);
 		break;
 	}
 	for(i = 2; i < 7; i++){
@@ -148,21 +148,21 @@ void interface::drawConfigMenu(int ID)
 				glColor4f(1.0, 1.0, 0.0, 0.4 + (float)(configMenu[ID] == i)*0.4);
 				switch(p[ID]->input[j]->trigger.type){
 				case SDL_KEYDOWN:
-					drawGlyph(std::to_string(p[ID]->input[j]->trigger.key.keysym.sym),
+					drawGlyph(to_string(p[ID]->input[j]->trigger.key.keysym.sym),
 							  70 + 1230*ID, 300, 310+40*(i-1), 40, 0);
 					break;
 				case SDL_JOYBUTTONDOWN:
-					drawGlyph("B" + std::to_string(p[ID]->input[j]->trigger.jbutton.button),
+					drawGlyph("B" + to_string(p[ID]->input[j]->trigger.jbutton.button),
 							  70 + 1230*ID, 300, 310+40*(i-1), 40, 0);
 					break;
 				case SDL_JOYAXISMOTION:
-					drawGlyph("Axis "+ std::to_string(p[ID]->input[j]->trigger.jaxis.axis) 
-							  + " " + std::to_string(p[ID]->input[j]->trigger.jaxis.value), 
+					drawGlyph("Axis "+ to_string(p[ID]->input[j]->trigger.jaxis.axis) 
+							  + " " + to_string(p[ID]->input[j]->trigger.jaxis.value), 
 							  70 + 1230*ID, 300, 310+40*(i-1), 40, 0);
 					break;
 				case SDL_JOYHATMOTION:
-					drawGlyph("Hat "+ std::to_string(p[ID]->input[j]->trigger.jhat.hat) 
-							  + " " + std::to_string(p[ID]->input[j]->trigger.jhat.value), 
+					drawGlyph("Hat "+ to_string(p[ID]->input[j]->trigger.jhat.hat) 
+							  + " " + to_string(p[ID]->input[j]->trigger.jhat.value), 
 							  70 + 1230*ID, 300, 310+40*(i-1), 40, 0);
 					break;
 				default:
@@ -268,9 +268,9 @@ void interface::drawHUD()
 		drawGlyph("99", 700, 200, 0, 90, 1);
 	else if(timer / 60 < 10){
 		glColor4f(1.0, 0.0, 0.0, 1.0);
-		drawGlyph("0" + std::to_string(timer / 60), 700, 200, 0, 90, 1);
+		drawGlyph("0" + to_string(timer / 60), 700, 200, 0, 90, 1);
 	} else
-		drawGlyph(std::to_string(timer / 60), 700, 200, 0, 90, 1);
+		drawGlyph(to_string(timer / 60), 700, 200, 0, 90, 1);
 
 	glColor4f(1.0, 1.0, 1.0, 1.0);
 	for(unsigned int i = 0; i < P.size(); i++){
@@ -311,8 +311,8 @@ void interface::drawHUD()
 		//*/
 		if(combo[i] > 1){
 			glColor4f(1.0, 1.0-.5*illegit[i], 1.0-.5*illegit[i], 1.0);
-			drawGlyph(std::to_string(combo[i]) + " hits", 100+800*i, 600, 400, 75, 0+2*i);
-			drawGlyph(std::to_string(damage[i]) + " damage", 100+800*i, 600, 475, 35, 0+2*i);
+			drawGlyph(to_string(combo[i]) + " hits", 100+800*i, 600, 400, 75, 0+2*i);
+			drawGlyph(to_string(damage[i]) + " damage", 100+800*i, 600, 475, 35, 0+2*i);
 			glColor4f(1.0, 1.0, 1.0, 1.0);
 		}
 	}
@@ -323,7 +323,7 @@ void interface::drawHUD()
 			play(0);
 			//Mix_PlayChannel(3, announceRound[l - 1], 0);
 		}
-		drawGlyph("Round " + std::to_string(currentRound), 0, 1600, 375, 150, 1);
+		drawGlyph("Round " + to_string(currentRound), 0, 1600, 375, 150, 1);
 	}
 	if(timer > 99 * 60 && timer < 99 * 60 + 31){ 
 		drawGlyph("FIGHT", 0, 1600, 375, 150, 1);

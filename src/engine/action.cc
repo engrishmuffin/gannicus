@@ -7,6 +7,7 @@
 
 using std::ifstream;
 using std::ofstream;
+using std::to_string;
 
 action::action() {}
 
@@ -204,7 +205,7 @@ void action::loadMisc(string dir)
 {
 	SDL_Surface *temp;
 	for(int i = 0; i < frames; i++){
-		temp = aux::load_image("content/characters/" + dir + "/" + fileName + "#" + std::to_string(i) + ".png");
+		temp = aux::load_image("content/characters/" + dir + "/" + fileName + "#" + to_string(i) + ".png");
 		if(!temp){
 			width.push_back(0);
 			height.push_back(0);
