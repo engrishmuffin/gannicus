@@ -115,13 +115,11 @@ void player::init()
 
 void player::roundInit()
 {
-	char buffer[200];
 	instance::init();
 	neutralize();
 	if(v) pick()->init(current);
 	if(record){
-		sprintf(buffer, "%i-%s.sh", ID, pick()->name.c_str());
-		record->write(buffer);
+		record->write(std::to_string(ID)+"-"+pick()->name+".sh");
 		delete record;
 		record = nullptr;
 	}
@@ -148,11 +146,9 @@ void player::roundInit()
 
 bool controller::readConfig(int ID)
 {
-	char fname[30];
-	sprintf(fname, ".config/p%i.conf", ID);
 	ifstream read;
 	int i = 0;
-	read.open(fname);
+	read.open(".config/p" + std::to_string(ID) + ".conf");
 	if(read.fail()) {
 		read.close();
 		return 0;
@@ -308,10 +304,8 @@ bool player::setKey(int effect, SDL_Event temp)
 
 void controller::writeConfig(int ID)
 {
-	char fname[30];
-	sprintf(fname, ".config/p%i.conf", ID);
 	ofstream write;
-	write.open(fname);
+	write.open(".config/p" + std::to_string(ID) + ".conf");
 	for(unsigned int i = 0; i < input.size(); i++){
 		switch(input[i]->trigger.type){
 		case SDL_JOYHATMOTION:
@@ -833,7 +827,6 @@ int instance::middle()
 
 void player::macroCheck(SDL_Event &event)
 {
-	char buffer[200];
 	int effect = tap(event);
 	if(effect > 0){
 		currentMacro = nullptr;
@@ -846,8 +839,7 @@ void player::macroCheck(SDL_Event &event)
 					record = new script();
 					record->init(1);
 				} else {
-					sprintf(buffer, "%i-%s.sh", ID, v->name.c_str());
-					record->write(buffer);
+					record->write(std::to_string(ID) + "-" + v->name + ".sh");
 					delete record;
 					record = nullptr;
 				}

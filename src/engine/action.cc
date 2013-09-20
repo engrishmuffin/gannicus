@@ -202,11 +202,9 @@ bool action::parseRect(string buffer)
 
 void action::loadMisc(string dir)
 {
-	char fname[1024];
 	SDL_Surface *temp;
 	for(int i = 0; i < frames; i++){
-		sprintf(fname, "content/characters/%s/%s#%i.png", dir.c_str(), fileName.c_str(), i);
-		temp = aux::load_image(fname);
+		temp = aux::load_image("content/characters/" + dir + "/" + fileName + "#" + std::to_string(i) + ".png");
 		if(!temp){
 			width.push_back(0);
 			height.push_back(0);
@@ -219,8 +217,6 @@ void action::loadMisc(string dir)
 		SDL_FreeSurface(temp);
 	}
 //	soundClip = Mix_LoadWAV(string("content/characters/"+dir+"/"+fileName+".ogg").c_str());
-//	normalImage = aux::load_image("content/normal0000.png");
-//	normals = aux::surface_to_normals(normalImage);
 }
 
 bool action::setParameter(string buffer)

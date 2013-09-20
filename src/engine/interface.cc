@@ -122,10 +122,7 @@ void interface::createPlayers()
 
 void interface::loadMatchBackground()
 {
-	char buffer[100];
-
-	sprintf(buffer, "content/stages/%i/bg.png", selection[0]);
-	if(!killTimer && scalingFactor > .8) background = aux::load_texture(buffer);
+	if(!killTimer && scalingFactor > .8) background = aux::load_texture("content/stages/" + std::to_string(selection[0]) + "/bg.png");
 	else {
 		switch (selection[0]){
 		case 1: 
@@ -151,9 +148,10 @@ void interface::loadMatchBackground()
 		}
 	}
 
-	if(selection[0] == selection[1]) sprintf(buffer, "content/sound/Mirror.ogg");
-	else sprintf(buffer, "content/sound/%i.ogg", selection[1]);
-	matchMusic = Mix_LoadMUS(buffer);
+	if(selection[0] == selection[1]) 
+		matchMusic = Mix_LoadMUS("content/sound/Mirror.ogg");
+	else
+		matchMusic = Mix_LoadMUS(("content/sound/" + std::to_string(selection[1]) + ".ogg").c_str());
 }
 
 void interface::startGame()
@@ -172,23 +170,19 @@ void interface::startGame()
 /*This function loads a few miscellaneous things the game will need in all cases*/
 void HUD::loadMisc()
 {
-	char buffer[200];
 	for(int i = 0; i < 91; i++){
-		sprintf(buffer, "content/glyphs/%i.png", i);
-		glyph.push_back(aux::load_texture(buffer));
+		glyph.push_back(aux::load_texture("content/glyphs/"+std::to_string(i)+".png"));
 	}
 }
 
 void interface::loadMisc()
 {
 	HUD::loadMisc();
-	char buffer[200];
 	selectScreen = aux::load_texture("content/menu/Select.png");
 	menuMusic = Mix_LoadMUS("content/sound/Menu.ogg");
 	announceWinner = new Mix_Chunk*[numChars + 1];
 	for(int i = 0; i < numChars + 1; i++){
-		sprintf(buffer, "content/sound/announcer/Win%i.ogg", i);
-		announceWinner[i] = Mix_LoadWAV(buffer);
+		announceWinner[i] = Mix_LoadWAV(("content/sound/announcer/Win"+std::to_string(i)+".ogg").c_str());
 	}
 	for(unsigned int i = 0; i < p.size(); i++){
 		if(!p[i]->readConfig(i+1)) initialConfig(i);
@@ -233,11 +227,8 @@ void gameInstance::init()
 
 void gameInstance::initialConfig(int ID)
 {
-	char buffer[200];
-	char pident[30];
 	glPushMatrix();
 		glScalef(scalingFactor, scalingFactor, 1.0f);
-		sprintf(pident, "Player %i", ID + 1);
 		p[ID]->input.clear();
 		for(unsigned int i = 0; i < p[ID]->inputName.size(); i++){
 			glClear(GL_COLOR_BUFFER_BIT);
@@ -245,10 +236,9 @@ void gameInstance::initialConfig(int ID)
 			glRectf(0.0f, 0.0f, (GLfloat)screenWidth, (GLfloat)screenHeight);
 			glEnable( GL_TEXTURE_2D );
 			glColor4f(0.1f, 0.1f, 0.1f, 1.0f);
-			drawGlyph(pident, 0, screenWidth, 300, 80, 1);
+			drawGlyph("Player " + std::to_string(ID + 1), 0, screenWidth, 300, 80, 1);
 			drawGlyph("Please enter a", 0, screenWidth, 400, 80, 1);
-			sprintf(buffer, "command for %s", p[ID]->inputName[i].c_str());
-			drawGlyph(buffer, 0, screenWidth, 500, 80, 1);
+			drawGlyph("command for %s" + p[ID]->inputName[i], 0, screenWidth, 500, 80, 1);
 			SDL_GL_SwapBuffers();
 			glDisable( GL_TEXTURE_2D );
 			glClear(GL_COLOR_BUFFER_BIT);
@@ -379,9 +369,7 @@ void interface::runTimer()
 					}
 					for(player *i:P){
 						if(i->record){
-							char buffer[200];
-							sprintf(buffer, "%i-%s.sh", i->ID, i->pick()->name.c_str());
-							i->record->write(buffer);
+							i->record->write(std::to_string(i->ID) + "-" + i->pick()->name + ".sh");
 							delete i->record;
 							i->record = nullptr;
 						}
