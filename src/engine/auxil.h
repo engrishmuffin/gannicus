@@ -70,7 +70,7 @@ struct status{
 	status(const status&);
 	vector<int> meter;
 	int mode;
-	SDL_Rect *prox;
+	SDL_Rect prox;
 	int posX, posY;
 	int age;
 	int facing;

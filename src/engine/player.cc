@@ -958,8 +958,8 @@ int player::takeHit(int combo, hStat & s)
 		temp = current.move->blockSuccess(s.stun, s.isProjectile);
 	}
 	SDL_Rect fake = {0, 0, 0, 0};
-	SDL_Rect *tempProx = current.prox;
-	current.prox = &fake;
+	SDL_Rect tempProx = current.prox;
+	current.prox = fake;
 	if(temp && temp != current.move && temp->check(current)){
 		combo = 0;
 		current.bufferedMove = temp;

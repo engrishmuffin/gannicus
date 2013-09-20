@@ -305,8 +305,10 @@ void interface::roundInit()
 	grav = -6;
 	timer = 60 * 101;
 	endTimer = 60 * 5;
-	prox.w = 200;
-	prox.h = 0;
+	for(player *i:P){
+		i->current.prox.w = 200;
+		i->current.prox.h = 0;
+	}
 	freeze = 0;
 }
 
@@ -544,15 +546,13 @@ void interface::resolveInputs()
 			if(!test && !P[i]->current.aerial){ 
 				P[i]->checkFacing(P[(i+1)%2]);
 			}
+			P[i]->current.prox.y = P[(i+1)%2]->current.aerial;
+			P[i]->current.prox.x = P[(i+1)%2]->current.throwInvuln;
 		}
 		for(unsigned int i = 0; i < things.size(); i++){
-			if(i < P.size()){
-				if(things[(i+1)%2]->current.aerial) prox.y = 1;
-				else prox.y = 0;
-				prox.x = things[(i+1)%2]->current.throwInvuln;
-			}
 			bool d = 0;
-			things[i]->getMove(currentFrame[things[i]->ID - 1].buttons, d);
+			if(things[i])
+				things[i]->getMove(currentFrame[things[i]->ID - 1].buttons, d);
 		}
 	}
 	for(unsigned int i = 0; i < P.size(); i++){
@@ -1286,8 +1286,10 @@ void interface::resolveCollision()
 		}
 	}
 
-	prox.w = abs(things[0]->current.posX - things[1]->current.posX);
-	prox.h = abs(things[0]->current.posY - things[1]->current.posY);
+	for(player *i:P){
+		i->current.prox.w = abs(P[0]->current.posX - P[1]->current.posX);
+		i->current.prox.h = abs(P[0]->current.posY - P[1]->current.posY);
+	}
 
 	for(unsigned int i = 0; i < things.size(); i++){
 		if(things[i]->current.move->track){
@@ -1307,8 +1309,10 @@ void interface::resolveCollision()
 	//Some issues arise if you don't have this second pass
 	if (aux::checkCollision(P[0]->collision, P[1]->collision))
 		unitCollision(P[0], P[1]);
-	prox.w = abs(things[0]->current.posX - things[1]->current.posX);
-	prox.h = abs(things[0]->current.posY - things[1]->current.posY);
+	for(player *i:P){
+		i->current.prox.w = abs(P[0]->current.posX - P[1]->current.posX);
+		i->current.prox.h = abs(P[0]->current.posY - P[1]->current.posY);
+	}
 }
 
 void interface::resolveThrows()

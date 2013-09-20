@@ -685,9 +685,9 @@ bool action::check(const status &current)
 			return 0;
 	if(cost && cost > current.meter[1])
 		return 0;
-	if(xRequisite > 0 && current.prox->w > xRequisite) 
+	if(xRequisite > 0 && current.prox.w > xRequisite) 
 		return 0;
-	if(yRequisite > 0 && current.prox->h > yRequisite) 
+	if(yRequisite > 0 && current.prox.h > yRequisite) 
 		return 0;
 	return 1;
 }
