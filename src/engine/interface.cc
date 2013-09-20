@@ -115,9 +115,8 @@ void interface::createPlayers()
 		menu[i] = 0;
 		configMenu[i] = 0;
 		things.push_back(P[i]);
-		P[i]->boxen = false;
-		P[i]->sprite = true;
-		P[i]->current.prox = &prox;
+		P[i]->boxen = true;
+		P[i]->sprite = false;
 	}
 }
 
@@ -672,7 +671,6 @@ void interface::resolveSummons()
 			if(things[i]->current.move->arbitraryPoll(50, things[i]->current.frame)){
 				larva = things[i]->spawn();
 				if(larva){
-					larva->current.prox = &prox;
 					larva->boxen = things[i]->boxen;
 					larva->sprite = things[i]->sprite;
 					switch (things[i]->current.move->arbitraryPoll(56, things[i]->current.frame)){
@@ -1397,7 +1395,7 @@ void interface::resolveHits()
 			if(actuallyDoesDamage && s[hitBy[i]].damage == 0) s[hitBy[i]].damage = 1;
 			action * b = things[i]->current.move;
 			bool wasair = things[i]->current.aerial;
-			hit[hitBy[i]] = things[i]->takeHit(combo[things[hitBy[i]]->ID-1], s[hitBy[i]], prox);
+			hit[hitBy[i]] = things[i]->takeHit(combo[things[hitBy[i]]->ID-1], s[hitBy[i]]);
 			if(i < P.size()){
 				if(hit[hitBy[i]] == 1){
 					if(b->canGuard(P[i]->current.frame)){
@@ -1415,7 +1413,7 @@ void interface::resolveHits()
 					if(things[i]->current.aerial){
 						ths.push += (P[things[hitBy[i]]->ID-1]->current.aerial) ? s[hitBy[i]].blowback*5 : s[hitBy[i]].blowback;
 					}
-					P[things[hitBy[i]]->ID-1]->takeHit(combo[i], ths, prox);
+					P[things[hitBy[i]]->ID-1]->takeHit(combo[i], ths);
 					s[hitBy[i]].pause = 0;
 				}
 				if(s[hitBy[i]].stun) combo[(i+1)%2] += hit[hitBy[i]];

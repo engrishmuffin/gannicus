@@ -926,7 +926,7 @@ void instance::connect(int combo, hStat & s)
 	if(current.bufferedMove == current.move) current.bufferedMove = nullptr;
 }
 
-int instance::takeHit(int combo, hStat & s, SDL_Rect &p)
+int instance::takeHit(int combo, hStat & s)
 {
 	if(s.turnsProjectile){
 		if(pick()->turn(ID)){ 
@@ -940,7 +940,7 @@ int instance::takeHit(int combo, hStat & s, SDL_Rect &p)
 	return pick()->takeHit(current, s, blockType, particleType);
 }
 
-int player::takeHit(int combo, hStat & s, SDL_Rect &p)
+int player::takeHit(int combo, hStat & s)
 {
 	SDL_Rect v = {0, 0, 1, 0};
 	action * temp = nullptr;
@@ -952,7 +952,7 @@ int player::takeHit(int combo, hStat & s, SDL_Rect &p)
 	s.untech -= combo;
 	int f;
 	if(slide) s.lift += 15 - abs(s.lift)/4;
-	f = instance::takeHit(combo, s, p);
+	f = instance::takeHit(combo, s);
 	current.freeze = f;
 	if(particleType != 1){
 		temp = current.move->blockSuccess(s.stun, s.isProjectile);
@@ -967,7 +967,7 @@ int player::takeHit(int combo, hStat & s, SDL_Rect &p)
 	} else {
 		particleLife = 8;
 		current.deltaX /= 6;
-		if(current.deltaY < 0) current.deltaY /= 55; 
+		if(current.deltaY < 0) current.deltaY /= 55;
 		else current.deltaY /= 6;
 		momentum.clear();
 		if(current.aerial) v.y = s.lift;
