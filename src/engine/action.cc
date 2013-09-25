@@ -694,7 +694,12 @@ void action::pollRects(status &current, SDL_Rect &c, vector<SDL_Rect> &r, vector
 	if(modifier && basis.move) basis.move->pollRects(basis, c, r, b);
 	else {
 		if(current.frame >= frames) current.frame = frames-1;
-		if((unsigned int)current.frame < collision.size()) c = collision[current.frame];
+		if((unsigned int)current.frame < collision.size()) {
+			c.x = collision[current.frame].x;
+			c.y = collision[current.frame].y;
+			c.w = collision[current.frame].w;
+			c.h = collision[current.frame].h;
+		}
 		r.clear();
 		if((unsigned int)current.frame < hitreg.size()) r = hitreg[current.frame];
 		b.clear();

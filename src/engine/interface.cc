@@ -420,7 +420,7 @@ void interface::resolve()
 		resolveThrows();
 		doSuperFreeze();
 		for(instance *i:things) i->updateRects();
-		resolveCollision();
+		//resolveCollision();
 		resolvePhysics();
 		resolveCamera();
 		resolveCollision();
@@ -1383,9 +1383,7 @@ void interface::resolveHits()
 		if(taken[i]){
 			int health = things[things[i]->ID-1]->current.meter[0];
 			bool actuallyDoesDamage = (s[hitBy[i]].damage != 0);
-//			cout << s[hitBy[i]].damage << " Prorated by ";
 			s[hitBy[i]].damage *= prorate[things[hitBy[i]]->ID-1];
-//			cout << prorate[things[hitBy[i]]->ID-1] << " -> " << s[hitBy[i]].damage << '\n';
 			if(actuallyDoesDamage && s[hitBy[i]].damage == 0) s[hitBy[i]].damage = 1;
 			action * b = things[i]->current.move;
 			bool wasair = things[i]->current.aerial;
@@ -1399,15 +1397,15 @@ void interface::resolveHits()
 					}
 				}
 				if(things[i]->particleType == -2){
-					hStat ths;
-					ths.damage = s[hitBy[i]].chip ? s[hitBy[i]].chip : s[hitBy[i]].damage/5;
-					ths.ghostHit = true;
-					ths.stun = 0;
-					ths.push = s[hitBy[i]].push;
+					hStat parryHit;
+					parryHit.damage = s[hitBy[i]].chip ? s[hitBy[i]].chip : s[hitBy[i]].damage/5;
+					parryHit.ghostHit = true;
+					parryHit.stun = 0;
+					parryHit.push = s[hitBy[i]].push;
 					if(things[i]->current.aerial){
-						ths.push += (P[things[hitBy[i]]->ID-1]->current.aerial) ? s[hitBy[i]].blowback*5 : s[hitBy[i]].blowback;
+						parryHit.push += (P[things[hitBy[i]]->ID-1]->current.aerial) ? s[hitBy[i]].blowback*5 : s[hitBy[i]].blowback;
 					}
-					P[things[hitBy[i]]->ID-1]->takeHit(combo[i], ths);
+					P[things[hitBy[i]]->ID-1]->takeHit(combo[i], parryHit);
 					s[hitBy[i]].pause = 0;
 				}
 				if(s[hitBy[i]].stun) combo[(i+1)%2] += hit[hitBy[i]];
@@ -1471,10 +1469,10 @@ void interface::resolveHits()
 			if(!s[i].ghostHit) things[i]->momentum.push_back(residual);
 		}
 	}
-	if(connect[0] || connect[1]){
-		resolveCollision();
+/*	if(connect[0] || connect[1]){
+		//resolveCollision();
 	}
-
+*/
 	for(unsigned int i = 0; i < P.size(); i++) {
 		if(things[i]->current.meter[0] <= 0 && endTimer >= 5 * 60){ 
 			i = 2;
