@@ -664,7 +664,7 @@ void instance::step()
 		current.connect = 0;
 		current.hit = 0;
 	}
-	if(current.posX > 3400 || current.posX < -200) current.dead = true;
+	if(current.posX > 3400 || current.posX < -200 || current.posY < -50 || current.posY > 2000) current.age = pick()->lifespan - 120;
 	if(!current.freeze){ 
 		if(current.move->flip == current.frame) flip();
 		current.age++;
