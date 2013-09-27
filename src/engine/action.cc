@@ -28,6 +28,7 @@ void action::zero()
 	typeKey = '0';
 	frames = 0;
 	hits = 0;
+	unique = false;
 	collision.clear();
 	hitbox.clear();
 	hitreg.clear();
@@ -582,6 +583,9 @@ void action::parseProperties(string buffer, bool counter)
 			if(counter) CHStats[ch].stick = 1;
 			else stats[ch].stick = 1;
 			break;
+		case 'u':
+			if(!counter) unique = true;
+			break;
 		case 's':
 			if(!counter) stop += 1;
 			break;
@@ -680,6 +684,12 @@ bool action::check(const status &current)
 	if(requiredMode)
 		if(!(requiredMode & current.mode))
 			return 0;
+	if(unique){
+		for(instance *i:current.offspring){
+			if(i->pick() == payload) 
+				return 0;
+		}
+	}
 	if(cost && cost > current.meter[1])
 		return 0;
 	if(xRequisite > 0 && current.prox.w > xRequisite) 
